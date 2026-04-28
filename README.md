@@ -1,4 +1,4 @@
-# 🤖 SompoRisk AI
+# SompoRisk AI 🤖
 
 ## 📌 Enterprise Challenge - Sprint 1 - Sompo
 
