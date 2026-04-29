@@ -209,7 +209,7 @@ Sprint 5: protótipo
 
 ## 🎥 14. Vídeo
 
-(Adicionar link do vídeo aqui)
+[https://youtu.be/HASWFShZgFs](https://youtu.be/HASWFShZgFs)
 
 ## ⭐ 15. Diferenciais
 - IA explicável
