@@ -211,6 +211,12 @@ Sprint 5: protótipo
 
 [https://youtu.be/HASWFShZgFs](https://youtu.be/HASWFShZgFs)
 
+## 📝 Sobre o projeto
+Documentação detalhada das fases de desenvolvimento:
+
+- [Fases do Projeto (Funcionalidades)](./README-project.md)
+- [Documentações](./docs/README-DOCS.md)
+
 ## ⭐ 15. Diferenciais
 - IA explicável
 - alertas inteligentes
