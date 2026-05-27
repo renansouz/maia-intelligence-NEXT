@@ -31,7 +31,7 @@ Contém:
 
 Documentação sobre geração e tratamento de dados:
 
-- [Dataset do projeto (Documentação)](./docs/dataset/dataset_documentacao.md)
+- [Dataset do projeto (Documentação)](./dataset/dataset_documentacao.md)
 
 ```txt
 docs/dataset/
@@ -51,7 +51,7 @@ Contém:
 
 Documentação do backend Python:
 
-- [Backend do projeto (Documentação)](./docs/backend/backend_documentacao.md)
+- [Backend do projeto (Documentação)](./backend/backend_documentacao.md)
 
 ```txt
 docs/backend/
