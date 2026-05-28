@@ -1,8 +1,8 @@
 import random
 from pathlib import Path
-import pandas as pd
 
-from api_clima import buscar_coordenadas, buscar_clima_historico_intervalo
+import pandas as pd
+from api_clima import buscar_clima_historico_intervalo, buscar_coordenadas
 
 
 def classificar_risco(
@@ -37,10 +37,11 @@ def classificar_risco(
         return "alto"
     elif pontos >= 4:
         return "medio"
+
     return "baixo"
 
 
-def gerar_dataset(qtd=300):
+def gerar_dataset():
     cidades = [
         "São Paulo",
         "Campinas",
@@ -53,69 +54,66 @@ def gerar_dataset(qtd=300):
         "Taquaritinga"
     ]
 
-    cache_clima = {}
+    dados = []
+    contador = 1
 
     print("Baixando históricos climáticos...")
 
     for cidade in cidades:
+        print(f"Buscando dados de {cidade}...")
+
         coords = buscar_coordenadas(cidade)
 
-        if coords:
-            historico = buscar_clima_historico_intervalo(
-                coords["latitude"],
-                coords["longitude"]
-            )
-            cache_clima[cidade] = historico or []
-        else:
-            cache_clima[cidade] = []
+        if not coords:
+            print(f"Coordenadas não encontradas para {cidade}. Pulando cidade.")
+            continue
 
-    dados = []
+        historico = buscar_clima_historico_intervalo(
+            coords["latitude"],
+            coords["longitude"]
+        )
 
-    for i in range(1, qtd + 1):
-        cidade = random.choice(cidades)
+        if not historico:
+            print(f"Histórico climático não encontrado para {cidade}. Pulando cidade.")
+            continue
 
-        historico = cache_clima[cidade]
-
-        if historico:
-            clima = random.choice(historico)
+        for clima in historico:
             temperatura = clima["temperatura"]
             chuva_mm = clima["chuva_mm"]
             data_medicao = clima["data"]
-        else:
-            temperatura = 25.0
-            chuva_mm = random.uniform(0, 80)
-            data_medicao = None
 
-        umidade_solo = random.randint(20, 100)
-        velocidade_kmh = round(random.uniform(5, 30), 1)
-        proximidade_agua_m = random.randint(20, 1000)
-        inclinacao_graus = round(random.uniform(0, 30), 1)
-        tempo_uso_horas = random.randint(1, 12)
-        manutencao_dias = random.randint(1, 180)
+            umidade_solo = random.randint(20, 100)
+            velocidade_kmh = round(random.uniform(5, 30), 1)
+            proximidade_agua_m = random.randint(20, 1000)
+            inclinacao_graus = round(random.uniform(0, 30), 1)
+            tempo_uso_horas = random.randint(1, 12)
+            manutencao_dias = random.randint(1, 180)
 
-        risco = classificar_risco(
-            chuva_mm,
-            umidade_solo,
-            velocidade_kmh,
-            proximidade_agua_m,
-            inclinacao_graus,
-            manutencao_dias
-        )
+            risco = classificar_risco(
+                chuva_mm,
+                umidade_solo,
+                velocidade_kmh,
+                proximidade_agua_m,
+                inclinacao_graus,
+                manutencao_dias
+            )
 
-        dados.append({
-            "equipamento_id": f"EQUIP{i:03d}",
-            "cidade": cidade,
-            "data_medicao": data_medicao,
-            "temperatura": temperatura,
-            "chuva_mm": chuva_mm,
-            "umidade_solo": umidade_solo,
-            "velocidade_kmh": velocidade_kmh,
-            "proximidade_agua_m": proximidade_agua_m,
-            "inclinacao_graus": inclinacao_graus,
-            "tempo_uso_horas": tempo_uso_horas,
-            "manutencao_dias": manutencao_dias,
-            "risco": risco
-        })
+            dados.append({
+                "equipamento_id": f"EQUIP{contador:05d}",
+                "cidade": cidade,
+                "data_medicao": data_medicao,
+                "temperatura": temperatura,
+                "chuva_mm": chuva_mm,
+                "umidade_solo": umidade_solo,
+                "velocidade_kmh": velocidade_kmh,
+                "proximidade_agua_m": proximidade_agua_m,
+                "inclinacao_graus": inclinacao_graus,
+                "tempo_uso_horas": tempo_uso_horas,
+                "manutencao_dias": manutencao_dias,
+                "risco": risco
+            })
+
+            contador += 1
 
     return pd.DataFrame(dados)
 
@@ -124,7 +122,12 @@ if __name__ == "__main__":
     pasta_csv = Path("./csvs")
     pasta_csv.mkdir(exist_ok=True)
 
-    df = gerar_dataset(300)
+    df = gerar_dataset()
     df.to_csv(pasta_csv / "dataset_risco_agricola.csv", index=False)
 
+    print("Dataset criado com sucesso!")
+    print(f"Total de registros: {len(df)}")
     print(df.head())
+
+    print("\nDistribuição do risco:")
+    print(df["risco"].value_counts())

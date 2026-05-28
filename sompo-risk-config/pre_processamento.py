@@ -1,6 +1,6 @@
 from pathlib import Path
-import pandas as pd
 
+import pandas as pd
 
 CAMINHO_ENTRADA = Path("./csvs/dataset_risco_agricola.csv")
 CAMINHO_SAIDA = Path("./csvs/dataset_tratado.csv")
