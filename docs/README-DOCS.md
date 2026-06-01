@@ -27,6 +27,24 @@ Contém:
 
 ---
 
+## Projeto
+Documentação sobre geração e tratamento de dados:
+
+- [Projeto (Documentação)](./project/README-project.md)
+
+```txt
+docs/dataset/
+```
+
+Contém:
+
+- origem dos dados;
+- API Open-Meteo;
+- dataset híbrido;
+- regras de classificação inicial;
+- estrutura do CSV.
+
+
 ## Dataset
 
 Documentação sobre geração e tratamento de dados:

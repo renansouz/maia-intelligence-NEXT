@@ -214,7 +214,7 @@ Sprint 5: protótipo
 ## 📝 Sobre o projeto
 Documentação detalhada das fases de desenvolvimento:
 
-- [Fases do Projeto (Funcionalidades)](./README-project.md)
+- [Fases do Projeto (Funcionalidades)](./docs/project/README-project.md)
 - [Documentações](./docs/README-DOCS.md)
 
 ## ⭐ 15. Diferenciais

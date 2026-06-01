@@ -1,44 +1,38 @@
+import os
 import random
-from pathlib import Path
 
+import oracledb
 import pandas as pd
 from api_clima import buscar_clima_historico_intervalo, buscar_coordenadas
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-def classificar_risco(
-    chuva_mm,
-    umidade_solo,
-    velocidade_kmh,
-    proximidade_agua_m,
-    inclinacao_graus,
-    manutencao_dias
-):
-    pontos = 0
+def validar_env():
+    variaveis = [
+        "ORACLE_USER",
+        "ORACLE_PASSWORD",
+        "ORACLE_HOST",
+        "ORACLE_PORT",
+        "ORACLE_SERVICE"
+    ]
 
-    if chuva_mm > 30:
-        pontos += 2
+    for var in variaveis:
+        if not os.getenv(var):
+            raise ValueError(f"Variável de ambiente não encontrada: {var}")
 
-    if umidade_solo > 70:
-        pontos += 2
 
-    if velocidade_kmh > 18:
-        pontos += 2
+def conectar_oracle():
+    validar_env()
 
-    if proximidade_agua_m < 100:
-        pontos += 2
-
-    if inclinacao_graus > 15:
-        pontos += 2
-
-    if manutencao_dias > 90:
-        pontos += 2
-
-    if pontos >= 8:
-        return "alto"
-    elif pontos >= 4:
-        return "medio"
-
-    return "baixo"
+    return oracledb.connect(
+        user=os.getenv("ORACLE_USER"),
+        password=os.getenv("ORACLE_PASSWORD"),
+        host=os.getenv("ORACLE_HOST", "oracle.fiap.com.br"),
+        port=int(os.getenv("ORACLE_PORT", 1521)),
+        service_name=os.getenv("ORACLE_SERVICE", "ORCL")
+    )
 
 
 def gerar_dataset():
@@ -89,15 +83,6 @@ def gerar_dataset():
             tempo_uso_horas = random.randint(1, 12)
             manutencao_dias = random.randint(1, 180)
 
-            risco = classificar_risco(
-                chuva_mm,
-                umidade_solo,
-                velocidade_kmh,
-                proximidade_agua_m,
-                inclinacao_graus,
-                manutencao_dias
-            )
-
             dados.append({
                 "equipamento_id": f"EQUIP{contador:05d}",
                 "cidade": cidade,
@@ -110,7 +95,12 @@ def gerar_dataset():
                 "inclinacao_graus": inclinacao_graus,
                 "tempo_uso_horas": tempo_uso_horas,
                 "manutencao_dias": manutencao_dias,
-                "risco": risco
+                "indicador_chuva_alta": int(chuva_mm > 30),
+                "indicador_solo_umido": int(umidade_solo > 70),
+                "indicador_velocidade_alta": int(velocidade_kmh > 18),
+                "indicador_perto_agua": int(proximidade_agua_m < 100),
+                "indicador_inclinacao_alta": int(inclinacao_graus > 15),
+                "indicador_manutencao_atrasada": int(manutencao_dias > 90)
             })
 
             contador += 1
@@ -118,16 +108,100 @@ def gerar_dataset():
     return pd.DataFrame(dados)
 
 
+def inserir_no_banco(df):
+    conn = conectar_oracle()
+    cursor = conn.cursor()
+
+    sql = """
+        INSERT INTO TB_RISCO_AGRICOLA (
+            EQUIPAMENTO_ID,
+            CIDADE,
+            DATA_MEDICAO,
+            TEMPERATURA,
+            CHUVA_MM,
+            UMIDADE_SOLO,
+            VELOCIDADE_KMH,
+            PROXIMIDADE_AGUA_M,
+            INCLINACAO_GRAUS,
+            TEMPO_USO_HORAS,
+            MANUTENCAO_DIAS,
+            INDICADOR_CHUVA_ALTA,
+            INDICADOR_SOLO_UMIDO,
+            INDICADOR_VELOCIDADE_ALTA,
+            INDICADOR_PERTO_AGUA,
+            INDICADOR_INCLINACAO_ALTA,
+            INDICADOR_MANUTENCAO_ATRASADA
+        )
+        VALUES (
+            :1,
+            :2,
+            TO_DATE(:3, 'YYYY-MM-DD'),
+            :4,
+            :5,
+            :6,
+            :7,
+            :8,
+            :9,
+            :10,
+            :11,
+            :12,
+            :13,
+            :14,
+            :15,
+            :16,
+            :17
+        )
+    """
+
+    dados_insert = [
+        (
+            row["equipamento_id"],
+            row["cidade"],
+            row["data_medicao"],
+            row["temperatura"],
+            row["chuva_mm"],
+            row["umidade_solo"],
+            row["velocidade_kmh"],
+            row["proximidade_agua_m"],
+            row["inclinacao_graus"],
+            row["tempo_uso_horas"],
+            row["manutencao_dias"],
+            row["indicador_chuva_alta"],
+            row["indicador_solo_umido"],
+            row["indicador_velocidade_alta"],
+            row["indicador_perto_agua"],
+            row["indicador_inclinacao_alta"],
+            row["indicador_manutencao_atrasada"]
+        )
+        for _, row in df.iterrows()
+    ]
+
+    try:
+        cursor.executemany(sql, dados_insert)
+        conn.commit()
+
+        print("\nDados inseridos com sucesso no Oracle!")
+        print(f"Total de registros inseridos: {len(df)}")
+
+    except Exception as erro:
+        conn.rollback()
+        print(f"Erro ao inserir dados no banco: {erro}")
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
 if __name__ == "__main__":
-    pasta_csv = Path("./csvs")
-    pasta_csv.mkdir(exist_ok=True)
+    try:
+        df = gerar_dataset()
 
-    df = gerar_dataset()
-    df.to_csv(pasta_csv / "dataset_risco_agricola.csv", index=False)
+        print("\nDataset criado com sucesso!")
+        print(f"Total de registros gerados: {len(df)}")
+        print("\nPrimeiros registros:")
+        print(df.head())
 
-    print("Dataset criado com sucesso!")
-    print(f"Total de registros: {len(df)}")
-    print(df.head())
+        inserir_no_banco(df)
 
-    print("\nDistribuição do risco:")
-    print(df["risco"].value_counts())
+    except Exception as erro:
+        print(f"Erro geral na execução: {erro}")
