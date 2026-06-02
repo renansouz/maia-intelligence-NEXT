@@ -4,13 +4,13 @@
 
 Esta pasta centraliza toda a documentação técnica e evolutiva do projeto **SompoRisk AI**.
 
-O objetivo é manter histórico técnico, decisões arquiteturais e explicações detalhadas sobre cada módulo.
+O objetivo é manter histórico técnico, decisões arquiteturais, documentação dos módulos e evolução das funcionalidades ao longo das versões do projeto.
 
 ---
 
-# Estrutura da documentação
+# 📂 Estrutura da Documentação
 
-## Arquitetura
+## 🏗 Arquitetura
 
 Documentação da arquitetura geral do sistema:
 
@@ -20,17 +20,41 @@ docs/arquitetura/
 
 Contém:
 
-- definição do problema;
-- escopo;
-- arquitetura macro;
-- tecnologias;
+* definição do problema;
+* objetivo da solução;
+* escopo do projeto;
+* arquitetura macro;
+* tecnologias utilizadas;
+* integração entre módulos.
 
 ---
 
-## Projeto
-Documentação sobre geração e tratamento de dados:
+## 🚜 Projeto
 
-- [Projeto (Documentação)](./project/README-project.md)
+Documentação geral do funcionamento do projeto:
+
+* [Projeto (Documentação)](./project/README-project.md)
+
+```txt
+docs/project/
+```
+
+Contém:
+
+* visão geral;
+* fluxo completo;
+* manual de execução;
+* regras de negócio;
+* integração entre módulos;
+* roadmap do projeto.
+
+---
+
+## 📊 Dataset
+
+Documentação da geração e tratamento dos dados:
+
+* [Dataset do Projeto](./dataset/dataset_documentacao.md)
 
 ```txt
 docs/dataset/
@@ -38,38 +62,21 @@ docs/dataset/
 
 Contém:
 
-- origem dos dados;
-- API Open-Meteo;
-- dataset híbrido;
-- regras de classificação inicial;
-- estrutura do CSV.
-
-
-## Dataset
-
-Documentação sobre geração e tratamento de dados:
-
-- [Dataset do projeto (Documentação)](./dataset/dataset_documentacao.md)
-
-```txt
-docs/dataset/
-```
-
-Contém:
-
-- origem dos dados;
-- API Open-Meteo;
-- dataset híbrido;
-- regras de classificação inicial;
-- estrutura do CSV.
+* origem dos dados;
+* integração Open-Meteo;
+* geração dos registros;
+* indicadores operacionais;
+* estrutura do banco;
+* estrutura das tabelas;
+* preparação dos dados para IA.
 
 ---
 
-## Backend
+## ⚙ Backend
 
 Documentação do backend Python:
 
-- [Backend do projeto (Documentação)](./backend/backend_documentacao.md)
+* [Backend do Projeto](./backend/backend_documentacao.md)
 
 ```txt
 docs/backend/
@@ -77,37 +84,43 @@ docs/backend/
 
 Contém:
 
-- api_clima.py
-- gerar_dataset.py
-- pre_processamento.py
-- fluxo de execução
-- tratamento de erros
+* api_clima.py;
+* gerar_dataset.py;
+* pre_processamento.py;
+* integração Oracle;
+* fluxo de execução;
+* tratamento de erros;
+* persistência dos dados.
 
 ---
 
-## Machine Learning
+## 🤖 Machine Learning
 
-Documentação do pipeline de IA:
+Documentação do pipeline de Inteligência Artificial:
+
+* [Machine Learning](./ml/ml_documentacao.md)
 
 ```txt
-docs/machine-learning/
+docs/ml/
 ```
 
 Contém:
 
-- preparação dos dados;
-- split treino/teste;
-- encoding;
-- normalização;
-- modelos;
-- métricas;
-- resultados.
+* engenharia de features;
+* criação da variável alvo;
+* preparação dos dados;
+* treinamento do modelo;
+* árvore de decisão;
+* avaliação de métricas;
+* persistência do modelo;
+* previsão de novos riscos;
+* evolução futura do modelo.
 
 ---
 
-## Dashboard
+## 📈 Dashboard
 
-Documentação da interface visual:
+Documentação da futura interface visual:
 
 ```txt
 docs/dashboard/
@@ -115,17 +128,18 @@ docs/dashboard/
 
 Contém:
 
-- arquitetura visual;
-- dashboards;
-- indicadores;
-- gráficos;
-- alertas.
+* arquitetura visual;
+* indicadores;
+* gráficos;
+* alertas;
+* monitoramento operacional;
+* visualização das previsões do modelo.
 
 ---
 
-## Assets
+## 🖼 Assets
 
-Arquivos visuais:
+Arquivos visuais e materiais auxiliares:
 
 ```txt
 docs/assets/
@@ -133,38 +147,128 @@ docs/assets/
 
 Contém:
 
-- diagramas;
-- prints;
-- screenshots;
-- imagens auxiliares.
+* diagramas;
+* fluxogramas;
+* screenshots;
+* imagens;
+* apresentações;
+* materiais de apoio.
 
 ---
 
-# Estado atual
+# 🔄 Fluxo Geral da Solução
 
-## Concluído
-
-✅ arquitetura inicial  
-✅ dataset híbrido  
-✅ integração Open-Meteo  
-✅ geração de dataset  
-✅ pré-processamento  
+```txt
+Open-Meteo API
+        ↓
+api_clima.py
+        ↓
+gerar_dataset.py
+        ↓
+TB_RISCO_AGRICOLA
+        ↓
+pre_processamento.py
+        ↓
+TB_RISCO_AGRICOLA_TRATADO
+        ↓
+preparar_features.py
+        ↓
+treinar_arvore.py
+        ↓
+arvore_decisao.pkl
+        ↓
+prever_risco.py
+        ↓
+Dashboard
+```
 
 ---
 
-## Em andamento
+# 📌 Estado Atual do Projeto
 
-🔄 Machine Learning  
-🔄 Dashboard  
+## ✅ Concluído
+
+* arquitetura inicial;
+* definição do escopo;
+* integração Open-Meteo;
+* geração do dataset;
+* integração Oracle Database;
+* criação de indicadores binários;
+* pré-processamento dos dados;
+* engenharia de features;
+* treinamento da Árvore de Decisão;
+* persistência do modelo treinado;
+* documentação técnica.
 
 ---
 
-# Objetivo final
+## 🔄 Em Desenvolvimento
 
-Construir uma plataforma inteligente para previsão de riscos agrícolas com:
+* integração do modelo ao dashboard;
+* visualização das previsões;
+* ranking de risco;
+* relatórios operacionais;
+* monitoramento em tempo real.
 
-- IA;
-- dados reais;
-- score de risco;
-- alertas preventivos;
-- dashboard visual.
+---
+
+## 🚀 Próximas Evoluções
+
+### Machine Learning
+
+* validação cruzada;
+* ajuste de hiperparâmetros;
+* comparação entre modelos;
+* utilização de dados reais de sinistros;
+* melhoria da variável alvo.
+
+### Banco de Dados
+
+* tabela de previsões;
+* histórico de inferências;
+* versionamento dos modelos.
+
+### Dashboard
+
+* gráficos interativos;
+* indicadores operacionais;
+* mapas de risco;
+* acompanhamento temporal.
+
+### API
+
+* endpoint de previsão;
+* integração externa;
+* autenticação.
+
+---
+
+# 🎯 Objetivo Final
+
+Construir uma plataforma inteligente capaz de:
+
+* identificar riscos operacionais;
+* prever cenários críticos;
+* apoiar decisões preventivas;
+* reduzir falhas e perdas operacionais;
+* gerar alertas automáticos;
+* fornecer análises estratégicas baseadas em dados e Inteligência Artificial.
+
+---
+
+# 📦 Versão Atual
+
+```txt
+v2.1.0
+```
+
+Principais entregas desta versão:
+
+* Oracle Database integrado;
+* Dataset híbrido com Open-Meteo;
+* Indicadores binários;
+* Pré-processamento estruturado;
+* Pipeline de Machine Learning;
+* Árvore de Decisão treinável;
+* Sistema de previsão de risco;
+* Documentação completa.

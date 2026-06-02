@@ -6,18 +6,20 @@ Este documento descreve a camada backend atual do projeto **SompoRisk AI**.
 
 O backend é responsável por:
 
-- coletar dados climáticos históricos reais via API Open-Meteo;
-- gerar dados operacionais simulados;
-- criar indicadores binários para futura etapa de Machine Learning;
-- persistir dados brutos no banco Oracle;
-- realizar limpeza e padronização dos dados;
-- salvar dados tratados em uma tabela específica para uso no modelo de IA.
+* coletar dados climáticos históricos reais via API Open-Meteo;
+* gerar dados operacionais simulados;
+* criar indicadores binários para Machine Learning;
+* persistir dados no Oracle Database;
+* realizar limpeza e padronização dos dados;
+* preparar os dados para treinamento do modelo;
+* treinar modelos de Machine Learning;
+* realizar previsões de risco operacional.
 
-Nesta etapa, o backend ainda opera em modo batch, ou seja, com execução manual dos scripts. Porém, a estrutura já foi pensada para evoluir futuramente para automação, API própria e dashboard.
+Nesta versão, o projeto já possui um pipeline completo de dados, desde a coleta climática até a geração de previsões através de Inteligência Artificial.
 
 ---
 
-# 🏗 Arquitetura backend
+# 🏗 Arquitetura Backend
 
 Fluxo atual:
 
@@ -28,15 +30,19 @@ api_clima.py
       ↓
 gerar_dataset.py
       ↓
-Oracle Database
 TB_RISCO_AGRICOLA
       ↓
 pre_processamento.py
       ↓
-Oracle Database
 TB_RISCO_AGRICOLA_TRATADO
       ↓
-Machine Learning
+preparar_features.py
+      ↓
+treinar_arvore.py
+      ↓
+arvore_decisao.pkl
+      ↓
+prever_risco.py
       ↓
 Dashboard
 ```
@@ -50,12 +56,17 @@ sompo-risk-config/
 │
 ├── api_clima.py
 ├── gerar_dataset.py
-└── pre_processamento.py
+├── pre_processamento.py
+│
+└── machine_learning/
+    ├── preparar_features.py
+    ├── treinar_arvore.py
+    └── prever_risco.py
 ```
 
 ---
 
-# 🛠 Stack utilizada
+# 🛠 Stack Utilizada
 
 ## Linguagem
 
@@ -63,22 +74,24 @@ sompo-risk-config/
 Python 3.x
 ```
 
-## Bibliotecas principais
+## Bibliotecas Principais
 
 ```txt
 requests
 pandas
 oracledb
 python-dotenv
-random
+scikit-learn
+joblib
+numpy
 datetime
 ```
 
 ---
 
-# 🔐 Variáveis de ambiente
+# 🔐 Variáveis de Ambiente
 
-As credenciais do banco Oracle ficam em um arquivo `.env`, que não deve ser enviado para o GitHub.
+As credenciais do Oracle são armazenadas em um arquivo `.env`.
 
 Exemplo:
 
@@ -90,7 +103,7 @@ ORACLE_PORT=1521
 ORACLE_SERVICE=ORCL
 ```
 
-O arquivo `.env` deve estar listado no `.gitignore`.
+O arquivo `.env` deve permanecer no `.gitignore`.
 
 ---
 
@@ -98,25 +111,25 @@ O arquivo `.env` deve estar listado no `.gitignore`.
 
 ## Responsabilidade
 
-O arquivo `api_clima.py` é responsável pela comunicação com a API pública **Open-Meteo**.
+Responsável pela comunicação com a API pública Open-Meteo.
 
-Ele atua como uma camada de acesso externo, separando a lógica de coleta climática do restante da aplicação.
+Esse módulo realiza a obtenção dos dados climáticos históricos utilizados no projeto.
 
 ---
 
-## Funções principais
+## Funções Principais
 
 ### buscar_coordenadas(cidade)
 
-Converte o nome da cidade em latitude e longitude.
+Converte uma cidade em latitude e longitude.
 
-Entrada:
+Exemplo:
 
 ```python
-cidade = "São Paulo"
+buscar_coordenadas("São Paulo")
 ```
 
-Saída esperada:
+Retorno:
 
 ```python
 {
@@ -129,15 +142,13 @@ Saída esperada:
 
 ### buscar_clima_historico_intervalo(latitude, longitude)
 
-Busca dados climáticos históricos de uma localidade.
-
-Consulta:
+Busca dados históricos entre:
 
 ```txt
-01/01/2024 até a data atual do sistema
+01/01/2024 até a data atual
 ```
 
-Retorno esperado:
+Retornando:
 
 ```python
 [
@@ -151,16 +162,12 @@ Retorno esperado:
 
 ---
 
-## Papel no sistema
+## Benefícios
 
-Esse módulo funciona como um gateway entre a aplicação e a API externa.
-
-Benefícios:
-
-- facilita manutenção;
-- permite trocar a API futuramente;
-- melhora a organização do projeto;
-- facilita testes e simulações.
+* separação de responsabilidades;
+* facilidade de manutenção;
+* facilidade de troca da API futuramente;
+* reutilização em outros módulos.
 
 ---
 
@@ -168,68 +175,21 @@ Benefícios:
 
 ## Responsabilidade
 
-O arquivo `gerar_dataset.py` constrói o dataset bruto do projeto e insere os dados na tabela Oracle:
+Construir a base de dados operacional do projeto e persistir os dados no Oracle Database.
+
+Tabela de destino:
 
 ```txt
 TB_RISCO_AGRICOLA
 ```
 
-Esse módulo combina:
-
-- dados climáticos reais;
-- dados operacionais simulados;
-- indicadores binários para Machine Learning;
-- persistência em banco Oracle.
-
 ---
 
-# Fluxo interno
+## Dados Utilizados
 
-## 1. Seleção de cidades
+### Dados Reais
 
-Lista atual:
-
-```txt
-São Paulo
-Campinas
-Ribeirão Preto
-Sorocaba
-Piracicaba
-Araraquara
-São José dos Campos
-Ribeirão Pires
-Taquaritinga
-```
-
----
-
-## 2. Busca climática histórica
-
-Para cada cidade, o sistema executa:
-
-```txt
-buscar coordenadas
-      ↓
-buscar histórico climático
-      ↓
-percorrer registros históricos
-      ↓
-gerar dados operacionais simulados
-      ↓
-inserir no Oracle
-```
-
-O histórico climático é obtido desde:
-
-```txt
-01/01/2024 até a data atual do sistema
-```
-
----
-
-## 3. Dados reais utilizados
-
-Os dados reais vêm da API Open-Meteo:
+Obtidos pela Open-Meteo:
 
 ```txt
 data_medicao
@@ -239,9 +199,7 @@ chuva_mm
 
 ---
 
-## 4. Dados simulados
-
-Como ainda não há sensores físicos conectados, algumas variáveis são simuladas:
+### Dados Simulados
 
 ```txt
 umidade_solo
@@ -252,24 +210,11 @@ tempo_uso_horas
 manutencao_dias
 ```
 
-Essas variáveis simulam condições operacionais de uma máquina agrícola.
-
 ---
 
-## 5. Indicadores binários
+## Indicadores Binários
 
-Nesta versão, o sistema não gera mais uma classificação final de risco.
-
-Em vez disso, são criados indicadores binários que serão usados futuramente pelo modelo de Machine Learning.
-
-Os indicadores têm valores:
-
-```txt
-0 = condição não presente
-1 = condição presente
-```
-
-Indicadores gerados:
+São criados indicadores auxiliares para uso no Machine Learning:
 
 ```txt
 indicador_chuva_alta
@@ -280,40 +225,22 @@ indicador_inclinacao_alta
 indicador_manutencao_atrasada
 ```
 
-Exemplos:
-
-```python
-indicador_chuva_alta = int(chuva_mm > 30)
-indicador_solo_umido = int(umidade_solo > 70)
-indicador_velocidade_alta = int(velocidade_kmh > 18)
-```
-
----
-
-## Por que usar indicadores?
-
-Os indicadores ajudam o modelo de Machine Learning a enxergar eventos importantes de forma mais clara.
-
-Eles não definem o risco final. Eles apenas representam sinais que podem influenciar a previsão futura do modelo.
-
-Assim, o ML poderá aprender padrões a partir da combinação entre:
-
-- dados brutos;
-- dados climáticos reais;
-- dados operacionais simulados;
-- indicadores auxiliares.
-
----
-
-## Saída
-
-Tabela de destino:
+Valores possíveis:
 
 ```txt
-TB_RISCO_AGRICOLA
+0 = condição ausente
+1 = condição presente
 ```
 
-Essa tabela representa os dados brutos do projeto.
+---
+
+## Objetivo dos Indicadores
+
+Os indicadores ajudam o modelo a identificar eventos importantes de forma mais clara.
+
+Eles não representam o risco final.
+
+O objetivo é fornecer sinais adicionais para que a Inteligência Artificial aprenda padrões operacionais.
 
 ---
 
@@ -321,25 +248,7 @@ Essa tabela representa os dados brutos do projeto.
 
 ## Responsabilidade
 
-O arquivo `pre_processamento.py` prepara os dados para a etapa de Machine Learning.
-
-Ele lê os dados da tabela bruta:
-
-```txt
-TB_RISCO_AGRICOLA
-```
-
-aplica limpeza, validação e padronização, e salva o resultado na tabela tratada:
-
-```txt
-TB_RISCO_AGRICOLA_TRATADO
-```
-
----
-
-# Etapas do pré-processamento
-
-## 1. Leitura do banco
+Preparar os dados para o treinamento dos modelos.
 
 Entrada:
 
@@ -347,63 +256,108 @@ Entrada:
 TB_RISCO_AGRICOLA
 ```
 
----
-
-## 2. Padronização de colunas
-
-As colunas vindas do Oracle são convertidas para letras minúsculas para facilitar o uso no Pandas.
-
-Exemplo:
+Saída:
 
 ```txt
-TEMPERATURA → temperatura
-CHUVA_MM → chuva_mm
+TB_RISCO_AGRICOLA_TRATADO
 ```
 
 ---
 
-## 3. Limpeza de dados
+## Etapas Executadas
+
+### Limpeza
 
 Remove:
 
-- registros duplicados;
-- valores ausentes;
-- dados inválidos;
-- registros corrompidos.
+* duplicidades;
+* registros inválidos;
+* valores ausentes.
 
 ---
 
-## 4. Padronização textual
+### Padronização
 
-Normaliza textos como cidade.
-
-Exemplo:
+Padroniza:
 
 ```txt
-são paulo → São Paulo
+cidade
+data_medicao
+tipos numéricos
 ```
 
 ---
 
-## 5. Conversão de datas
+### Conversões
 
-Converte a coluna `data_medicao` para formato de data.
-
-```python
-pd.to_datetime(df["data_medicao"], errors="coerce")
-```
-
----
-
-## 6. Conversão numérica
-
-Converte colunas numéricas com:
+Utiliza:
 
 ```python
 pd.to_numeric()
+pd.to_datetime()
 ```
 
-Colunas tratadas:
+---
+
+### Regras de Sanidade
+
+Exemplos:
+
+```txt
+temperatura entre -10 e 60
+chuva entre 0 e 300
+umidade_solo entre 0 e 100
+velocidade entre 0 e 100
+tempo_uso_horas entre 0 e 24
+manutencao_dias entre 0 e 365
+```
+
+---
+
+## Resultado
+
+Geração da tabela:
+
+```txt
+TB_RISCO_AGRICOLA_TRATADO
+```
+
+Base oficial para treinamento dos modelos.
+
+---
+
+# 4️⃣ Machine Learning
+
+## Objetivo
+
+Prever riscos operacionais utilizando Inteligência Artificial.
+
+---
+
+## Modelo Atual
+
+```txt
+DecisionTreeClassifier
+(Árvore de Decisão)
+```
+
+A escolha foi realizada pela simplicidade de interpretação e facilidade de explicação das decisões do modelo.
+
+---
+
+# preparar_features.py
+
+Responsável por:
+
+* carregar dados tratados;
+* criar atributos temporais;
+* preparar features;
+* criar variável alvo;
+* separar X e y.
+
+---
+
+## Features Utilizadas
 
 ```txt
 temperatura
@@ -414,84 +368,91 @@ proximidade_agua_m
 inclinacao_graus
 tempo_uso_horas
 manutencao_dias
+
 indicador_chuva_alta
 indicador_solo_umido
 indicador_velocidade_alta
 indicador_perto_agua
 indicador_inclinacao_alta
 indicador_manutencao_atrasada
+
+ano
+mes
+dia
+dia_semana
 ```
 
 ---
 
-## 7. Regras de sanidade
+# treinar_arvore.py
 
-Remove valores fora da realidade.
+Responsável por:
 
-Exemplos:
+* divisão treino/teste;
+* treinamento do modelo;
+* cálculo de métricas;
+* persistência do modelo.
+
+Arquivos gerados:
 
 ```txt
-temperatura entre -10 e 60
-chuva entre 0 e 300
-umidade_solo entre 0 e 100
-velocidade entre 0 e 100
-proximidade_agua entre 0 e 5000
-inclinação entre 0 e 90
-tempo_uso entre 0 e 24
-manutenção entre 0 e 365
+models/arvore_decisao.pkl
+models/features.pkl
 ```
 
 ---
 
-## 8. Salvamento no banco
+# prever_risco.py
 
-Saída:
+Responsável por:
 
-```txt
-TB_RISCO_AGRICOLA_TRATADO
+* carregar modelo treinado;
+* receber novos dados;
+* realizar previsões;
+* retornar probabilidades.
+
+Exemplo:
+
+```json
+{
+  "risco_previsto": "alto",
+  "probabilidade": 0.87
+}
 ```
-
-Essa tabela será usada como base para o treinamento do modelo de Machine Learning.
 
 ---
 
 # 🗄 Banco de Dados
 
-O projeto utiliza **Oracle Database** como camada de persistência.
+O projeto utiliza Oracle Database.
 
-## Tabelas principais
+---
+
+## Tabelas Principais
 
 ### TB_RISCO_AGRICOLA
 
-Tabela bruta.
+Armazena:
 
-Armazena os dados gerados pelo `gerar_dataset.py`.
-
-Contém:
-
-- dados climáticos reais;
-- dados operacionais simulados;
-- indicadores binários.
+* dados climáticos reais;
+* dados simulados;
+* indicadores binários.
 
 ---
 
 ### TB_RISCO_AGRICOLA_TRATADO
 
-Tabela tratada.
+Armazena:
 
-Armazena os dados limpos e validados pelo `pre_processamento.py`.
-
-Será usada como base para:
-
-- Machine Learning;
-- análises;
-- dashboard.
+* dados limpos;
+* dados padronizados;
+* dados preparados para IA.
 
 ---
 
 # ▶ Execução
 
-## 1. Instalar dependências
+## Instalar Dependências
 
 ```bash
 pip install -r requirements.txt
@@ -499,13 +460,7 @@ pip install -r requirements.txt
 
 ---
 
-## 2. Configurar `.env`
-
-Criar o arquivo `.env` na raiz do projeto com as credenciais do Oracle.
-
----
-
-## 3. Gerar dados brutos
+## Gerar Dataset
 
 ```bash
 python sompo-risk-config/gerar_dataset.py
@@ -513,7 +468,7 @@ python sompo-risk-config/gerar_dataset.py
 
 ---
 
-## 4. Executar pré-processamento
+## Executar Pré-processamento
 
 ```bash
 python sompo-risk-config/pre_processamento.py
@@ -521,17 +476,41 @@ python sompo-risk-config/pre_processamento.py
 
 ---
 
-# ⚠ Tratamento de erros
+## Preparar Features
+
+```bash
+python sompo-risk-config/machine_learning/preparar_features.py
+```
+
+---
+
+## Treinar Modelo
+
+```bash
+python sompo-risk-config/machine_learning/treinar_arvore.py
+```
+
+---
+
+## Executar Previsões
+
+```bash
+python sompo-risk-config/machine_learning/prever_risco.py
+```
+
+---
+
+# ⚠ Tratamento de Erros
 
 ## API indisponível
 
 Possíveis causas:
 
-- sem internet;
-- timeout;
-- indisponibilidade da Open-Meteo.
+* timeout;
+* indisponibilidade da Open-Meteo;
+* ausência de internet.
 
-Mitigações futuras:
+Melhorias futuras:
 
 ```txt
 retry automático
@@ -541,24 +520,17 @@ fallback local
 
 ---
 
-## Erro de conexão Oracle
+## Oracle indisponível
 
 Possíveis causas:
 
-- credenciais incorretas;
-- `.env` ausente;
-- host ou service name incorretos;
-- indisponibilidade do banco.
-
-Solução:
-
-- conferir variáveis de ambiente;
-- verificar conexão com a internet;
-- validar usuário e senha.
+* credenciais incorretas;
+* .env ausente;
+* indisponibilidade do banco.
 
 ---
 
-## Tabela inexistente
+## Tabelas inexistentes
 
 Erro comum:
 
@@ -568,71 +540,54 @@ ORA-00942: table or view does not exist
 
 Solução:
 
-- criar as tabelas no Oracle;
-- verificar se o nome está correto;
-- conferir permissões do usuário.
+* verificar existência da tabela;
+* validar permissões.
 
 ---
 
-## Dados inválidos
+# Limitações Atuais
 
-Tratamento aplicado:
+✅ Oracle integrado
+✅ Open-Meteo integrado
+✅ Indicadores binários
+✅ Pré-processamento estruturado
+✅ Machine Learning implementado
+✅ Árvore de Decisão treinável
 
-```txt
-drop_duplicates
-dropna
-pd.to_numeric
-pd.to_datetime
-filtros de faixa
-```
+Ainda não possui:
 
----
-
-# Limitações atuais
-
-Nesta fase:
-
-✅ banco Oracle integrado  
-✅ dados climáticos reais  
-✅ indicadores binários  
-✅ pipeline batch funcional  
-
-Ainda não há:
-
-❌ API REST própria  
-❌ autenticação de usuários  
-❌ filas de processamento  
-❌ execução automática  
-❌ logs estruturados  
-❌ modelo de Machine Learning treinado  
-❌ dashboard final  
+❌ Dashboard final
+❌ API REST própria
+❌ Processamento em tempo real
+❌ Autenticação de usuários
 
 ---
 
-# Evolução planejada
+# Evolução Planejada
 
 ## Machine Learning
 
-Próxima etapa:
+Próximas melhorias:
 
-- carregar dados da `TB_RISCO_AGRICOLA_TRATADO`;
-- definir variável alvo;
-- treinar modelo;
-- avaliar métricas;
-- prever riscos operacionais.
+* validação cruzada;
+* ajuste de hiperparâmetros;
+* comparação com Random Forest;
+* comparação com XGBoost;
+* explicabilidade do modelo;
+* treinamento com dados reais de sinistros.
 
 ---
 
-## API própria
+## API
 
-Possíveis tecnologias:
+Tecnologias candidatas:
 
 ```txt
 FastAPI
 Flask
 ```
 
-Possíveis rotas futuras:
+Possíveis rotas:
 
 ```txt
 POST /prever-risco
@@ -644,35 +599,35 @@ GET /dashboard
 
 ## Dashboard
 
-Futuro:
+Planejado:
 
-- visualização de indicadores;
-- gráficos;
-- filtros por cidade;
-- análise temporal;
-- alertas operacionais.
+* gráficos;
+* filtros;
+* ranking de risco;
+* monitoramento operacional;
+* indicadores em tempo real.
 
 ---
 
-## Tempo real
+# 📌 Resumo
 
-Futuro:
+O backend atual fornece toda a base operacional da solução:
+
+✅ integração com Open-Meteo
+✅ geração de dataset climático-operacional
+✅ indicadores binários
+✅ Oracle Database
+✅ pré-processamento estruturado
+✅ engenharia de features
+✅ treinamento de Árvore de Decisão
+✅ previsão de risco operacional
+✅ persistência de modelos
+✅ base preparada para dashboard
+
+---
+
+## 📦 Versão Atual
 
 ```txt
-ESP32
-MQTT
-WebSocket
+v2.1.0
 ```
-
----
-
-# Resumo
-
-O backend atual fornece a base operacional do projeto:
-
-✅ integração com Open-Meteo  
-✅ geração de dataset climático-operacional  
-✅ indicadores binários para IA  
-✅ integração com Oracle Database  
-✅ pipeline de limpeza e validação  
-✅ dados preparados para Machine Learning

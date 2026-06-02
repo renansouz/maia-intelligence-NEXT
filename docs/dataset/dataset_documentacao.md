@@ -2,56 +2,56 @@
 
 ## Objetivo
 
-Este documento descreve a estrutura, origem, tratamento e uso do dataset do projeto **SompoRisk AI**.
+Este documento descreve a estrutura, origem, tratamento e utilização do dataset do projeto **SompoRisk AI**.
 
-O dataset tem como objetivo reunir informações climáticas e operacionais relacionadas a operações agrícolas, servindo como base para análises futuras e para o treinamento de modelos de Machine Learning.
+O dataset reúne informações climáticas históricas e dados operacionais relacionados a operações agrícolas, servindo como base para análises, treinamento de modelos de Machine Learning e previsões de risco operacional.
 
-Nesta nova abordagem, o dataset **não possui mais classificação manual de risco** nem cálculo de score por regra fixa. A previsão de risco será responsabilidade da etapa de Machine Learning.
-
----
-
-# Tipo de dataset
-
-O projeto utiliza um **dataset híbrido**.
-
-Ou seja, ele combina:
-
-## Dados climáticos reais
-
-Obtidos por meio da API pública **Open-Meteo**:
-
-- temperatura média diária;
-- precipitação diária;
-- data da medição;
-- localização geográfica da cidade.
-
-## Dados operacionais simulados
-
-Gerados via Python para representar condições de operação agrícola:
-
-- umidade do solo;
-- velocidade da máquina;
-- proximidade de água;
-- inclinação do terreno;
-- tempo de uso;
-- dias desde a última manutenção.
+Nesta versão do projeto, o dataset não possui mais classificação manual de risco nem score calculado por regras fixas. A identificação dos riscos é realizada pelo modelo de Machine Learning.
 
 ---
 
-# Justificativa da abordagem
+# 📌 Tipo de Dataset
 
-Nesta etapa da prova de conceito, ainda não há sensores físicos reais conectados ao sistema.
+O projeto utiliza um **dataset híbrido**, combinando:
 
-Por isso, foi adotada uma abordagem híbrida:
+## 🌦 Dados Climáticos Reais
 
-- dados climáticos reais aumentam o realismo do dataset;
-- dados operacionais simulados permitem criar cenários controlados;
-- indicadores binários ajudam o futuro modelo de Machine Learning a identificar condições importantes;
-- o banco Oracle permite persistir os dados para consulta, tratamento e modelagem.
+Obtidos através da API pública Open-Meteo:
+
+* temperatura média diária;
+* precipitação diária;
+* data da medição;
+* localização geográfica.
 
 ---
 
-# Fluxo atual do dataset
+## 🚜 Dados Operacionais Simulados
+
+Gerados via Python para representar cenários agrícolas:
+
+* umidade do solo;
+* velocidade da máquina;
+* proximidade de água;
+* inclinação do terreno;
+* tempo de uso;
+* dias desde a última manutenção.
+
+---
+
+# 🎯 Justificativa da Abordagem
+
+Nesta etapa da prova de conceito não existem sensores físicos conectados ao sistema.
+
+Por esse motivo foi adotada uma abordagem híbrida:
+
+* dados climáticos reais aumentam o realismo da solução;
+* dados operacionais simulados permitem testar cenários;
+* indicadores binários ajudam o modelo a identificar condições críticas;
+* Oracle Database garante persistência dos dados.
+
+---
+
+# 🔄 Fluxo Atual do Dataset
 
 ```txt
 Open-Meteo API
@@ -60,29 +60,31 @@ api_clima.py
       ↓
 gerar_dataset.py
       ↓
-Oracle Database
 TB_RISCO_AGRICOLA
       ↓
 pre_processamento.py
       ↓
-Oracle Database
 TB_RISCO_AGRICOLA_TRATADO
+      ↓
+preparar_features.py
+      ↓
+treinar_arvore.py
       ↓
 Machine Learning
 ```
 
 ---
 
-# Arquivos envolvidos
+# 📁 Arquivos Envolvidos
 
 ## api_clima.py
 
 Responsável por:
 
-- buscar coordenadas geográficas da cidade;
-- consultar a API Open-Meteo;
-- retornar histórico climático;
-- fornecer dados climáticos reais para geração do dataset.
+* buscar coordenadas geográficas;
+* consultar Open-Meteo;
+* obter histórico climático;
+* fornecer dados climáticos reais.
 
 ---
 
@@ -90,13 +92,13 @@ Responsável por:
 
 Responsável por:
 
-- percorrer as cidades cadastradas;
-- buscar histórico climático real;
-- gerar variáveis operacionais simuladas;
-- criar indicadores binários;
-- inserir os dados brutos no banco Oracle.
+* percorrer as cidades cadastradas;
+* buscar histórico climático;
+* gerar variáveis operacionais;
+* criar indicadores binários;
+* armazenar dados no Oracle.
 
-Tabela de destino:
+Tabela utilizada:
 
 ```txt
 TB_RISCO_AGRICOLA
@@ -108,13 +110,11 @@ TB_RISCO_AGRICOLA
 
 Responsável por:
 
-- carregar dados da tabela bruta;
-- remover duplicidades;
-- padronizar textos;
-- converter datas;
-- validar tipos numéricos;
-- remover dados inconsistentes;
-- salvar o dataset tratado no banco.
+* carregar dados do Oracle;
+* remover duplicidades;
+* validar dados;
+* converter tipos;
+* preparar os dados para IA.
 
 Tabela de origem:
 
@@ -130,7 +130,46 @@ TB_RISCO_AGRICOLA_TRATADO
 
 ---
 
-# Fonte climática
+## preparar_features.py
+
+Responsável por:
+
+* transformar datas em atributos temporais;
+* selecionar features;
+* preparar X e y;
+* criar a base para treinamento.
+
+---
+
+## treinar_arvore.py
+
+Responsável por:
+
+* treinar a Árvore de Decisão;
+* calcular métricas;
+* salvar o modelo treinado.
+
+Arquivos gerados:
+
+```txt
+models/arvore_decisao.pkl
+models/features.pkl
+```
+
+---
+
+## prever_risco.py
+
+Responsável por:
+
+* carregar o modelo;
+* receber novos dados;
+* prever risco operacional;
+* retornar probabilidades.
+
+---
+
+# 🌎 Fonte Climática
 
 API utilizada:
 
@@ -140,37 +179,33 @@ Open-Meteo
 
 Dados utilizados:
 
-- temperatura média diária;
-- precipitação diária;
-- histórico climático.
+* temperatura média diária;
+* precipitação diária;
+* histórico climático.
 
-Intervalo utilizado:
+Período utilizado:
 
 ```txt
-01/01/2024 até a data atual do sistema
+01/01/2024 até a data atual
 ```
 
-Esse intervalo é definido automaticamente no código por meio da data atual do sistema.
+---
+
+# 📍 Cidades Utilizadas
+
+* São Paulo
+* Campinas
+* Ribeirão Preto
+* Sorocaba
+* Piracicaba
+* Araraquara
+* São José dos Campos
+* Ribeirão Pires
+* Taquaritinga
 
 ---
 
-# Cidades utilizadas
-
-Atualmente, o dataset utiliza as seguintes cidades:
-
-- São Paulo
-- Campinas
-- Ribeirão Preto
-- Sorocaba
-- Piracicaba
-- Araraquara
-- São José dos Campos
-- Ribeirão Pires
-- Taquaritinga
-
----
-
-# Estrutura da tabela bruta
+# 🗄 Estrutura da Tabela Bruta
 
 Tabela:
 
@@ -178,148 +213,117 @@ Tabela:
 TB_RISCO_AGRICOLA
 ```
 
-| Coluna | Tipo esperado | Descrição |
-|---|---|---|
-| EQUIPAMENTO_ID | texto | Identificador único do equipamento/registro |
-| CIDADE | texto | Cidade relacionada à medição |
-| DATA_MEDICAO | data | Data do registro climático |
-| TEMPERATURA | numérico | Temperatura média diária |
-| CHUVA_MM | numérico | Volume de chuva em milímetros |
-| UMIDADE_SOLO | numérico | Umidade simulada do solo |
-| VELOCIDADE_KMH | numérico | Velocidade simulada da máquina |
-| PROXIMIDADE_AGUA_M | numérico | Distância até área com água |
-| INCLINACAO_GRAUS | numérico | Inclinação do terreno |
-| TEMPO_USO_HORAS | numérico | Tempo de uso do equipamento |
-| MANUTENCAO_DIAS | numérico | Dias desde a última manutenção |
-| INDICADOR_CHUVA_ALTA | binário | Indica chuva elevada |
-| INDICADOR_SOLO_UMIDO | binário | Indica solo muito úmido |
-| INDICADOR_VELOCIDADE_ALTA | binário | Indica velocidade elevada |
-| INDICADOR_PERTO_AGUA | binário | Indica proximidade de água |
-| INDICADOR_INCLINACAO_ALTA | binário | Indica inclinação acentuada |
-| INDICADOR_MANUTENCAO_ATRASADA | binário | Indica manutenção atrasada |
+Campos principais:
+
+```txt
+EQUIPAMENTO_ID
+CIDADE
+DATA_MEDICAO
+TEMPERATURA
+CHUVA_MM
+UMIDADE_SOLO
+VELOCIDADE_KMH
+PROXIMIDADE_AGUA_M
+INCLINACAO_GRAUS
+TEMPO_USO_HORAS
+MANUTENCAO_DIAS
+```
+
+Indicadores:
+
+```txt
+INDICADOR_CHUVA_ALTA
+INDICADOR_SOLO_UMIDO
+INDICADOR_VELOCIDADE_ALTA
+INDICADOR_PERTO_AGUA
+INDICADOR_INCLINACAO_ALTA
+INDICADOR_MANUTENCAO_ATRASADA
+```
 
 ---
 
-# Indicadores binários
+# 🚨 Indicadores Binários
 
-Os indicadores binários foram criados para representar condições relevantes que podem influenciar o risco operacional.
+Os indicadores representam condições operacionais relevantes.
 
-Eles assumem apenas dois valores:
+Valores:
 
 ```txt
-0 = condição não presente
+0 = condição ausente
 1 = condição presente
 ```
 
----
-
-## Indicadores atuais
-
-### Chuva alta
+Indicadores atuais:
 
 ```python
 indicador_chuva_alta = int(chuva_mm > 30)
-```
-
----
-
-### Solo úmido
-
-```python
 indicador_solo_umido = int(umidade_solo > 70)
-```
-
----
-
-### Velocidade alta
-
-```python
 indicador_velocidade_alta = int(velocidade_kmh > 18)
-```
-
----
-
-### Proximidade de água
-
-```python
 indicador_perto_agua = int(proximidade_agua_m < 100)
-```
-
----
-
-### Inclinação alta
-
-```python
 indicador_inclinacao_alta = int(inclinacao_graus > 15)
-```
-
----
-
-### Manutenção atrasada
-
-```python
 indicador_manutencao_atrasada = int(manutencao_dias > 90)
 ```
 
 ---
 
-# Por que usar indicadores?
+# 🤖 Relação com Machine Learning
 
-Os indicadores ajudam a destacar condições importantes para o modelo de Machine Learning.
-
-Eles não definem diretamente o risco final.
-
-A ideia é fornecer ao modelo tanto:
-
-- variáveis numéricas brutas;
-- variáveis auxiliares binárias.
-
-Assim, o modelo poderá aprender padrões a partir dos dados e decidir quais combinações mais influenciam a previsão de risco.
-
----
-
-# Mudança importante
-
-A versão anterior do projeto calculava:
-
-- risco;
-- score_risco;
-- classificacao_risco.
-
-Essas regras foram removidas da geração e do pré-processamento.
-
-Agora:
+O modelo atual utiliza:
 
 ```txt
-gerar_dataset.py → gera dados e indicadores
-pre_processamento.py → limpa e trata dados
-Machine Learning → será responsável por prever o risco
+DecisionTreeClassifier
+```
+
+As principais features utilizadas são:
+
+```txt
+temperatura
+chuva_mm
+umidade_solo
+velocidade_kmh
+proximidade_agua_m
+inclinacao_graus
+tempo_uso_horas
+manutencao_dias
+
+indicador_chuva_alta
+indicador_solo_umido
+indicador_velocidade_alta
+indicador_perto_agua
+indicador_inclinacao_alta
+indicador_manutencao_atrasada
+```
+
+Além dos atributos temporais:
+
+```txt
+ano
+mes
+dia
+dia_semana
 ```
 
 ---
 
-# Pré-processamento
+# 🧹 Pré-processamento
 
-O pré-processamento é executado pelo arquivo:
+Executado por:
 
 ```txt
 pre_processamento.py
 ```
 
-Ele realiza:
+Etapas:
 
-- remoção de registros duplicados;
-- padronização da cidade;
-- conversão da data;
-- conversão de colunas numéricas;
-- remoção de valores nulos;
-- validação de faixas aceitáveis.
+* remoção de duplicidades;
+* conversão de datas;
+* padronização textual;
+* validação numérica;
+* remoção de inconsistências.
 
 ---
 
-# Validações aplicadas
-
-Exemplos de filtros utilizados:
+# ✅ Validações Aplicadas
 
 ```txt
 temperatura entre -10 e 60
@@ -334,7 +338,7 @@ manutencao_dias entre 0 e 365
 
 ---
 
-# Estrutura da tabela tratada
+# 🗄 Estrutura da Tabela Tratada
 
 Tabela:
 
@@ -342,58 +346,67 @@ Tabela:
 TB_RISCO_AGRICOLA_TRATADO
 ```
 
-Essa tabela contém os dados limpos e preparados para a etapa de Machine Learning.
+Contém:
 
-Ela mantém as mesmas colunas principais da tabela bruta, porém após:
-
-- padronização;
-- conversão de tipos;
-- remoção de inconsistências;
-- validação dos registros.
+* dados limpos;
+* dados validados;
+* dados preparados para Machine Learning.
 
 ---
 
-# Como executar
+# ▶ Como Executar
 
-## 1. Gerar dataset e inserir no banco
+## Gerar Dataset
 
 ```bash
 python sompo-risk-config/gerar_dataset.py
 ```
 
-Esse comando gera os dados e insere na tabela:
-
-```txt
-TB_RISCO_AGRICOLA
-```
-
 ---
 
-## 2. Executar pré-processamento
+## Executar Pré-processamento
 
 ```bash
 python sompo-risk-config/pre_processamento.py
 ```
 
-Esse comando lê a tabela bruta, trata os dados e salva na tabela:
+---
 
-```txt
-TB_RISCO_AGRICOLA_TRATADO
+## Preparar Features
+
+```bash
+python sompo-risk-config/machine_learning/preparar_features.py
 ```
 
 ---
 
-# Banco de dados
+## Treinar Modelo
 
-O projeto utiliza **Oracle Database**.
+```bash
+python sompo-risk-config/machine_learning/treinar_arvore.py
+```
 
-As credenciais são carregadas pelo arquivo:
+---
+
+## Executar Previsão
+
+```bash
+python sompo-risk-config/machine_learning/prever_risco.py
+```
+
+---
+
+# 🗄 Banco de Dados
+
+Oracle Database.
+
+Credenciais carregadas via:
 
 ```txt
 .env
 ```
 
-Variáveis utilizadas:
+Variáveis:
 
 ```txt
 ORACLE_USER
@@ -403,70 +416,51 @@ ORACLE_PORT
 ORACLE_SERVICE
 ```
 
-O arquivo `.env` deve estar no `.gitignore` para não expor credenciais.
+---
+
+# 🚀 Evoluções Futuras
+
+## Machine Learning
+
+* validação cruzada;
+* ajuste de hiperparâmetros;
+* comparação com Random Forest;
+* comparação com XGBoost;
+* explicabilidade do modelo.
+
+## Dashboard
+
+* ranking de equipamentos;
+* monitoramento operacional;
+* visualização de previsões;
+* gráficos interativos.
+
+## Sensores
+
+* integração com ESP32;
+* sensores reais;
+* automação da coleta de dados.
 
 ---
 
-# Relação com Machine Learning
+# 📌 Resumo
 
-A tabela tratada será a base para a próxima etapa do projeto.
+O dataset atual fornece:
 
-O modelo de Machine Learning deverá utilizar os dados tratados para aprender padrões e prever risco operacional.
-
-Exemplos de possíveis features:
-
-- temperatura;
-- chuva_mm;
-- umidade_solo;
-- velocidade_kmh;
-- proximidade_agua_m;
-- inclinacao_graus;
-- tempo_uso_horas;
-- manutencao_dias;
-- indicadores binários.
+✅ dados climáticos históricos reais
+✅ dados operacionais simulados
+✅ indicadores binários
+✅ Oracle Database
+✅ pré-processamento estruturado
+✅ engenharia de features
+✅ treinamento com Árvore de Decisão
+✅ previsão de risco operacional
+✅ base preparada para dashboard
 
 ---
 
-# Observação sobre variável alvo
+## 📦 Versão Atual
 
-Para um modelo supervisionado, será necessário definir uma variável alvo.
-
-Essa variável poderá ser construída ou obtida futuramente, por exemplo:
-
-- ocorrência de sinistro;
-- ocorrência de falha;
-- acidente registrado;
-- classificação histórica de risco;
-- label criada a partir de dados reais ou regras validadas.
-
-Nesta etapa, o dataset está sendo preparado para receber essa modelagem posteriormente.
-
----
-
-# Evoluções futuras
-
-Próximas melhorias previstas:
-
-- criação da etapa de Machine Learning;
-- definição da variável alvo;
-- treinamento de modelos;
-- integração com dashboard;
-- uso de dados reais de sensores;
-- integração com ESP32;
-- uso de dados geoespaciais;
-- automação do pipeline.
-
----
-
-# Resumo
-
-O dataset atual fornece uma base estruturada para o projeto.
-
-Ele contém:
-
-✅ dados climáticos históricos reais  
-✅ dados operacionais simulados  
-✅ indicadores binários  
-✅ persistência em Oracle  
-✅ pré-processamento estruturado  
-✅ base preparada para Machine Learning
+```txt
+v2.1.0
+```

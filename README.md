@@ -1,228 +1,339 @@
 # SompoRisk AI 🤖
 
-## 📌 Enterprise Challenge - Sprint 1 - Sompo
+## 📌 Enterprise Challenge — Sompo
 
-**Grupo:**  
-- Thiese Novaes - RM572659  
-- João Vitor - RM572969  
-- Talles Duran - RM572772  
-- Kevin Santiago - RM573808  
-- Renan Souza - RM568958  
+### Integrantes
 
----
-
-## 🚀 1. Visão geral do projeto
-
-A **SompoRisk AI** é uma proposta de solução baseada em **dados e Inteligência Artificial** para identificar, prever e reduzir riscos operacionais e ambientais relacionados ao uso de equipamentos agrícolas.
-
-O objetivo é transformar decisões reativas em decisões preventivas, permitindo que operadores, gestores e seguradoras tenham uma visão mais clara dos fatores de risco antes que um incidente aconteça.
+* Thiese Novaes — RM572659
+* João Vitor — RM572969
+* Talles Duran — RM572772
+* Kevin Santiago — RM573808
+* Renan Souza — RM568958
 
 ---
 
-## ⚠️ 2. Problema abordado
+# 🚀 1. Visão Geral
 
-Hoje, muitas operações agrícolas ainda dependem de decisões tomadas de forma reativa, ou seja, após a ocorrência de danos, falhas ou acidentes.
+A **SompoRisk AI** é uma solução baseada em **Dados e Inteligência Artificial** para identificar, prever e reduzir riscos operacionais relacionados ao uso de equipamentos agrícolas.
 
-Isso pode gerar:
-- altos custos com sinistros;
-- perda de equipamentos;
-- interrupção da operação;
-- baixa eficiência operacional;
-- maior dificuldade para prever e evitar incidentes.
-
-O principal problema é a falta de previsibilidade e de correlação entre fatores ambientais, operacionais e comportamentais.
+A proposta busca transformar decisões reativas em decisões preventivas, utilizando dados climáticos históricos, indicadores operacionais e Machine Learning para apoiar operadores, gestores e seguradoras.
 
 ---
 
-## 💡 3. Solução proposta
+# ⚠️ 2. Problema
 
-A **SompoRisk AI** será uma plataforma inteligente que permitirá:
+Atualmente, muitas operações agrícolas atuam de forma reativa, tomando decisões somente após a ocorrência de falhas, acidentes ou prejuízos operacionais.
 
-- monitoramento de fatores ambientais e operacionais;
-- cálculo de score de risco em tempo real;
-- geração de alertas preventivos;
-- recomendações práticas para evitar incidentes;
-- visualização dos riscos em dashboard por equipamento, operação e região.
+Consequências:
 
-### 📊 Principais saídas do sistema
-- Score de risco de 0 a 100;
-- Classificação de risco: Baixo, Médio ou Alto;
-- Alertas em tempo real;
-- Recomendações operacionais;
-- Relatórios gerenciais.
+* aumento de sinistros;
+* perda de equipamentos;
+* interrupções operacionais;
+* custos de manutenção elevados;
+* dificuldade na prevenção de riscos.
 
-### ⚙️ Critério inicial de risco alto
-A proposta inicial considera maior risco quando há combinação de fatores como:
-- solo úmido;
-- proximidade de água;
-- velocidade elevada.
-
-> Observação: esses critérios são iniciais e podem evoluir nas próximas etapas.
+O principal desafio é a ausência de mecanismos capazes de correlacionar fatores ambientais e operacionais para antecipar situações críticas.
 
 ---
 
-## 👥 4. Personas
+# 💡 3. Solução Proposta
 
-### 👨‍🌾 Operador de equipamento
-**Necessidades:**
-- receber alertas de risco em tempo real;
-- evitar acidentes e danos.
+A SompoRisk AI propõe uma plataforma inteligente capaz de:
 
-**Solução:**
-- alertas visuais e sonoros;
-- recomendações práticas.
+* monitorar fatores ambientais e operacionais;
+* identificar padrões de risco;
+* prever cenários críticos;
+* emitir alertas preventivos;
+* apoiar decisões operacionais.
 
----
+### Principais Saídas
 
-### 🧑‍💼 Gestor de frota
-**Necessidades:**
-- reduzir custos;
-- priorizar manutenção.
-
-**Solução:**
-- ranking de risco;
-- dashboards analíticos.
+* classificação de risco;
+* previsão de risco operacional;
+* alertas preventivos;
+* relatórios gerenciais;
+* dashboard analítico.
 
 ---
 
-### 🏢 Seguradora
-**Necessidades:**
-- antecipar sinistros;
-- entender riscos.
+# 👥 4. Personas
 
-**Solução:**
-- score por cliente/região;
-- análise de fatores de risco.
-
----
-
-## 🧾 5. User Stories
-
-**Operador**
-- Como operador, quero receber alertas em tempo real para evitar acidentes.
-
-**Gestor**
-- Como gestor, quero ver o ranking de risco para priorizar ações.
-
-**Seguradora**
-- Como seguradora, quero identificar padrões de risco para prever sinistros.
+| Persona         | Necessidade                           | Solução             |
+| --------------- | ------------------------------------- | ------------------- |
+| Operador        | Evitar acidentes e danos              | Alertas preventivos |
+| Gestor de Frota | Reduzir custos e priorizar manutenção | Ranking de risco    |
+| Seguradora      | Antecipar sinistros                   | Análise preditiva   |
 
 ---
 
-## 📊 6. Variáveis de dados
+# 🧾 5. User Stories
 
-### 🌦️ Ambientais
-- chuva  
-- umidade do solo  
-- tipo de solo  
-- proximidade de água  
-- inclinação  
+## US01 — Operador de Equipamento
 
-### 🚜 Operacionais
-- velocidade  
-- tipo de operação  
-- tempo de uso  
-- rota  
+**Como** operador de equipamento agrícola,
 
-### ⚙️ Equipamento
-- idade  
-- manutenção  
-- tipo  
+**Quero** receber alertas preventivos quando houver aumento do risco operacional,
 
-### 📍 Geoespacial
-- latitude  
-- longitude  
-- mapas  
+**Para** evitar acidentes e danos ao equipamento.
+
+### Critérios de Aceite
+
+* O sistema deve calcular o risco operacional.
+* O sistema deve classificar o risco em Baixo, Médio ou Alto.
+* O sistema deve emitir alerta quando o risco for Alto.
+* O sistema deve informar os fatores que contribuíram para a decisão.
 
 ---
 
-## 🧪 7. Dataset (exemplo)
+## US02 — Gestor de Frota
 
-| equipamento_id | chuva | solo_umidade | velocidade | prox_agua | operacao | risco |
-|----------------|-------|--------------|------------|-----------|----------|-------|
-| EQUIP001 | 30mm | alta | 18 km/h | 50m | campo | alto |
-| EQUIP002 | 5mm | baixa | 10 km/h | 500m | transporte | baixo |
+**Como** gestor de frota,
 
----
+**Quero** visualizar equipamentos com maior probabilidade de risco,
 
-## 🤖 8. Modelagem de IA
+**Para** priorizar ações preventivas e manutenção.
 
-**Objetivo:** prever risco operacional  
+### Critérios de Aceite
 
-**Abordagem:**
-- classificação (baixo, médio, alto)
-- score probabilístico  
-
-**Modelos:**
-- Random Forest  
-- Regressão Logística  
-- XGBoost  
-
-**Saídas:**
-- probabilidade  
-- classificação  
-- explicação do risco  
+* O sistema deve exibir ranking de equipamentos.
+* O ranking deve ser atualizado automaticamente.
+* O gestor deve visualizar indicadores operacionais.
 
 ---
 
-## 🏗️ 9. Arquitetura
+## US03 — Seguradora
+
+**Como** analista da seguradora,
+
+**Quero** identificar padrões operacionais de risco,
+
+**Para** prever possíveis sinistros futuros.
+
+### Critérios de Aceite
+
+* O sistema deve gerar análises preditivas.
+* O sistema deve permitir análise por cidade.
+* O sistema deve apresentar classificações previstas pelo modelo.
+
+---
+
+# 📊 6. Variáveis Utilizadas
+
+## Ambientais
+
+* temperatura
+* chuva_mm
+* umidade_solo
+
+## Operacionais
+
+* velocidade_kmh
+* tempo_uso_horas
+* manutencao_dias
+
+## Geográficas
+
+* proximidade_agua_m
+* inclinacao_graus
+* cidade
+
+## Indicadores Binários
+
+* indicador_chuva_alta
+* indicador_solo_umido
+* indicador_velocidade_alta
+* indicador_perto_agua
+* indicador_inclinacao_alta
+* indicador_manutencao_atrasada
+
+---
+
+# 🧪 7. Dataset
+
+O dataset é construído utilizando:
+
+### Dados Climáticos
+
+Obtidos através da API Open-Meteo:
+
+* temperatura histórica;
+* precipitação histórica;
+* datas de medição.
+
+### Dados Operacionais
+
+Gerados para simulação:
+
+* velocidade;
+* manutenção;
+* inclinação;
+* proximidade de água;
+* tempo de uso.
+
+### Volume Atual
+
+* histórico climático desde 01/01/2024;
+* 9 cidades monitoradas;
+* milhares de registros gerados automaticamente.
+
+---
+
+# 🤖 8. Machine Learning
+
+## Objetivo
+
+Prever o risco operacional de equipamentos agrícolas.
+
+## Modelo Atual
+
+### Árvore de Decisão
+
+```python
+DecisionTreeClassifier
+```
+
+O modelo utiliza dados operacionais e ambientais para prever o risco de uma operação.
+
+---
+
+## Pipeline
+
+```txt
+Open-Meteo
+      ↓
+Oracle Database
+      ↓
+Pré-processamento
+      ↓
+Engenharia de Features
+      ↓
+Árvore de Decisão
+      ↓
+Previsão de Risco
+      ↓
+Dashboard
+```
+
+---
+
+## Arquivos
+
+```txt
+machine_learning/
+├── preparar_features.py
+├── treinar_arvore.py
+└── prever_risco.py
+```
+
+---
+
+# 🏗️ 9. Arquitetura
 
 ```mermaid
 flowchart TD
-A[APIs / Sensores] --> B[Coleta]
-B --> C[Armazenamento]
-C --> D[ETL]
-D --> E[Modelo IA]
-E --> F[API]
-F --> G[Dashboard / Alertas]
 
+A[Open-Meteo API] --> B[gerar_dataset.py]
+
+B --> C[(TB_RISCO_AGRICOLA)]
+
+C --> D[pre_processamento.py]
+
+D --> E[(TB_RISCO_AGRICOLA_TRATADO)]
+
+E --> F[preparar_features.py]
+
+F --> G[treinar_arvore.py]
+
+G --> H[arvore_decisao.pkl]
+
+H --> I[prever_risco.py]
+
+I --> J[Dashboard]
 ```
 
-## 🛠️ 10. Tecnologias
+---
 
-Backend: Python, Pandas, Scikit-learn
-APIs: OpenWeather, Google Maps
-Storage: AWS S3, Firebase
-Frontend: React, Power BI
+# 🛠️ 10. Tecnologias
 
-## 🔐 11. Segurança
+## Backend
 
-- autenticação
-- controle de acesso
-- criptografia
-- logs
+* Python
+* Pandas
+* Oracle Database
 
-## 📈 12. Simulação de dados
+## Machine Learning
 
-Serão usados dados simulados baseados em:
+* Scikit-Learn
+* Decision Tree
 
-- clima
-- solo
-- operação
+## APIs
 
-## 📅 13. Planejamento
+* Open-Meteo
 
-Sprint 2: dados + análise
-Sprint 3: modelo IA
-Sprint 4: dashboard
-Sprint 5: protótipo
+## Visualização
 
-## 🎥 14. Vídeo
+* Streamlit (planejado)
 
-[https://youtu.be/HASWFShZgFs](https://youtu.be/HASWFShZgFs)
+---
 
-## 📝 Sobre o projeto
-Documentação detalhada das fases de desenvolvimento:
+# 🔐 11. Segurança
 
-- [Fases do Projeto (Funcionalidades)](./docs/project/README-project.md)
-- [Documentações](./docs/README-DOCS.md)
+* variáveis sensíveis via `.env`;
+* isolamento de credenciais;
+* controle de acesso ao banco;
+* versionamento do modelo.
 
-## ⭐ 15. Diferenciais
-- IA explicável
-- alertas inteligentes
-- score em tempo real
-- integração de dados
+---
 
-## 📌 16. Considerações finais
+# 📅 12. Roadmap
 
-A solução transforma a gestão de risco agrícola de reativa para preventiva, utilizando dados e IA para reduzir custos, evitar perdas e melhorar decisões.
+| Sprint            | Status |
+| ----------------- | ------ |
+| Arquitetura       | ✅      |
+| Dataset           | ✅      |
+| Oracle Database   | ✅      |
+| Pré-processamento | ✅      |
+| Machine Learning  | ✅      |
+| Dashboard         | 🔄     |
+| API de Previsão   | 🔄     |
+
+---
+
+# 🎥 13. Vídeo
+
+`SPRINT 1`: https://youtu.be/HASWFShZgFs
+`SPRINT 2`: A realizar
+`SPRINT 3`: Em fase de planejamento
+
+---
+
+# 📝 14. Documentação
+
+* docs/README-DOCS.md ([ACESSO](./docs/README-DOCS.md))
+* docs/project/README-project.md
+* docs/backend/backend_documentacao.md
+* docs/dataset/dataset_documentacao.md
+* docs/ml/ml_documentacao.md
+
+---
+
+# ⭐ 15. Diferenciais
+
+* utilização de dados climáticos históricos reais;
+* Oracle Database;
+* Machine Learning interpretável;
+* arquitetura escalável;
+* documentação completa;
+* integração futura com dashboard.
+
+---
+
+# 📌 16. Considerações Finais
+
+A SompoRisk AI demonstra como dados históricos, indicadores operacionais e Inteligência Artificial podem ser utilizados para reduzir riscos, antecipar problemas e apoiar decisões estratégicas em operações agrícolas.
+
+Versão Atual:
+
+```txt
+v2.1.0
+```

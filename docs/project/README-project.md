@@ -1,22 +1,22 @@
 # 🚜 SompoRisk AI — Manual Técnico do Projeto
 
-## 📌 Sobre o projeto
+## 📌 Sobre o Projeto
 
-A **SompoRisk AI** é uma prova de conceito (POC) desenvolvida para identificar e prever riscos operacionais em operações agrícolas utilizando:
+A **SompoRisk AI** é uma Prova de Conceito (POC) desenvolvida para identificar e prever riscos operacionais em operações agrícolas utilizando:
 
-- dados climáticos históricos reais;
-- dados operacionais simulados;
-- indicadores operacionais binários;
-- banco de dados Oracle;
-- pré-processamento de dados;
-- preparação para Machine Learning;
-- futura visualização em dashboard.
+* dados climáticos históricos reais;
+* dados operacionais simulados;
+* indicadores operacionais binários;
+* banco de dados Oracle;
+* pré-processamento de dados;
+* Machine Learning com Árvore de Decisão;
+* futura visualização em dashboard.
 
 O objetivo do projeto é transformar decisões reativas em decisões preventivas, permitindo identificar cenários de risco antes da ocorrência de acidentes, falhas operacionais ou perdas financeiras.
 
 ---
 
-# 🏗 Estrutura atual do projeto
+# 🏗 Estrutura Atual do Projeto
 
 ```txt
 somporisk-ai-challenge/
@@ -24,12 +24,22 @@ somporisk-ai-challenge/
 ├── sompo-risk-config/
 │   ├── api_clima.py
 │   ├── gerar_dataset.py
-│   └── pre_processamento.py
+│   ├── pre_processamento.py
+│   │
+│   └── machine_learning/
+│       ├── preparar_features.py
+│       ├── treinar_arvore.py
+│       └── prever_risco.py
+│
+├── models/
+│   ├── arvore_decisao.pkl
+│   └── features.pkl
 │
 ├── docs/
+│   ├── arquitetura/
 │   ├── backend/
 │   ├── dataset/
-│   └── arquitetura/
+│   └── ml/
 │
 ├── .env
 ├── .gitignore
@@ -40,7 +50,7 @@ somporisk-ai-challenge/
 
 ---
 
-# 📍 Fluxo completo do projeto
+# 📍 Fluxo Completo do Projeto
 
 ```txt
 Open-Meteo API
@@ -57,7 +67,13 @@ pre_processamento.py
 Oracle Database
 (TB_RISCO_AGRICOLA_TRATADO)
       ↓
-Machine Learning
+preparar_features.py
+      ↓
+treinar_arvore.py
+      ↓
+models/arvore_decisao.pkl
+      ↓
+prever_risco.py
       ↓
 Dashboard
 ```
@@ -72,22 +88,20 @@ Responsável pela comunicação com a API Open-Meteo.
 
 Esse módulo busca:
 
-- coordenadas geográficas;
-- temperatura histórica;
-- precipitação histórica;
-- datas de medição.
+* coordenadas geográficas;
+* temperatura histórica;
+* precipitação histórica;
+* datas de medição.
 
----
+### Funções Principais
 
-## Funções principais
-
-### buscar_coordenadas()
+#### buscar_coordenadas()
 
 Converte uma cidade em latitude e longitude.
 
-### buscar_clima_historico_intervalo()
+#### buscar_clima_historico_intervalo()
 
-Consulta dados históricos entre:
+Consulta dados climáticos históricos entre:
 
 ```txt
 01/01/2024 até a data atual
@@ -95,9 +109,9 @@ Consulta dados históricos entre:
 
 Retornando:
 
-- data;
-- temperatura;
-- chuva.
+* data;
+* temperatura;
+* precipitação.
 
 ---
 
@@ -107,43 +121,14 @@ Retornando:
 
 Criar a base de dados operacional do projeto.
 
-Diferentemente das versões anteriores, este módulo não calcula mais score de risco nem classificação final.
+Responsabilidades:
 
-A responsabilidade dele agora é:
+* buscar dados climáticos históricos;
+* gerar dados operacionais simulados;
+* criar indicadores binários;
+* armazenar os registros no Oracle.
 
-- gerar dados;
-- enriquecer dados;
-- criar indicadores binários;
-- armazenar tudo no Oracle.
-
----
-
-## Dados climáticos
-
-Obtidos da Open-Meteo:
-
-- temperatura média diária;
-- precipitação diária;
-- data da medição.
-
----
-
-## Dados operacionais simulados
-
-- umidade do solo;
-- velocidade da máquina;
-- proximidade de água;
-- inclinação;
-- tempo de uso;
-- manutenção.
-
----
-
-## Indicadores binários
-
-Os indicadores representam condições operacionais importantes.
-
-Exemplos:
+## Indicadores Binários
 
 ```txt
 INDICADOR_CHUVA_ALTA
@@ -154,24 +139,14 @@ INDICADOR_INCLINACAO_ALTA
 INDICADOR_MANUTENCAO_ATRASADA
 ```
 
-Valores possíveis:
+Valores:
 
 ```txt
 0 = condição ausente
 1 = condição presente
 ```
 
-Esses indicadores serão utilizados futuramente pelos modelos de Machine Learning.
-
----
-
-## Persistência
-
-Os dados gerados são armazenados na tabela:
-
-```txt
-TB_RISCO_AGRICOLA
-```
+Esses indicadores serão utilizados pelo modelo de Machine Learning.
 
 ---
 
@@ -179,65 +154,122 @@ TB_RISCO_AGRICOLA
 
 ## Objetivo
 
-Preparar os dados para a etapa de Machine Learning.
+Preparar os dados para o treinamento dos modelos.
 
----
-
-## Entrada
-
-Tabela:
+### Entrada
 
 ```txt
 TB_RISCO_AGRICOLA
 ```
 
----
+### Processos executados
 
-## Limpeza
+* remoção de duplicidades;
+* tratamento de dados ausentes;
+* validação de faixas numéricas;
+* padronização de datas;
+* padronização de textos;
+* preparação para Machine Learning.
 
-Remove:
-
-- registros duplicados;
-- valores ausentes;
-- inconsistências;
-- tipos inválidos.
-
----
-
-## Padronização
-
-Padroniza:
-
-- cidade;
-- datas;
-- tipos numéricos.
-
----
-
-## Validações
-
-Exemplos:
-
-```txt
-temperatura entre -10 e 60
-chuva entre 0 e 300
-umidade_solo entre 0 e 100
-velocidade entre 0 e 100
-tempo_uso_horas entre 0 e 24
-manutencao_dias entre 0 e 365
-```
-
----
-
-## Saída
-
-Tabela:
+### Saída
 
 ```txt
 TB_RISCO_AGRICOLA_TRATADO
 ```
 
-Essa tabela será utilizada pelo Machine Learning.
+---
+
+# 4️⃣ Machine Learning
+
+## Objetivo
+
+Treinar um modelo capaz de prever riscos operacionais a partir dos dados tratados.
+
+### Modelo Utilizado
+
+```txt
+DecisionTreeClassifier
+(Árvore de Decisão)
+```
+
+---
+
+## preparar_features.py
+
+Responsável por:
+
+* carregar dados tratados;
+* transformar datas;
+* criar atributos temporais;
+* criar a variável alvo de treinamento;
+* separar X e y.
+
+### Features Utilizadas
+
+```txt
+temperatura
+chuva_mm
+umidade_solo
+velocidade_kmh
+proximidade_agua_m
+inclinacao_graus
+tempo_uso_horas
+manutencao_dias
+
+indicador_chuva_alta
+indicador_solo_umido
+indicador_velocidade_alta
+indicador_perto_agua
+indicador_inclinacao_alta
+indicador_manutencao_atrasada
+
+ano
+mes
+dia
+dia_semana
+```
+
+---
+
+## treinar_arvore.py
+
+Responsável por:
+
+* dividir treino e teste;
+* treinar a Árvore de Decisão;
+* calcular métricas;
+* salvar o modelo treinado.
+
+Arquivos gerados:
+
+```txt
+models/arvore_decisao.pkl
+models/features.pkl
+```
+
+---
+
+## prever_risco.py
+
+Responsável por:
+
+* carregar o modelo treinado;
+* receber novos dados;
+* gerar previsão;
+* retornar probabilidades por classe.
+
+Exemplo de saída:
+
+```json
+{
+  "risco_previsto": "alto",
+  "probabilidades": {
+    "alto": 0.87,
+    "medio": 0.11,
+    "baixo": 0.02
+  }
+}
+```
 
 ---
 
@@ -245,7 +277,7 @@ Essa tabela será utilizada pelo Machine Learning.
 
 O projeto utiliza Oracle Database.
 
-Variáveis carregadas do arquivo `.env`:
+Variáveis carregadas pelo arquivo `.env`:
 
 ```txt
 ORACLE_USER
@@ -254,8 +286,6 @@ ORACLE_HOST
 ORACLE_PORT
 ORACLE_SERVICE
 ```
-
----
 
 ## Tabelas
 
@@ -269,9 +299,9 @@ Armazena os dados tratados.
 
 ---
 
-# ▶ Como executar
+# ▶ Como Executar
 
-## Instalar dependências
+## Instalar Dependências
 
 ```bash
 pip install -r requirements.txt
@@ -279,7 +309,7 @@ pip install -r requirements.txt
 
 ---
 
-## Gerar dataset
+## Gerar Dataset
 
 ```bash
 python sompo-risk-config/gerar_dataset.py
@@ -287,7 +317,7 @@ python sompo-risk-config/gerar_dataset.py
 
 ---
 
-## Executar pré-processamento
+## Executar Pré-processamento
 
 ```bash
 python sompo-risk-config/pre_processamento.py
@@ -295,43 +325,52 @@ python sompo-risk-config/pre_processamento.py
 
 ---
 
-# 🤖 Machine Learning (próxima etapa)
+## Preparar Features
 
-A próxima fase do projeto será responsável por:
-
-- leitura da tabela tratada;
-- definição da variável alvo;
-- treinamento do modelo;
-- avaliação de métricas;
-- previsão de risco operacional.
-
-Possíveis algoritmos:
-
-- Random Forest;
-- Logistic Regression;
-- XGBoost.
+```bash
+python sompo-risk-config/machine_learning/preparar_features.py
+```
 
 ---
 
-# 📊 Dashboard (futuro)
+## Treinar Modelo
 
-Será desenvolvido para:
+```bash
+python sompo-risk-config/machine_learning/treinar_arvore.py
+```
 
-- visualização dos indicadores;
-- análise operacional;
-- acompanhamento dos riscos previstos;
-- monitoramento em tempo real.
+---
+
+## Realizar Previsões
+
+```bash
+python sompo-risk-config/machine_learning/prever_risco.py
+```
+
+---
+
+# 📊 Dashboard (Próxima Etapa)
+
+O dashboard será responsável por:
+
+* visualização dos indicadores;
+* visualização das previsões;
+* ranking de equipamentos críticos;
+* acompanhamento temporal;
+* monitoramento operacional.
 
 ---
 
 # 📌 Resumo
 
-Atualmente o projeto já possui:
+Atualmente o projeto possui:
 
-✅ integração com Open-Meteo  
-✅ Oracle Database  
-✅ geração de dataset  
-✅ indicadores binários  
-✅ pré-processamento estruturado  
-✅ documentação técnica  
-✅ base preparada para Machine Learning
+✅ integração com Open-Meteo
+✅ Oracle Database
+✅ geração de dataset histórico
+✅ indicadores binários
+✅ pré-processamento estruturado
+✅ engenharia de features
+✅ Machine Learning com Árvore de Decisão
+✅ previsão de risco operacional
+✅ documentação técnica estruturada

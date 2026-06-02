@@ -1,6 +1,9 @@
 # .VSCODE
 .vscode/
 
+# Modelos treinados
+models/
+
 __localcode
 .DS_Store
 chromedriver
