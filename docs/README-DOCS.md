@@ -118,44 +118,6 @@ Contém:
 
 ---
 
-## 📈 Dashboard
-
-Documentação da futura interface visual:
-
-```txt
-docs/dashboard/
-```
-
-Contém:
-
-* arquitetura visual;
-* indicadores;
-* gráficos;
-* alertas;
-* monitoramento operacional;
-* visualização das previsões do modelo.
-
----
-
-## 🖼 Assets
-
-Arquivos visuais e materiais auxiliares:
-
-```txt
-docs/assets/
-```
-
-Contém:
-
-* diagramas;
-* fluxogramas;
-* screenshots;
-* imagens;
-* apresentações;
-* materiais de apoio.
-
----
-
 # 🔄 Fluxo Geral da Solução
 
 ```txt
@@ -199,47 +161,20 @@ Dashboard
 * treinamento da Árvore de Decisão;
 * persistência do modelo treinado;
 * documentação técnica.
+* integração do modelo ao dashboard;
+* visualização das previsões;
+* ranking de risco;
+* relatórios operacionais;
 
 ---
 
 ## 🔄 Em Desenvolvimento
 
-* integração do modelo ao dashboard;
-* visualização das previsões;
-* ranking de risco;
-* relatórios operacionais;
-* monitoramento em tempo real.
-
----
-
-## 🚀 Próximas Evoluções
-
-### Machine Learning
-
-* validação cruzada;
-* ajuste de hiperparâmetros;
-* comparação entre modelos;
-* utilização de dados reais de sinistros;
-* melhoria da variável alvo.
-
-### Banco de Dados
-
-* tabela de previsões;
-* histórico de inferências;
-* versionamento dos modelos.
-
-### Dashboard
-
-* gráficos interativos;
-* indicadores operacionais;
-* mapas de risco;
-* acompanhamento temporal.
-
-### API
-
-* endpoint de previsão;
-* integração externa;
-* autenticação.
+* Integração com Gemini AI.
+* Integração e comunicação via EMAIL
+* Realizar deploy do dashboard na web
+* Concluir a API rest que vai integrar com a WEB
+* Melhoria da capacitação do modelo
 
 ---
 
@@ -259,7 +194,7 @@ Construir uma plataforma inteligente capaz de:
 # 📦 Versão Atual
 
 ```txt
-v2.1.0
+v2.2.0
 ```
 
 Principais entregas desta versão:
@@ -271,4 +206,5 @@ Principais entregas desta versão:
 * Pipeline de Machine Learning;
 * Árvore de Decisão treinável;
 * Sistema de previsão de risco;
-* Documentação completa.
+* Documentação completa;
+* Entraga e leitura do Dashboard.
