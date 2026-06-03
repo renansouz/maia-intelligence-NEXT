@@ -194,7 +194,7 @@ Construir uma plataforma inteligente capaz de:
 # 📦 Versão Atual
 
 ```txt
-v2.2.0
+v2.2.1
 ```
 
 Principais entregas desta versão:
