@@ -71,6 +71,12 @@ preparar_features.py
 treinar_arvore.py
       ↓
 Machine Learning
+      ↓
+prever_risco.py
+      ↓
+TB_PREVISAO_RISCO
+      ↓
+dashboard.py
 ```
 
 ---
@@ -166,6 +172,24 @@ Responsável por:
 * receber novos dados;
 * prever risco operacional;
 * retornar probabilidades.
+
+Tabela de destino:
+
+```txt
+TB_PREVISAO_RISCO
+```
+
+---
+
+## Dashboard.py
+
+Responsável por:
+
+* consultar dados do Oracle;
+* exibir previsões de risco;
+* monitorar equipamentos;
+* apresentar indicadores e gráficos;
+* apoiar decisões operacionais.
 
 ---
 
@@ -428,13 +452,6 @@ ORACLE_SERVICE
 * comparação com XGBoost;
 * explicabilidade do modelo.
 
-## Dashboard
-
-* ranking de equipamentos;
-* monitoramento operacional;
-* visualização de previsões;
-* gráficos interativos.
-
 ## Sensores
 
 * integração com ESP32;
@@ -447,20 +464,21 @@ ORACLE_SERVICE
 
 O dataset atual fornece:
 
-✅ dados climáticos históricos reais
-✅ dados operacionais simulados
-✅ indicadores binários
-✅ Oracle Database
-✅ pré-processamento estruturado
-✅ engenharia de features
-✅ treinamento com Árvore de Decisão
-✅ previsão de risco operacional
-✅ base preparada para dashboard
+- ✅ Dados climáticos históricos reais
+- ✅ Dados operacionais simulados
+- ✅ Indicadores binários
+- ✅ Oracle Database integrado
+- ✅ Pré-processamento estruturado
+- ✅ Engenharia de features
+- ✅ Treinamento com Árvore de Decisão
+- ✅ Previsão de risco operacional
+- ✅ Persistência de dados e previsões
+- ✅ Base preparada para dashboard analítico
 
 ---
 
 ## 📦 Versão Atual
 
 ```txt
-v2.1.0
+v2.2.0
 ```
