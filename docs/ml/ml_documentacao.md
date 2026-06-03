@@ -19,7 +19,7 @@ A Árvore de Decisão foi escolhida por ser simples, interpretável, leve e adeq
 # 📌 Versão Atual
 
 ```txt
-v2.1.0
+v2.2.0
 ```
 
 Principais entregas desta versão:
