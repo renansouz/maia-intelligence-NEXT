@@ -44,7 +44,9 @@ arvore_decisao.pkl
       ↓
 prever_risco.py
       ↓
-Dashboard
+TB_PREVISAO_RISCO
+      ↓
+Dashboard.py
 ```
 
 ---
@@ -57,6 +59,7 @@ sompo-risk-config/
 ├── api_clima.py
 ├── gerar_dataset.py
 ├── pre_processamento.py
+├── dashboard.py
 │
 └── machine_learning/
     ├── preparar_features.py
@@ -85,6 +88,8 @@ scikit-learn
 joblib
 numpy
 datetime
+plotly
+streamlit
 ```
 
 ---
@@ -419,6 +424,25 @@ Exemplo:
   "probabilidade": 0.87
 }
 ```
+Saída:
+
+```txt
+TB_PREVISAO_RISCO
+```
+---
+
+## Dashboard
+
+O dashboard SompoRisk AI oferece:
+
+* Monitoramento centralizado dos equipamentos agrícolas;
+* Visualização dos riscos previstos pelo modelo de Machine Learning;
+* Alarmes críticos para apoio à tomada de decisão;
+* Indicadores operacionais e ambientais em tempo real;
+* Análise geográfica dos riscos por município;
+* Ranking dos equipamentos com maior probabilidade de incidente;
+* Filtros dinâmicos para exploração dos dados;
+* Painel integrado conectado ao Oracle Database.
 
 ---
 
@@ -447,6 +471,15 @@ Armazena:
 * dados limpos;
 * dados padronizados;
 * dados preparados para IA.
+
+---
+
+### TB_PREVISAO_RISCO
+
+Armazena:
+
+* dados analisados;
+* decisões geradas pelo ML.
 
 ---
 
@@ -500,6 +533,14 @@ python sompo-risk-config/machine_learning/prever_risco.py
 
 ---
 
+## Executar Dashboard
+
+```bash
+python -m streamlit run sompo-risk-config/dashboard.py
+```
+
+---
+
 # ⚠ Tratamento de Erros
 
 ## API indisponível
@@ -545,21 +586,26 @@ Solução:
 
 ---
 
-# Limitações Atuais
+## Status do Projeto
 
-✅ Oracle integrado
-✅ Open-Meteo integrado
-✅ Indicadores binários
-✅ Pré-processamento estruturado
-✅ Machine Learning implementado
-✅ Árvore de Decisão treinável
+### Implementado
 
-Ainda não possui:
+- ✅ Oracle integrado
+- ✅ Open-Meteo integrado
+- ✅ Indicadores binários
+- ✅ Pré-processamento estruturado
+- ✅ Machine Learning implementado
+- ✅ Árvore de Decisão treinável
+- ✅ Dashboard final
+- ✅ Previsão de risco operacional
+- ✅ Integração entre Oracle, ML e Dashboard
+- ✅ Visualização de riscos por cidade e equipamento
 
-❌ Dashboard final
-❌ API REST própria
-❌ Processamento em tempo real
-❌ Autenticação de usuários
+### Ainda não possui
+
+- ❌ API REST própria
+- ❌ Processamento em tempo real
+- ❌ Autenticação de usuários
 
 ---
 
@@ -597,37 +643,30 @@ GET /dashboard
 
 ---
 
-## Dashboard
 
-Planejado:
-
-* gráficos;
-* filtros;
-* ranking de risco;
-* monitoramento operacional;
-* indicadores em tempo real.
-
----
 
 # 📌 Resumo
 
 O backend atual fornece toda a base operacional da solução:
 
-✅ integração com Open-Meteo
-✅ geração de dataset climático-operacional
-✅ indicadores binários
-✅ Oracle Database
-✅ pré-processamento estruturado
-✅ engenharia de features
-✅ treinamento de Árvore de Decisão
-✅ previsão de risco operacional
-✅ persistência de modelos
-✅ base preparada para dashboard
+- ✅ Integração com Open-Meteo
+- ✅ Geração de dataset climático-operacional
+- ✅ Indicadores binários
+- ✅ Oracle Database
+- ✅ Pré-processamento estruturado
+- ✅ Engenharia de features
+- ✅ Treinamento de Árvore de Decisão
+- ✅ Previsão de risco operacional
+- ✅ Persistência de modelos treinados
+- ✅ Integração com Machine Learning
+- ✅ Armazenamento das previsões no Oracle
+- ✅ Dashboard analítico integrado
+- ✅ Base preparada para expansão futura
 
 ---
 
 ## 📦 Versão Atual
 
 ```txt
-v2.1.0
+v2.2.0
 ```
