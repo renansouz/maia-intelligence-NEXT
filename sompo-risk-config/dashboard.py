@@ -2,6 +2,11 @@ import oracledb
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 st.set_page_config(
     page_title="SompoRisk AI",
@@ -14,16 +19,39 @@ st.set_page_config(
 def carregar_dados():
 
     conn = oracledb.connect(
-        user="RM572772",
-        password="030706",
-        host="oracle.fiap.com.br",
-        port=1521,
-        service_name="ORCL"
+        user=os.getenv("ORACLE_USER"),
+        password=os.getenv("ORACLE_PASSWORD"),
+        host=os.getenv("ORACLE_HOST", "oracle.fiap.com.br"),
+        port=int(os.getenv("ORACLE_PORT", 1521)),
+        service_name=os.getenv("ORACLE_SERVICE", "ORCL")
     )
 
     query = """
-        SELECT *
-        FROM TB_RISCO_AGRICOLA
+    SELECT
+    p.EQUIPAMENTO_ID,
+    p.CIDADE,
+    p.DATA_MEDICAO,
+    p.DATA_PREVISAO,
+    p.RISCO_PREVISTO,
+    p.CLASSIFICACAO,
+    p.PROBABILIDADE_BAIXO,
+    p.PROBABILIDADE_ALTO,
+    p.MODELO_UTILIZADO,
+
+    t.TEMPERATURA,
+    t.CHUVA_MM,
+    t.UMIDADE_SOLO,
+    t.VELOCIDADE_KMH,
+    t.PROXIMIDADE_AGUA_M,
+    t.INCLINACAO_GRAUS,
+    t.TEMPO_USO_HORAS,
+    t.MANUTENCAO_DIAS
+
+    FROM TB_PREVISAO_RISCO p
+
+    INNER JOIN TB_RISCO_AGRICOLA_TRATADO t
+    ON p.EQUIPAMENTO_ID = t.EQUIPAMENTO_ID
+    AND P.DATA_MEDICAO = T.DATA_MEDICAO
     """
 
     df = pd.read_sql(query, conn)
@@ -36,6 +64,7 @@ def carregar_dados():
 df = carregar_dados()
 
 df["DATA_MEDICAO"] = pd.to_datetime(df["DATA_MEDICAO"])
+df["DATA_PREVISAO"] = pd.to_datetime(df["DATA_PREVISAO"])
 
 st.title("🌾 SompoRisk AI")
 st.caption("Centro de Monitoramento de Riscos Operacionais e Ambientais")
@@ -85,52 +114,80 @@ cidade = st.sidebar.selectbox(
 if cidade != "Todas":
     df = df[df["CIDADE"] == cidade]
 
-alto = len(df[df["RISCO"] == "alto"])
-medio = len(df[df["RISCO"] == "medio"])
-baixo = len(df[df["RISCO"] == "baixo"])
+alto = len(df[df["CLASSIFICACAO"] == "alto"])
+baixo = len(df[df["CLASSIFICACAO"] == "baixo"])
 
-col1, col2, col3, col4 = st.columns(4)
+prob_media = (
+    df["PROBABILIDADE_ALTO"].mean() * 100
+)
+
+umid_solo = (
+    df["UMIDADE_SOLO"].mean()
+)
+
+temp = (
+    df["TEMPERATURA"].mean()
+)
+
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 col1.metric("🔴 Risco Alto", alto)
-col2.metric("🟡 Risco Médio", medio)
-col3.metric("🟢 Risco Baixo", baixo)
+col2.metric("🟢 Risco Baixo", baixo)
+col3.metric("🤖 Risco Médio", f"{prob_media:.1f}%")
 col4.metric("📊 Total", len(df))
+col5.metric("💧 Umidade Média", f"{umid_solo:.1f}%")
+col6.metric("🌡️ Temperatura Média", f"{temp:.1f} °C")
 
-if alto > 100:
+if prob_media >= 70:
     st.error("🔴 STATUS OPERACIONAL: CRÍTICO")
-elif medio > 100:
+elif prob_media >= 40:
     st.warning("🟡 STATUS OPERACIONAL: ATENÇÃO")
 else:
     st.success("🟢 STATUS OPERACIONAL: NORMAL")
 
-st.subheader("🚨 Alarmes Críticos")
+st.subheader("⚠️ Top 20 Equipamentos Mais Críticos")
 
-alarmes = df[df["RISCO"] == "alto"]
+criticos = (
+    df[df["CLASSIFICACAO"] == "alto"]
+    .sort_values(
+        by="PROBABILIDADE_ALTO",
+        ascending=False
+    )
+)
 
-if not alarmes.empty:
+if not criticos.empty:
+
+    criticos_exibir = criticos.copy()
+
+    criticos_exibir["PROBABILIDADE_ALTO"] = (
+    criticos_exibir["PROBABILIDADE_ALTO"] * 100
+    ).round(2).astype(str) + "%"
+
+    criticos_exibir["PROBABILIDADE_BAIXO"] = (
+    criticos_exibir["PROBABILIDADE_BAIXO"] * 100
+    ).round(2).astype(str) + "%"
 
     st.dataframe(
-        alarmes[
-            [
-                "EQUIPAMENTO_ID",
-                "CIDADE",
-                "DATA_MEDICAO",
-                "TEMPERATURA",
-                "CHUVA_MM",
-                "UMIDADE_SOLO",
-                "RISCO"
-            ]
-        ],
-        use_container_width=True
+    criticos_exibir[
+        [
+            "EQUIPAMENTO_ID",
+            "CIDADE",
+            "DATA_MEDICAO",
+            "CLASSIFICACAO",
+            "PROBABILIDADE_ALTO",
+            "PROBABILIDADE_BAIXO"
+        ]
+    ].head(20),
+    use_container_width=True
     )
 
 else:
-    st.info("Nenhum alarme crítico encontrado para os filtros selecionados.")
+    st.info("Nenhum equipamento crítico encontrado.")
 
 st.subheader("📍 Riscos Altos por Cidade")
 
 ranking = (
-    df[df["RISCO"] == "alto"]
+    df[df["CLASSIFICACAO"] == "alto"]
     .groupby("CIDADE")
     .size()
     .reset_index(name="TOTAL")
@@ -162,13 +219,13 @@ coordenadas = {
     "Sorocaba": (-23.5015, -47.4526),
     "Piracicaba": (-22.7338, -47.6476),
     "Araraquara": (-21.7944, -48.1756),
-    "São José dos Campos": (-23.2237, -45.9009),
+    "São José Dos Campos": (-23.2237, -45.9009),
     "Ribeirão Pires": (-23.7107, -46.4138),
     "Taquaritinga": (-21.4061, -48.5047)
 }
 
 mapa_df = (
-    df[df["RISCO"] == "alto"]
+    df[df["CLASSIFICACAO"] == "alto"]
     .groupby("CIDADE")
     .size()
     .reset_index(name="TOTAL")
@@ -191,51 +248,97 @@ if not mapa_df.empty:
 else:
     st.info("Nenhum risco alto encontrado para exibir no mapa.")
 
-st.subheader("⚠️ Top 20 Equipamentos Mais Críticos")
+st.subheader("🚨 Alarmes Críticos")
 
-criticos = (
-    df[df["RISCO"] == "alto"]
-    .sort_values(
-        by=[
-            "CHUVA_MM",
-            "UMIDADE_SOLO"
-        ],
-        ascending=False
-    )
-)
+alarmes = df[df["CLASSIFICACAO"] == "alto"]
 
-if not criticos.empty:
+if not alarmes.empty:
+
+    alarmes_exibir = alarmes.copy()
+
+    alarmes_exibir["PROBABILIDADE_ALTO"] = (
+        alarmes_exibir["PROBABILIDADE_ALTO"] * 100
+    ).round(2).astype(str) + "%"
+
+    alarmes_exibir["PROBABILIDADE_BAIXO"] = (
+        alarmes_exibir["PROBABILIDADE_BAIXO"] * 100
+    ).round(2).astype(str) + "%"
 
     st.dataframe(
-        criticos.head(20),
+        alarmes_exibir[
+            [
+                "EQUIPAMENTO_ID",
+                "CIDADE",
+                "DATA_MEDICAO",
+                "CLASSIFICACAO",
+                "RISCO_PREVISTO",
+                "PROBABILIDADE_ALTO",
+                "PROBABILIDADE_BAIXO",
+                "MODELO_UTILIZADO"
+            ]
+        ],
         use_container_width=True
     )
 
 else:
-    st.info("Nenhum equipamento crítico encontrado.")
+    st.info("Nenhum alarme crítico encontrado.")
+    
 
-st.subheader("📈 Estatísticas Gerais")
+st.subheader("🎯 Probabilidade Média de Risco por Cidade")
 
-col1, col2, col3 = st.columns(3)
-
-col1.metric(
-    "🌡️ Temperatura Média",
-    f"{df['TEMPERATURA'].mean():.1f} °C"
+risco_cidade = (
+    df.groupby("CIDADE")["PROBABILIDADE_ALTO"]
+    .mean()
+    .reset_index()
 )
 
-col2.metric(
-    "🌧️ Chuva Média",
-    f"{df['CHUVA_MM'].mean():.1f} mm"
+fig = px.bar(
+    risco_cidade,
+    x="CIDADE",
+    y="PROBABILIDADE_ALTO",
+    title="Probabilidade Média de Risco"
 )
 
-col3.metric(
-    "💧 Umidade Média",
-    f"{df['UMIDADE_SOLO'].mean():.0f}%"
+st.plotly_chart(
+    fig,
+    use_container_width=True
 )
 
+
+st.subheader("📋 Todos os Equipamentos Monitorados")
+
+mostrar = st.selectbox(
+    "Quantidade de registros",
+    [50, 100, 500, "Todos"]
+)
+
+todos_equipamentos = (
+    df.sort_values(
+        by="PROBABILIDADE_ALTO",
+        ascending=False
+    )
+)
+
+if mostrar != "Todos":
+    todos_equipamentos = todos_equipamentos.head(mostrar)
+
+todos_exibir = todos_equipamentos.copy()
+
+todos_exibir["PROBABILIDADE_ALTO"] = (
+    todos_exibir["PROBABILIDADE_ALTO"] * 100
+).round(2).astype(str) + "%"
+
+todos_exibir["PROBABILIDADE_BAIXO"] = (
+    todos_exibir["PROBABILIDADE_BAIXO"] * 100
+).round(2).astype(str) + "%"
+
+st.dataframe(
+    todos_exibir,
+    use_container_width=True
+)
 st.markdown("---")
 
 st.caption(
     f"Período selecionado: {periodo} | "
-    f"Última atualização dos dados: {ultima_data.strftime('%d/%m/%Y')}"
+    f"Última atualização: {ultima_data.strftime('%d/%m/%Y')}"
 )
