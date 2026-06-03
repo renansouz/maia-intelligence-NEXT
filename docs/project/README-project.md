@@ -10,7 +10,7 @@ A **SompoRisk AI** é uma Prova de Conceito (POC) desenvolvida para identificar 
 * banco de dados Oracle;
 * pré-processamento de dados;
 * Machine Learning com Árvore de Decisão;
-* futura visualização em dashboard.
+* Visualização em dashboard.
 
 O objetivo do projeto é transformar decisões reativas em decisões preventivas, permitindo identificar cenários de risco antes da ocorrência de acidentes, falhas operacionais ou perdas financeiras.
 
@@ -25,6 +25,7 @@ somporisk-ai-challenge/
 │   ├── api_clima.py
 │   ├── gerar_dataset.py
 │   ├── pre_processamento.py
+│   ├── dashboard.py
 │   │
 │   └── machine_learning/
 │       ├── preparar_features.py
@@ -75,7 +76,10 @@ models/arvore_decisao.pkl
       ↓
 prever_risco.py
       ↓
-Dashboard
+Oracle Database
+(TB_PREVISAO_RISCO)
+      ↓
+Dashboard.py
 ```
 
 ---
@@ -297,6 +301,10 @@ Armazena os dados brutos.
 
 Armazena os dados tratados.
 
+### TB_PREVISAO_RISCO
+
+Armazena os dados com base na decisão gerada pelo ML.
+
 ---
 
 # ▶ Como Executar
@@ -308,6 +316,23 @@ pip install -r requirements.txt
 ```
 
 ---
+
+## Editar .env com suas credenciais do banco ORACLE
+
+```bash
+somporisk-ai-challenge-main/env.example
+```
+
+---
+
+## Editar o nome do arquivo de env.example ---> .env
+
+```bash
+somporisk-ai-challenge-main/.env
+```
+
+---
+
 
 ## Gerar Dataset
 
@@ -349,28 +374,24 @@ python sompo-risk-config/machine_learning/prever_risco.py
 
 ---
 
-# 📊 Dashboard (Próxima Etapa)
+# 📊 Executar Dashboard 
 
-O dashboard será responsável por:
-
-* visualização dos indicadores;
-* visualização das previsões;
-* ranking de equipamentos críticos;
-* acompanhamento temporal;
-* monitoramento operacional.
-
+```bash
+python -m streamlit run sompo-risk-config/Dashboard.py
+```
 ---
 
 # 📌 Resumo
 
 Atualmente o projeto possui:
 
-✅ integração com Open-Meteo
-✅ Oracle Database
-✅ geração de dataset histórico
-✅ indicadores binários
-✅ pré-processamento estruturado
-✅ engenharia de features
-✅ Machine Learning com Árvore de Decisão
-✅ previsão de risco operacional
-✅ documentação técnica estruturada
+- ✅ Integração com Open-Meteo
+- ✅ Oracle Database
+- ✅ Geração de dataset histórico
+- ✅ Indicadores binários
+- ✅ Pré-processamento estruturado
+- ✅ Engenharia de features
+- ✅ Machine Learning com Árvore de Decisão
+- ✅ Previsão de risco operacional
+- ✅ Dashboard interativo em Streamlit
+- ✅ Documentação técnica estruturada
