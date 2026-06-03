@@ -664,9 +664,3 @@ O backend atual fornece toda a base operacional da solução:
 - ✅ Base preparada para expansão futura
 
 ---
-
-## 📦 Versão Atual
-
-```txt
-v2.2.0
-```

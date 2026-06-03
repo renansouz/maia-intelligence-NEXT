@@ -476,9 +476,3 @@ O dataset atual fornece:
 - ✅ Base preparada para dashboard analítico
 
 ---
-
-## 📦 Versão Atual
-
-```txt
-v2.2.0
-```
