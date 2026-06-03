@@ -248,7 +248,9 @@ G --> H[arvore_decisao.pkl]
 
 H --> I[prever_risco.py]
 
-I --> J[Dashboard]
+I --> J[(TB_PREVISAO_RISCO)]
+
+J --> K[Dashboard.py]
 ```
 
 ---
@@ -272,7 +274,7 @@ I --> J[Dashboard]
 
 ## Visualização
 
-* Streamlit (planejado)
+* Streamlit
 
 ---
 
@@ -324,7 +326,7 @@ I --> J[Dashboard]
 * Machine Learning interpretável;
 * arquitetura escalável;
 * documentação completa;
-* integração futura com dashboard.
+* integração com dashboard.
 
 ---
 
@@ -335,5 +337,5 @@ A SompoRisk AI demonstra como dados históricos, indicadores operacionais e Inte
 Versão Atual:
 
 ```txt
-v2.1.0
+v2.2.0
 ```
