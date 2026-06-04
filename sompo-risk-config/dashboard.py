@@ -83,6 +83,7 @@ def carregar_dados():
         p.PROBABILIDADE_BAIXO,
         p.PROBABILIDADE_ALTO,
         p.MODELO_UTILIZADO,
+        p.EXPLICACAO,
         t.TEMPERATURA,
         t.CHUVA_MM,
         t.UMIDADE_SOLO,
@@ -238,6 +239,35 @@ with aba_op:
                      "MODELO_UTILIZADO","TEMPO_USO_HORAS","MANUTENCAO_DIAS"]],
             use_container_width=True
         )
+
+        # ── Explicações da IA por equipamento crítico ─────────────────────────
+        st.markdown('<div class="section-title">🧠 Explicações da IA — Equipamentos Críticos</div>', unsafe_allow_html=True)
+        st.caption("Clique em cada equipamento para ver a análise gerada pelo modelo.")
+
+        alarmes_exp = df[df["CLASSIFICACAO"] == "alto"].sort_values("PROBABILIDADE_ALTO", ascending=False)
+
+        for _, row in alarmes_exp.iterrows():
+            label = f"🔴 {row['EQUIPAMENTO_ID']} — {row['CIDADE']} ({row['DATA_MEDICAO'].strftime('%d/%m/%Y')})"
+            with st.expander(label):
+                explicacao = row.get("EXPLICACAO", "")
+                if explicacao:
+                    for bloco in explicacao.split(" || "):
+                        if bloco.startswith("RESUMO:"):
+                            st.markdown(f"**📋 Resumo:** {bloco.replace('RESUMO:', '').strip()}")
+                        elif bloco.startswith("FATORES:"):
+                            st.markdown("**⚠️ Fatores de Risco:**")
+                            for f in bloco.replace("FATORES:", "").strip().split(" | "):
+                                st.markdown(f"- {f}")
+                        elif bloco.startswith("TECNICO:"):
+                            st.markdown("**🔬 Análise Técnica:**")
+                            for f in bloco.replace("TECNICO:", "").strip().split(" | "):
+                                st.markdown(f"- {f}")
+                        elif bloco.startswith("RECOMENDACOES:"):
+                            st.markdown("**✅ Recomendações:**")
+                            for f in bloco.replace("RECOMENDACOES:", "").strip().split(" | "):
+                                st.markdown(f"- {f}")
+                else:
+                    st.info("Explicação não disponível para este registro.")
     else:
         st.info("Nenhum alarme crítico encontrado.")
 
@@ -425,6 +455,37 @@ with aba_gest:
     )
     fig_box.update_layout(showlegend=False)
     st.plotly_chart(fig_box, use_container_width=True)
+
+    # ── Explicações da IA por cidade ─────────────────────────────────────────
+    st.markdown('<div class="section-title">🧠 Explicações da IA — Resumo por Cidade</div>', unsafe_allow_html=True)
+    st.caption("Baseado no último registro de cada cidade. Clique para expandir.")
+
+    cidades_unicas = df.dropna(subset=["EXPLICACAO"]).groupby("CIDADE").last().reset_index()
+
+    for _, row in cidades_unicas.iterrows():
+        classificacao = row["CLASSIFICACAO"]
+        icone = "🔴" if classificacao == "alto" else "🟢"
+        label = f"{icone} {row['CIDADE']} — {classificacao.upper()} RISCO"
+        with st.expander(label):
+            explicacao = row.get("EXPLICACAO", "")
+            if explicacao:
+                for bloco in explicacao.split(" || "):
+                    if bloco.startswith("RESUMO:"):
+                        st.markdown(f"**📋 Resumo:** {bloco.replace('RESUMO:', '').strip()}")
+                    elif bloco.startswith("FATORES:"):
+                        st.markdown("**⚠️ Fatores de Risco:**")
+                        for f in bloco.replace("FATORES:", "").strip().split(" | "):
+                            st.markdown(f"- {f}")
+                    elif bloco.startswith("TECNICO:"):
+                        st.markdown("**🔬 Análise Técnica:**")
+                        for f in bloco.replace("TECNICO:", "").strip().split(" | "):
+                            st.markdown(f"- {f}")
+                    elif bloco.startswith("RECOMENDACOES:"):
+                        st.markdown("**✅ Recomendações:**")
+                        for f in bloco.replace("RECOMENDACOES:", "").strip().split(" | "):
+                            st.markdown(f"- {f}")
+            else:
+                st.info("Explicação não disponível.")
 
     # ── Tabela completa ───────────────────────────────────────────────────────
     st.markdown('<div class="section-title">📋 Base Completa de Equipamentos Monitorados</div>', unsafe_allow_html=True)
