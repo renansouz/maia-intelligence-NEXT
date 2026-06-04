@@ -122,26 +122,28 @@ Contém:
 
 ```txt
 Open-Meteo API
-        ↓
+      ↓
 api_clima.py
-        ↓
+      ↓
 gerar_dataset.py
-        ↓
+      ↓
 TB_RISCO_AGRICOLA
-        ↓
+      ↓
 pre_processamento.py
-        ↓
+      ↓
 TB_RISCO_AGRICOLA_TRATADO
-        ↓
+      ↓
 preparar_features.py
-        ↓
+      ↓
 treinar_arvore.py
-        ↓
+      ↓
 arvore_decisao.pkl
-        ↓
+      ↓
 prever_risco.py
-        ↓
-Dashboard
+      ↓
+TB_PREVISAO_RISCO
+      ↓
+Dashboard.py
 ```
 
 ---
