@@ -1,6 +1,6 @@
 from pathlib import Path
-
 import joblib
+import pandas as pd
 from preparar_features import preparar_features
 from sklearn.metrics import (accuracy_score, classification_report,
                              confusion_matrix)
@@ -30,7 +30,6 @@ def treinar_modelo():
     previsoes = modelo.predict(X_teste)
 
     acuracia = accuracy_score(y_teste, previsoes)
-
     print("\nModelo treinado com sucesso!")
     print(f"Acurácia: {acuracia:.4f}")
 
@@ -40,9 +39,12 @@ def treinar_modelo():
     print("\nMatriz de confusão:")
     print(confusion_matrix(y_teste, previsoes))
 
+    print("\nCorrelação das variáveis com ocorrencia_risco:")
+    correlacao = df[features + ["ocorrencia_risco"]].corr()["ocorrencia_risco"].drop("ocorrencia_risco")
+    print(correlacao.sort_values(ascending=False).to_string())
+
     pasta_modelos = Path("./models")
     pasta_modelos.mkdir(exist_ok=True)
-
     caminho_modelo = pasta_modelos / "arvore_decisao.pkl"
     caminho_features = pasta_modelos / "features.pkl"
 
