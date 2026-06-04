@@ -248,9 +248,11 @@ G --> H[arvore_decisao.pkl]
 
 H --> I[prever_risco.py]
 
-I --> J[(TB_PREVISAO_RISCO)]
+I --> J[gerar_explicacao_modelo.py]
 
-J --> K[Dashboard.py]
+J --> K[(TB_PREVISAO_RISCO)]
+
+K --> L[Dashboard.py]
 ```
 
 ---
@@ -337,5 +339,5 @@ A SompoRisk AI demonstra como dados históricos, indicadores operacionais e Inte
 Versão Atual:
 
 ```txt
-v2.3.1
+v2.3.2
 ```
