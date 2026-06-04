@@ -133,23 +133,10 @@ def inserir_no_banco(df):
             INDICADOR_MANUTENCAO_ATRASADA
         )
         VALUES (
-            :1,
-            :2,
-            TO_DATE(:3, 'YYYY-MM-DD'),
-            :4,
-            :5,
-            :6,
-            :7,
-            :8,
-            :9,
-            :10,
-            :11,
-            :12,
-            :13,
-            :14,
-            :15,
-            :16,
-            :17
+            :1, :2, TO_DATE(:3, 'YYYY-MM-DD'),
+            :4, :5, :6, :7, :8, :9,
+            :10, :11, :12, :13, :14,
+            :15, :16, :17
         )
     """
 
@@ -177,7 +164,12 @@ def inserir_no_banco(df):
     ]
 
     try:
+        print("Limpando tabela...")
+        cursor.execute("TRUNCATE TABLE TB_RISCO_AGRICOLA")
+
+        print("Inserindo dados...")
         cursor.executemany(sql, dados_insert)
+
         conn.commit()
 
         print("\nDados inseridos com sucesso no Oracle!")
