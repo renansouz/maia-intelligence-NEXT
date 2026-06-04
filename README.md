@@ -337,5 +337,5 @@ A SompoRisk AI demonstra como dados históricos, indicadores operacionais e Inte
 Versão Atual:
 
 ```txt
-v2.2.3
+v2.3.0
 ```

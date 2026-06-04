@@ -99,6 +99,7 @@ Contém:
 Documentação do pipeline de Inteligência Artificial:
 
 * [Machine Learning](./ml/ml_documentacao.md)
+* [Explicabilidade](./ml/ml_explicabilidade.md)
 
 ```txt
 docs/ml/
