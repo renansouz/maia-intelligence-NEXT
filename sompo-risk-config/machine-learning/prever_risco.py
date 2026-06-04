@@ -163,27 +163,209 @@ def prever_risco_por_dados(dados_entrada):
     }
 
     return {
-        "cidade": dados.get("cidade"),
-        "data_medicao": str(dados.get("data_medicao")),
-        "risco_previsto": risco_numerico,
-        "classificacao": classificacao,
-        "probabilidades": probabilidades_dict,
-        "interpretacao": {
-            "0": "baixo",
-            "1": "alto"
-        }
+    "equipamento_id": dados.get("equipamento_id"),
+    "cidade": dados.get("cidade"),
+    "data_medicao": dados.get("data_medicao"),
+    "risco_previsto": risco_numerico,
+    "classificacao": classificacao,
+    "probabilidades": probabilidades_dict,
+    "interpretacao": {
+        "0": "baixo",
+        "1": "alto"
     }
+}
 
 
 def prever_risco_por_cidade(cidade):
     dados = buscar_ultimo_registro_cidade(cidade)
     return prever_risco_por_dados(dados)
 
+def buscar_todos_registros():
+    conn = conectar_oracle()
+
+    query = """
+        SELECT
+            EQUIPAMENTO_ID,
+            CIDADE,
+            DATA_MEDICAO,
+            TEMPERATURA,
+            CHUVA_MM,
+            UMIDADE_SOLO,
+            VELOCIDADE_KMH,
+            PROXIMIDADE_AGUA_M,
+            INCLINACAO_GRAUS,
+            TEMPO_USO_HORAS,
+            MANUTENCAO_DIAS
+        FROM TB_RISCO_AGRICOLA_TRATADO
+    """
+
+    df = pd.read_sql(query, conn)
+
+    conn.close()
+
+    return df
+
+
+def salvar_previsao(resultado):
+    conn = conectar_oracle()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO TB_PREVISAO_RISCO (
+            EQUIPAMENTO_ID,
+            CIDADE,
+            DATA_MEDICAO,
+            DATA_PREVISAO,
+            RISCO_PREVISTO,
+            CLASSIFICACAO,
+            PROBABILIDADE_BAIXO,
+            PROBABILIDADE_ALTO,
+            MODELO_UTILIZADO
+        )
+        VALUES (
+            :1,
+            :2,
+            :3,
+            SYSDATE,
+            :4,
+            :5,
+            :6,
+            :7,
+            'DecisionTreeClassifier'
+        )
+        """,
+        (
+            resultado["equipamento_id"],
+            resultado["cidade"],
+            resultado["data_medicao"],
+            resultado["risco_previsto"],
+            resultado["classificacao"],
+            resultado["probabilidades"].get(0, 0),
+            resultado["probabilidades"].get(1, 0)
+        )
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
 
 if __name__ == "__main__":
-    cidade = "Araraquara"
 
-    resultado = prever_risco_por_cidade(cidade)
+    modelo, features = carregar_modelo()
 
-    print("Resultado da previsão:")
-    print(resultado)
+    conn = conectar_oracle()
+    cursor = conn.cursor()
+
+    print("Limpando tabela de previsões...")
+
+    cursor.execute("DELETE FROM TB_PREVISAO_RISCO")
+    conn.commit()
+
+    print("Buscando registros...")
+
+    df = buscar_todos_registros()
+
+    print(f"Total de registros encontrados: {len(df)}")
+
+    inserts = []
+
+    for i, (_, row) in enumerate(df.iterrows(), start=1):
+
+        if i % 100 == 0:
+            print(f"Processados {i} registros")
+
+        dados = {
+            "equipamento_id": row["EQUIPAMENTO_ID"],
+            "cidade": row["CIDADE"],
+            "data_medicao": pd.to_datetime(row["DATA_MEDICAO"]),
+            "temperatura": row["TEMPERATURA"],
+            "chuva_mm": row["CHUVA_MM"],
+            "umidade_solo": row["UMIDADE_SOLO"],
+            "velocidade_kmh": row["VELOCIDADE_KMH"],
+            "proximidade_agua_m": row["PROXIMIDADE_AGUA_M"],
+            "inclinacao_graus": row["INCLINACAO_GRAUS"],
+            "tempo_uso_horas": row["TEMPO_USO_HORAS"],
+            "manutencao_dias": row["MANUTENCAO_DIAS"]
+        }
+
+        dados["ano"] = dados["data_medicao"].year
+        dados["mes"] = dados["data_medicao"].month
+        dados["dia"] = dados["data_medicao"].day
+        dados["dia_semana"] = dados["data_medicao"].dayofweek
+
+        dados = criar_indicadores(dados)
+
+        df_pred = pd.DataFrame([dados])
+
+        for feature in features:
+            if feature not in df_pred.columns:
+                df_pred[feature] = 0
+
+        X = df_pred[features]
+
+        risco_numerico = int(modelo.predict(X)[0])
+
+        classificacao = (
+            "alto"
+            if risco_numerico == 1
+            else "baixo"
+        )
+
+        probabilidades = modelo.predict_proba(X)[0]
+        classes = modelo.classes_
+
+        prob_dict = {
+            int(classe): float(prob)
+            for classe, prob in zip(classes, probabilidades)
+        }
+
+        inserts.append(
+            (
+                dados["equipamento_id"],
+                dados["cidade"],
+                dados["data_medicao"],
+                risco_numerico,
+                classificacao,
+                prob_dict.get(0, 0),
+                prob_dict.get(1, 0)
+            )
+        )
+
+    print("Gravando previsões no Oracle...")
+
+    cursor.executemany(
+        """
+        INSERT INTO TB_PREVISAO_RISCO (
+            EQUIPAMENTO_ID,
+            CIDADE,
+            DATA_MEDICAO,
+            DATA_PREVISAO,
+            RISCO_PREVISTO,
+            CLASSIFICACAO,
+            PROBABILIDADE_BAIXO,
+            PROBABILIDADE_ALTO,
+            MODELO_UTILIZADO
+        )
+        VALUES (
+            :1,
+            :2,
+            :3,
+            SYSDATE,
+            :4,
+            :5,
+            :6,
+            :7,
+            'DecisionTreeClassifier'
+        )
+        """,
+        inserts
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    print(f"Finalizado. {len(inserts)} previsões gravadas.")
