@@ -1,10 +1,19 @@
+import os
+
+import oracledb
+from dotenv import load_dotenv
+
 from prever_risco import (
     buscar_ultimo_registro_cidade,
     prever_risco_por_dados,
-    criar_indicadores
+    criar_indicadores,
+    conectar_oracle,
 )
 
+load_dotenv()
 
+
+# ── Geração de explicações ─────────────────────────────────────────────────────
 def gerar_explicacoes_tecnicas(dados):
     explicacoes = []
 
@@ -118,10 +127,7 @@ def gerar_fatores_risco(dados):
     return fatores
 
 
-def gerar_resumo_executivo(
-    classificacao,
-    fatores_risco
-):
+def gerar_resumo_executivo(classificacao, fatores_risco):
     if not fatores_risco:
         return (
             "O equipamento apresentou condições "
@@ -144,77 +150,123 @@ def gerar_resumo_executivo(
     return texto
 
 
+def montar_texto_explicacao(resultado):
+    partes = [f"RESUMO: {resultado['resumo_executivo']}"]
+
+    if resultado["fatores_risco"]:
+        partes.append("FATORES: " + " | ".join(resultado["fatores_risco"]))
+
+    if resultado["explicacoes_tecnicas"]:
+        partes.append("TECNICO: " + " | ".join(resultado["explicacoes_tecnicas"]))
+
+    if resultado["recomendacoes"]:
+        partes.append("RECOMENDACOES: " + " | ".join(resultado["recomendacoes"]))
+
+    return " || ".join(partes)
+
+
+# ── Persistência ───────────────────────────────────────────────────────────────
+def garantir_coluna_explicacao(conn):
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) FROM USER_TAB_COLUMNS
+        WHERE TABLE_NAME  = 'TB_PREVISAO_RISCO'
+          AND COLUMN_NAME = 'EXPLICACAO'
+    """)
+    existe = cursor.fetchone()[0]
+    cursor.close()
+
+    if not existe:
+        c = conn.cursor()
+        c.execute(
+            "ALTER TABLE TB_PREVISAO_RISCO ADD EXPLICACAO VARCHAR2(4000)"
+        )
+        conn.commit()
+        c.close()
+
+
+def salvar_explicacao_banco(cidade, data_medicao, texto, conn):
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE TB_PREVISAO_RISCO
+        SET    EXPLICACAO   = :explicacao
+        WHERE  CIDADE       = :cidade
+          AND  DATA_MEDICAO = :data_med
+    """, {
+        "explicacao": texto[:4000],
+        "cidade":     cidade,
+        "data_med":   data_medicao,
+    })
+    conn.commit()
+    cursor.close()
+
+
+# ── Função principal (chamada pelo prever_risco.py) ────────────────────────────
 def gerar_explicacao(cidade):
     dados = buscar_ultimo_registro_cidade(cidade)
-
     dados = criar_indicadores(dados)
 
-    resultado = prever_risco_por_dados(dados)
-
-    fatores_risco = gerar_fatores_risco(dados)
-
-    explicacoes_tecnicas = gerar_explicacoes_tecnicas(dados)
-
+    resultado     = prever_risco_por_dados(dados)
+    fatores       = gerar_fatores_risco(dados)
+    explicacoes   = gerar_explicacoes_tecnicas(dados)
     recomendacoes = gerar_recomendacoes(dados)
+    resumo        = gerar_resumo_executivo(resultado["classificacao"], fatores)
 
-    resumo = gerar_resumo_executivo(
-        resultado["classificacao"],
-        fatores_risco
-    )
-
-    return {
-        "cidade": cidade,
-        "classificacao": resultado["classificacao"],
-        "probabilidade_alto":
-            resultado["probabilidades"].get(1, 0),
-        "fatores_risco": fatores_risco,
-        "explicacoes_tecnicas": explicacoes_tecnicas,
-        "recomendacoes": recomendacoes,
-        "resumo_executivo": resumo
+    retorno = {
+        "cidade":               cidade,
+        "classificacao":        resultado["classificacao"],
+        "probabilidade_alto":   resultado["probabilidades"].get(1, 0),
+        "fatores_risco":        fatores,
+        "explicacoes_tecnicas": explicacoes,
+        "recomendacoes":        recomendacoes,
+        "resumo_executivo":     resumo,
     }
+
+    # Persiste sempre — usa CIDADE + DATA_MEDICAO como chave
+    conn = conectar_oracle()
+    garantir_coluna_explicacao(conn)
+    texto = montar_texto_explicacao(retorno)
+    salvar_explicacao_banco(cidade, dados["data_medicao"], texto, conn)
+    conn.close()
+
+    return retorno
+
+
+CIDADES_VALIDAS = [
+    "São Paulo",
+    "Campinas",
+    "Ribeirão Preto",
+    "Sorocaba",
+    "Piracicaba",
+    "Araraquara",
+    "São José Dos Campos",
+    "Ribeirão Pires",
+    "Taquaritinga",
+]
 
 
 if __name__ == "__main__":
-    cidade = "Araraquara"
-
-    resultado = gerar_explicacao(cidade)
-
     print("\n" + "=" * 60)
-    print("EXPLICAÇÃO DA IA")
+    print("GERAÇÃO DE EXPLICAÇÕES — TODAS AS CIDADES")
     print("=" * 60)
 
-    print(f"\nCidade: {resultado['cidade']}")
+    erros = 0
 
-    print(
-        f"Classificação: "
-        f"{resultado['classificacao'].upper()}"
-    )
+    for cidade in CIDADES_VALIDAS:
+        print(f"\n🤖 Processando: {cidade}...")
 
-    print(
-        f"Probabilidade de risco alto: "
-        f"{resultado['probabilidade_alto'] * 100:.2f}%"
-    )
+        try:
+            resultado = gerar_explicacao(cidade)
 
-    print("\nRESUMO EXECUTIVO")
-    print("-" * 60)
-    print(resultado["resumo_executivo"])
+            print(f"   Classificação : {resultado['classificacao'].upper()}")
+            print(f"   Risco alto    : {resultado['probabilidade_alto'] * 100:.2f}%")
+            print(f"   Resumo        : {resultado['resumo_executivo'][:80]}...")
+            print(f"   ✅ Explicação salva no banco.")
 
-    print("\nFATORES DE RISCO")
-    print("-" * 60)
+        except Exception as e:
+            erros += 1
+            print(f"   ❌ Erro: {e}")
 
-    for fator in resultado["fatores_risco"]:
-        print(f"• {fator}")
-
-    print("\nEXPLICAÇÃO TÉCNICA")
-    print("-" * 60)
-
-    for explicacao in resultado["explicacoes_tecnicas"]:
-        print(f"• {explicacao}")
-
-    print("\nRECOMENDAÇÕES")
-    print("-" * 60)
-
-    for recomendacao in resultado["recomendacoes"]:
-        print(f"• {recomendacao}")
-
-    print("\n")
+    print("\n" + "=" * 60)
+    print(f"Concluído. Erros: {erros}/{len(CIDADES_VALIDAS)}")
+    print("=" * 60 + "\n")
