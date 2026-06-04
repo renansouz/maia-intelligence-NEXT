@@ -6,202 +6,242 @@ Esta pasta centraliza toda a documentação técnica e evolutiva do projeto **So
 
 O objetivo é manter histórico técnico, decisões arquiteturais, documentação dos módulos e evolução das funcionalidades ao longo das versões do projeto.
 
----
 
-# 📂 Estrutura da Documentação
+## 📌 Visão Geral
 
-## 🏗 Arquitetura
+Pipeline completo de dados e IA que monitora, processa e prevê riscos operacionais:
 
-Documentação da arquitetura geral do sistema:
-
-```txt
-docs/arquitetura/
+```
+Open-Meteo API
+      ↓
+api_clima.py         ← coleta climática histórica
+      ↓
+gerar_dataset.py     ← gera dataset híbrido (real + simulado)
+      ↓
+TB_RISCO_AGRICOLA    ← Oracle Database
+      ↓
+pre_processamento.py ← limpeza e validação
+      ↓
+TB_RISCO_AGRICOLA_TRATADO
+      ↓
+preparar_features.py ← engenharia de features
+      ↓
+treinar_arvore.py    ← treinamento da Árvore de Decisão
+      ↓
+arvore_decisao.pkl
+      ↓
+prever_risco.py      ← previsão por cidade
+      ↓
+gerar_explicacao_modelo.py    ← Gera uma explicação do por que daquilo
+      ↓
+TB_PREVISAO_RISCO
+      ↓
+Dashboard.py         ← Streamlit
 ```
 
-Contém:
-
-* definição do problema;
-* objetivo da solução;
-* escopo do projeto;
-* arquitetura macro;
-* tecnologias utilizadas;
-* integração entre módulos.
-
 ---
 
-## 🚜 Projeto
+## 🗂️ Estrutura do Repositório
 
-Documentação geral do funcionamento do projeto:
-
-* [Projeto (Documentação)](./project/README-project.md)
-
-```txt
-docs/project/
 ```
-
-Contém:
-
-* visão geral;
-* fluxo completo;
-* manual de execução;
-* regras de negócio;
-* integração entre módulos;
-* roadmap do projeto.
+somporisk-ai-challenge/
+│
+├── sompo-risk-config/
+│   ├── api_clima.py
+│   ├── gerar_dataset.py
+│   ├── pre_processamento.py
+│   ├── dashboard.py
+│   └── machine_learning/
+│       ├── preparar_features.py
+│       ├── treinar_arvore.py
+│       ├── prever_risco.py
+│       └── gerar_explicacao_modelo.py
+│
+├── models/
+│   ├── arvore_decisao.pkl
+│   └── features.pkl
+│
+├── docs/
+|   └── README-DOCS.md      ← Documentação completa e resumida do projeto
+│
+├── .env                    ← credenciais Oracle (não versionado)
+├── env.example
+├── requirements.txt
+└── README.md
+```
 
 ---
 
 ## 📊 Dataset
 
-Documentação da geração e tratamento dos dados:
+Dataset **híbrido** com dois tipos de dados:
 
-* [Dataset do Projeto](./dataset/dataset_documentacao.md)
+**Dados Reais** — via API Open-Meteo (desde 01/01/2024):
+- temperatura média diária
+- precipitação (mm)
+- data da medição
 
-```txt
-docs/dataset/
-```
+**Dados Simulados** — gerados em Python:
+- umidade do solo, velocidade (km/h), proximidade de água (m)
+- inclinação do terreno (graus), tempo de uso (horas), dias desde a última manutenção
 
-Contém:
+**Indicadores Binários** (usados pelo modelo de ML):
 
-* origem dos dados;
-* integração Open-Meteo;
-* geração dos registros;
-* indicadores operacionais;
-* estrutura do banco;
-* estrutura das tabelas;
-* preparação dos dados para IA.
+| Indicador | Regra |
+|---|---|
+| `INDICADOR_CHUVA_ALTA` | chuva_mm > 30 |
+| `INDICADOR_SOLO_UMIDO` | umidade_solo > 70% |
+| `INDICADOR_VELOCIDADE_ALTA` | velocidade_kmh > 18 |
+| `INDICADOR_PERTO_AGUA` | proximidade_agua_m < 100 |
+| `INDICADOR_INCLINACAO_ALTA` | inclinacao_graus > 15° |
+| `INDICADOR_MANUTENCAO_ATRASADA` | manutencao_dias > 90 |
 
----
-
-## ⚙ Backend
-
-Documentação do backend Python:
-
-* [Backend do Projeto](./backend/backend_documentacao.md)
-
-```txt
-docs/backend/
-```
-
-Contém:
-
-* api_clima.py;
-* gerar_dataset.py;
-* pre_processamento.py;
-* integração Oracle;
-* fluxo de execução;
-* tratamento de erros;
-* persistência dos dados.
+**Cidades monitoradas:** São Paulo, Campinas, Ribeirão Preto, Sorocaba, Piracicaba, Araraquara, São José dos Campos, Ribeirão Pires e Taquaritinga.
 
 ---
 
 ## 🤖 Machine Learning
 
-Documentação do pipeline de Inteligência Artificial:
+**Modelo:** `DecisionTreeClassifier` (scikit-learn)
 
-* [Machine Learning](./ml/ml_documentacao.md)
-* [Explicabilidade](./ml/ml_explicabilidade.md)
+Escolhido por ser interpretável, leve e adequado para POC acadêmica — as decisões da árvore podem ser explicadas diretamente ao usuário final.
 
-```txt
-docs/ml/
+**Variável alvo:** `ocorrencia_risco` (0 = baixo, 1 = alto), criada de forma probabilística com base nos indicadores:
+
+```python
+if total_indicadores >= 4:   probabilidade = 0.75
+elif total_indicadores >= 2: probabilidade = 0.35
+else:                        probabilidade = 0.08
+
+ocorrencia_risco = int(random.random() < probabilidade)
 ```
 
-Contém:
+**Configuração do modelo:**
+```python
+DecisionTreeClassifier(criterion="gini", max_depth=5, random_state=42)
+# Divisão: 75% treino / 25% teste
+```
 
-* engenharia de features;
-* criação da variável alvo;
-* preparação dos dados;
-* treinamento do modelo;
-* árvore de decisão;
-* avaliação de métricas;
-* persistência do modelo;
-* previsão de novos riscos;
-* evolução futura do modelo.
+**Métricas avaliadas:** Accuracy, Precision, Recall, F1-Score e Matriz de Confusão.
+
+**Saída de previsão:**
+```json
+{
+  "cidade": "São Paulo",
+  "risco_previsto": 1,
+  "classificacao": "alto",
+  "probabilidades": { "0": 0.4731, "1": 0.5269 }
+}
+```
+
+**Explicabilidade:** O módulo `gerar_explicacao_modelo.py` traduz a previsão em linguagem humana, identificando quais fatores contribuíram e gerando recomendações operacionais (ex: "Realizar manutenção preventiva", "Evitar operação em áreas úmidas").
 
 ---
 
-# 🔄 Fluxo Geral da Solução
+## 🗄️ Banco de Dados
 
-```txt
-Open-Meteo API
-      ↓
-api_clima.py
-      ↓
-gerar_dataset.py
-      ↓
-TB_RISCO_AGRICOLA
-      ↓
-pre_processamento.py
-      ↓
-TB_RISCO_AGRICOLA_TRATADO
-      ↓
-preparar_features.py
-      ↓
-treinar_arvore.py
-      ↓
-arvore_decisao.pkl
-      ↓
-prever_risco.py
-      ↓
-TB_PREVISAO_RISCO
-      ↓
-Dashboard.py
+Oracle Database com três tabelas principais:
+
+| Tabela | Conteúdo |
+|---|---|
+| `TB_RISCO_AGRICOLA` | Dados brutos (climáticos + operacionais + indicadores) |
+| `TB_RISCO_AGRICOLA_TRATADO` | Dados limpos e preparados para IA |
+| `TB_PREVISAO_RISCO` | Previsões geradas pelo modelo |
+
+---
+
+## 🛠️ Tecnologias
+
+**Backend:** Python 3.x, Pandas, NumPy, Requests, python-dotenv, oracledb
+
+**Machine Learning:** scikit-learn, joblib
+
+**Visualização:** Streamlit, Plotly
+
+**Banco de Dados:** Oracle Database
+
+**API Climática:** Open-Meteo (gratuita, sem autenticação)
+
+---
+
+## ▶️ Como Executar
+
+### 1. Instalar dependências
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configurar credenciais Oracle
+```bash
+# Renomear env.example para .env e preencher:
+ORACLE_USER=seu_usuario
+ORACLE_PASSWORD=sua_senha
+ORACLE_HOST=oracle.fiap.com.br
+ORACLE_PORT=1521
+ORACLE_SERVICE=ORCL
+```
+
+### 3. Executar o pipeline completo
+```bash
+# Gerar dataset
+python sompo-risk-config/gerar_dataset.py
+
+# Pré-processamento
+python sompo-risk-config/pre_processamento.py
+
+# Preparar features
+python sompo-risk-config/machine_learning/preparar_features.py
+
+# Treinar modelo
+python sompo-risk-config/machine_learning/treinar_arvore.py
+
+# Realizar previsões
+python sompo-risk-config/machine_learning/prever_risco.py
+
+# Abrir dashboard
+python -m streamlit run sompo-risk-config/Dashboard.py
 ```
 
 ---
 
-# 📌 Estado Atual do Projeto
+## 📈 Dashboard
 
-## ✅ Concluído
+Implementado em Streamlit, o dashboard oferece:
 
-* arquitetura inicial;
-* definição do escopo;
-* integração Open-Meteo;
-* geração do dataset;
-* integração Oracle Database;
-* criação de indicadores binários;
-* pré-processamento dos dados;
-* engenharia de features;
-* treinamento da Árvore de Decisão;
-* persistência do modelo treinado;
-* documentação técnica.
-* integração do modelo ao dashboard;
-* visualização das previsões;
-* ranking de risco;
-* relatórios operacionais;
+- monitoramento centralizado dos equipamentos por cidade
+- visualização do risco previsto pelo modelo (baixo / alto)
+- ranking de equipamentos com maior probabilidade de incidente
+- mapa de riscos por município
+- indicadores operacionais e ambientais
+- filtros por período e cidade
+- alertas críticos para apoio à decisão
 
 ---
 
-## 🔄 Em Desenvolvimento
+## ✅ Status do Projeto
 
-* Integração com Gemini AI.
-* Integração e comunicação via EMAIL
-* Realizar deploy do dashboard na web
-* Concluir a API rest que vai integrar com a WEB
-* Melhoria da capacitação do modelo
-
----
-
-# 🎯 Objetivo Final
-
-Construir uma plataforma inteligente capaz de:
-
-* identificar riscos operacionais;
-* prever cenários críticos;
-* apoiar decisões preventivas;
-* reduzir falhas e perdas operacionais;
-* gerar alertas automáticos;
-* fornecer análises estratégicas baseadas em dados e Inteligência Artificial.
+| Módulo | Status |
+|---|---|
+| Arquitetura e escopo | ✅ Concluído |
+| Integração Open-Meteo | ✅ Concluído |
+| Geração do dataset | ✅ Concluído |
+| Oracle Database | ✅ Concluído |
+| Pré-processamento | ✅ Concluído |
+| Machine Learning (Árvore de Decisão) | ✅ Concluído |
+| Previsão de risco + persistência | ✅ Concluído |
+| Dashboard Streamlit | ✅ Concluído |
+| Explicabilidade do modelo | ✅ Concluído |
+| Integração Gemini AI | 🔄 Em desenvolvimento |
+| Alertas por e-mail | 🔄 Em desenvolvimento |
+| Dados reais de sinistros | 🗓️ Futuro |
+| Random Forest / XGBoost | 🗓️ Futuro |
 
 ---
 
-Principais entregas desta versão:
+## 🔐 Segurança
 
-* Oracle Database integrado;
-* Dataset híbrido com Open-Meteo;
-* Indicadores binários;
-* Pré-processamento estruturado;
-* Pipeline de Machine Learning;
-* Árvore de Decisão treinável;
-* Sistema de previsão de risco;
-* Documentação completa;
-* Entraga e leitura do Dashboard.
+- credenciais armazenadas exclusivamente em `.env` (fora do versionamento)
+- validações de integridade nos dados antes do treinamento
+- modelo versionado e rastreável via arquivos `.pkl`
+
+---

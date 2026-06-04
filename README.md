@@ -303,9 +303,9 @@ J --> K[Dashboard.py]
 
 # 🎥 13. Vídeo
 
-`SPRINT 1`: https://youtu.be/HASWFShZgFs
-`SPRINT 2`: A realizar
-`SPRINT 3`: Em fase de planejamento
+`SPRINT 1`: https://youtu.be/HASWFShZgFs  <br>
+`SPRINT 2`: A realizar  <br>
+`SPRINT 3`: Em fase de planejamento <br>
 
 ---
 
