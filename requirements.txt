@@ -1,19 +1,16 @@
-# Web & API
+# Web & API (MAIA Backend)
 fastapi==0.109.0
-uvicorn==0.27.0
+uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
-# Database
+# Database & Infrastructure
 oracledb==2.0.1
 python-dotenv==1.0.0
+requests==2.31.0
 
-# Machine Learning
+# Machine Learning & Intelligence
 pandas==2.2.0
 numpy==1.26.3
 scikit-learn==1.4.0
 joblib==1.3.2
 shap==0.44.0
-
-# UI & Viz
-streamlit==1.30.0
-plotly==5.18.0

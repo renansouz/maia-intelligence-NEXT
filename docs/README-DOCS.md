@@ -1,247 +1,115 @@
-# 📚 Documentação Técnica — SompoRisk AI
+# 📚 Documentação Técnica — Ecossistema MAIA
 
-## Sobre
+Esta documentação detalha as decisões de engenharia, os resultados estatísticos e a arquitetura de segurança que sustentam o projeto **MAIA**.
 
-Esta pasta centraliza toda a documentação técnica e evolutiva do projeto **SompoRisk AI**.
+## 🏗️ Arquitetura do Sistema
 
-O objetivo é manter histórico técnico, decisões arquiteturais, documentação dos módulos e evolução das funcionalidades ao longo das versões do projeto.
+O MAIA foi desenhado para ser resiliente e performático. Migramos de uma estrutura monolítica em Streamlit para uma **Arquitetura Desacoplada**:
 
+```mermaid
+flowchart TD
+    subgraph "Camada de Ingestão (Sensores)"
+        A[Sensores/Scripts] -- "POST /telemetria" --> B[FastAPI Backend]
+    end
 
-## 📌 Visão Geral
+    subgraph "Core API & Persistência"
+        B -- "Middleware" --> L[(TB_LOG_ACESSO)]
+        B -- "Repository" --> DB1[(Oracle DB: TB_RISCO_TRATADO)]
+    end
 
-Pipeline completo de dados e IA que monitora, processa e prevê riscos operacionais:
+    subgraph "Inteligência & Segurança"
+        B -- "SHAP" --> ML[Random Forest Model]
+        B -- "Hash Chain" --> AC[Audit Service]
+        ML -- "Score" --> DB2[(TB_PREVISAO_RISCO)]
+        AC -- "Hash Integrity" --> DB2
+    </div>
 
+    subgraph "Visualização Corporativa"
+        DB2 -- "GET /historico" --> D[Frontend Vanilla JS/Tailwind]
+    end
 ```
-Open-Meteo API
-      ↓
-api_clima.py         ← coleta climática histórica
-      ↓
-gerar_dataset.py     ← gera dataset híbrido (real + simulado)
-      ↓
-TB_RISCO_AGRICOLA    ← Oracle Database
-      ↓
-pre_processamento.py ← limpeza e validação
-      ↓
-TB_RISCO_AGRICOLA_TRATADO
-      ↓
-preparar_features.py ← engenharia de features
-      ↓
-treinar_arvore.py    ← treinamento da Árvore de Decisão
-      ↓
-arvore_decisao.pkl
-      ↓
-prever_risco.py      ← previsão por cidade
-      ↓
-gerar_explicacao_modelo.py    ← Gera uma explicação do por que daquilo
-      ↓
-TB_PREVISAO_RISCO
-      ↓
-Dashboard.py         ← Streamlit
-```
+
+### Por que esta stack?
+
+- **FastAPI:** Escolhido pela alta performance e geração automática de documentação (Swagger), essencial para integração com sistemas legados da Sompo.
+- **Vanilla JS (ES6+):** Optamos por não usar frameworks pesados (React/Vue) para manter o frontend leve, rápido e com controle total sobre a identidade visual da Sompo, sem as restrições de layout do Streamlit.
+- **Oracle Session Pool:** Implementamos pooling de conexões para garantir que o banco da FIAP suporte múltiplas requisições simultâneas durante a demo.
 
 ---
 
-## 🗂️ Estrutura do Repositório
+## 🤖 Machine Learning: O Salto de Performance
 
-```
-somporisk-ai-challenge/
-│
-├── sompo-risk-config/
-│   ├── api_clima.py
-│   ├── gerar_dataset.py
-│   ├── pre_processamento.py
-│   ├── dashboard.py
-│   └── machine_learning/
-│       ├── preparar_features.py
-│       ├── treinar_arvore.py
-│       ├── prever_risco.py
-│       └── gerar_explicacao_modelo.py
-│
-├── models/
-│   ├── arvore_decisao.pkl
-│   └── features.pkl
-│
-├── docs/
-|   └── README-DOCS.md      ← Documentação completa e resumida do projeto
-│
-├── .env                    ← credenciais Oracle (não versionado)
-├── env.example
-├── requirements.txt
-└── README.md
-```
+Na Sprint 2, utilizamos uma Árvore de Decisão básica. No MAIA, evoluímos para um **Random Forest com Class Weighting**.
+
+### Benchmark de Modelos
+
+Rode o script `python3 -m scripts.validacao.comparativo_modelos` para validar estes números:
+
+| Métrica                                | Árvore de Decisão | Random Forest (MAIA) | Melhoria |
+| :------------------------------------- | :---------------- | :------------------- | :------- |
+| **ROC-AUC**                            | 0.5625            | **0.7072**           | **+25%** |
+| **Cobertura de Risco (Recall >= 30%)** | 35.06%            | **58.38%**           | **+66%** |
+
+**Justificativa:** O modelo anterior falhava em identificar riscos altos devido ao desequilíbrio das classes. O Random Forest, aliado ao peso balanceado, permitiu que o sistema identificasse 66% mais situações críticas dentro da zona de alerta/atenção.
+
+### Explicabilidade (XAI)
+
+Utilizamos **SHAP (SHapley Additive exPlanations)**. Em vez de prever apenas um número, o backend decompõe o score e identifica os 3 principais fatores de influência. Isso resolve o problema da "Caixa Preta" na IA.
 
 ---
 
-## 📊 Dataset
+## 🛡️ Protocolo de Segurança e Auditoria
 
-Dataset **híbrido** com dois tipos de dados:
+### Hash Chain (Blockchain Simplificado)
 
-**Dados Reais** — via API Open-Meteo (desde 01/01/2024):
-- temperatura média diária
-- precipitação (mm)
-- data da medição
+Para garantir que os dados de risco nunca sejam manipulados, implementamos um encadeamento de hash no Oracle:
+`Novo_Hash = SHA256(Equipamento + Data + Score + Hash_Anterior)`
 
-**Dados Simulados** — gerados em Python:
-- umidade do solo, velocidade (km/h), proximidade de água (m)
-- inclinação do terreno (graus), tempo de uso (horas), dias desde a última manutenção
+Ao ler o hash anterior com `FOR UPDATE` e `ROWID` lock, garantimos que a cadeia seja única e global, mesmo sob alta concorrência.
 
-**Indicadores Binários** (usados pelo modelo de ML):
+### Rastreabilidade de Uso
 
-| Indicador | Regra |
-|---|---|
-| `INDICADOR_CHUVA_ALTA` | chuva_mm > 30 |
-| `INDICADOR_SOLO_UMIDO` | umidade_solo > 70% |
-| `INDICADOR_VELOCIDADE_ALTA` | velocidade_kmh > 18 |
-| `INDICADOR_PERTO_AGUA` | proximidade_agua_m < 100 |
-| `INDICADOR_INCLINACAO_ALTA` | inclinacao_graus > 15° |
-| `INDICADOR_MANUTENCAO_ATRASADA` | manutencao_dias > 90 |
+Todas as chamadas de API são registradas via **Middleware** na tabela `TB_LOG_ACESSO`, capturando:
 
-**Cidades monitoradas:** São Paulo, Campinas, Ribeirão Preto, Sorocaba, Piracicaba, Araraquara, São José dos Campos, Ribeirão Pires e Taquaritinga.
+- IP de Origem
+- Tempo de processamento (ms)
+- Status HTTP e Rota chamada.
 
 ---
 
-## 🤖 Machine Learning
+## 🧪 Validação Histórica: São Paulo (Fev/2024)
 
-**Modelo:** `DecisionTreeClassifier` (scikit-learn)
+Para provar a eficácia, rodamos o MAIA retroativamente sobre o mês de Fevereiro de 2024 em São Paulo, período marcado por tempestades severas.
 
-Escolhido por ser interpretável, leve e adequado para POC acadêmica — as decisões da árvore podem ser explicadas diretamente ao usuário final.
+**Resultado:**
 
-**Variável alvo:** `ocorrencia_risco` (0 = baixo, 1 = alto), criada de forma probabilística com base nos indicadores:
-
-```python
-if total_indicadores >= 4:   probabilidade = 0.75
-elif total_indicadores >= 2: probabilidade = 0.35
-else:                        probabilidade = 0.08
-
-ocorrencia_risco = int(random.random() < probabilidade)
-```
-
-**Configuração do modelo:**
-```python
-DecisionTreeClassifier(criterion="gini", max_depth=5, random_state=42)
-# Divisão: 75% treino / 25% teste
-```
-
-**Métricas avaliadas:** Accuracy, Precision, Recall, F1-Score e Matriz de Confusão.
-
-**Saída de previsão:**
-```json
-{
-  "cidade": "São Paulo",
-  "risco_previsto": 1,
-  "classificacao": "alto",
-  "probabilidades": { "0": 0.4731, "1": 0.5269 }
-}
-```
-
-**Explicabilidade:** O módulo `gerar_explicacao_modelo.py` traduz a previsão em linguagem humana, identificando quais fatores contribuíram e gerando recomendações operacionais (ex: "Realizar manutenção preventiva", "Evitar operação em áreas úmidas").
+- O sistema gerou status **WARNING (Amarelo)** em 42% do período.
+- Os picos de score (ex: 10/02 e 22/02) coincidiram com dados de precipitação elevada fornecidos pela Open-Meteo.
+- Isso prova que a IA é sensível a variações climáticas reais, validando sua aplicação no mundo real.
 
 ---
 
-## 🗄️ Banco de Dados
+## 🚀 Como Executar
 
-Oracle Database com três tabelas principais:
+### Pré-requisitos
 
-| Tabela | Conteúdo |
-|---|---|
-| `TB_RISCO_AGRICOLA` | Dados brutos (climáticos + operacionais + indicadores) |
-| `TB_RISCO_AGRICOLA_TRATADO` | Dados limpos e preparados para IA |
-| `TB_PREVISAO_RISCO` | Previsões geradas pelo modelo |
+- Python 3.11+
+- Oracle Instant Client (opcional, usamos modo Thin)
+- VPN FIAP ativa
 
----
+### Instalação
 
-## 🛠️ Tecnologias
+1.  Instalar dependências: `pip install -r requirements.txt`
+2.  Configurar `.env` (use o `.env.example` como base).
+3.  Sincronizar banco: `python3 -m app.core.config_db`
+4.  Treinar modelo: `python3 -m machine_learning.treinar_modelo`
+5.  Popular histórico: `python3 -m scripts.popular_banco` e `python3 -m scripts.popular_previsoes_historicas`
 
-**Backend:** Python 3.x, Pandas, NumPy, Requests, python-dotenv, oracledb
+### Inicialização
 
-**Machine Learning:** scikit-learn, joblib
-
-**Visualização:** Streamlit, Plotly
-
-**Banco de Dados:** Oracle Database
-
-**API Climática:** Open-Meteo (gratuita, sem autenticação)
-
----
-
-## ▶️ Como Executar
-
-### 1. Instalar dependências
 ```bash
-pip install -r requirements.txt
+# Rodar Backend e Frontend juntos
+python3 -m uvicorn app.main:app --reload
 ```
 
-### 2. Configurar credenciais Oracle
-```bash
-# Renomear env.example para .env e preencher:
-ORACLE_USER=seu_usuario
-ORACLE_PASSWORD=sua_senha
-ORACLE_HOST=oracle.fiap.com.br
-ORACLE_PORT=1521
-ORACLE_SERVICE=ORCL
-```
-
-### 3. Executar o pipeline completo
-```bash
-# Gerar dataset
-python sompo-risk-config/gerar_dataset.py
-
-# Pré-processamento
-python sompo-risk-config/pre_processamento.py
-
-# Preparar features
-python sompo-risk-config/machine_learning/preparar_features.py
-
-# Treinar modelo
-python sompo-risk-config/machine_learning/treinar_arvore.py
-
-# Realizar previsões
-python sompo-risk-config/machine_learning/prever_risco.py
-
-# Abrir dashboard
-python -m streamlit run sompo-risk-config/Dashboard.py
-```
-
----
-
-## 📈 Dashboard
-
-Implementado em Streamlit, o dashboard oferece:
-
-- monitoramento centralizado dos equipamentos por cidade
-- visualização do risco previsto pelo modelo (baixo / alto)
-- ranking de equipamentos com maior probabilidade de incidente
-- mapa de riscos por município
-- indicadores operacionais e ambientais
-- filtros por período e cidade
-- alertas críticos para apoio à decisão
-
----
-
-## ✅ Status do Projeto
-
-| Módulo | Status |
-|---|---|
-| Arquitetura e escopo | ✅ Concluído |
-| Integração Open-Meteo | ✅ Concluído |
-| Geração do dataset | ✅ Concluído |
-| Oracle Database | ✅ Concluído |
-| Pré-processamento | ✅ Concluído |
-| Machine Learning (Árvore de Decisão) | ✅ Concluído |
-| Previsão de risco + persistência | ✅ Concluído |
-| Dashboard Streamlit | ✅ Concluído |
-| Explicabilidade do modelo | ✅ Concluído |
-| Integração Gemini AI | 🔄 Em desenvolvimento |
-| Alertas por e-mail | 🔄 Em desenvolvimento |
-| Dados reais de sinistros | 🗓️ Futuro |
-| Random Forest / XGBoost | 🗓️ Futuro |
-
----
-
-## 🔐 Segurança
-
-- credenciais armazenadas exclusivamente em `.env` (fora do versionamento)
-- validações de integridade nos dados antes do treinamento
-- modelo versionado e rastreável via arquivos `.pkl`
-
----
+Acesse: `http://127.0.0.1:8000/`

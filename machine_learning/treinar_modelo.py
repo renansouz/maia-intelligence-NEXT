@@ -30,7 +30,7 @@ def treinar():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    modelo = RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42)
+    modelo = RandomForestClassifier(n_estimators=80, class_weight='balanced', random_state=42)
     modelo.fit(X_train, y_train)
 
     # calculo das probabilidades para a classe 1 (risco alto)
@@ -52,7 +52,7 @@ def treinar():
     print(classification_report(y_test, modelo.predict(X_test)))
 
     os.makedirs('ml_assets', exist_ok=True)
-    joblib.dump(modelo, 'ml_assets/modelo_risco.pkl')
+    joblib.dump(modelo, 'ml_assets/modelo_risco.pkl', compress=3)
     joblib.dump(features, 'ml_assets/features.pkl')
     print("\nModelo e features salvos em ml_assets/")
 
