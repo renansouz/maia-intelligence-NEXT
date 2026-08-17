@@ -8,6 +8,7 @@ from app.services.data_service import salvar_telemetria_db, buscar_ultima_teleme
 from app.services.risco_service import processar_previsao_completa
 from app.core.config_db import configurar_banco
 from app.core.database import db
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
@@ -96,3 +97,5 @@ async def get_historico(_=Depends(verificar_key)):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.release_connection(conn)
+
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
