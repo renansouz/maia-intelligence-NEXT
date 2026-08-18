@@ -1,3 +1,15 @@
+""" noted by renansouz
+Módulo de Inteligência Artificial e Explicabilidade (XAI).
+
+Este serviço é responsável por:
+1. Carregar o modelo Random Forest e o mapeamento de features.
+2. Realizar a predição de probabilidade contínua (0-1).
+3. Aplicar a calibração de faixas de risco (Baixo < 30%, Médio 30-70%, Alto > 70%).
+4. Gerar laudos técnicos via SHAP (Explainable AI), identificando os fatores de maior influência.
+
+Decisão de Design: Utilizamos SHAP para garantir a transparência exigida em processos
+de auditoria de seguros, transformando uma 'caixa-preta' em decisões auditáveis.
+"""
 import joblib
 import pandas as pd
 import shap

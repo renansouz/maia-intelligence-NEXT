@@ -100,7 +100,12 @@ Para um mergulho profundo nas decisões de engenharia, acesse nossos documentos 
 
 ## 🔧 Como Executar Localmente
 
-**Pré-requisitos:** Python 3.11+, Git, credenciais de acesso ao Oracle da FIAP (fornecidas pela instituição). Não é necessário Node.js nem VPN — o banco Oracle da FIAP é acessível remotamente.
+**Pré-requisitos:**
+
+- **Python:** Recomendado **3.11** ou **3.12** (Versões Estáveis).
+  - _Nota: Versões experimentais como 3.13 ou 3.14 exigem compiladores C++ extras e não são recomendadas._
+- **Git:** Para clonagem do repositório.
+- **Credenciais Oracle:** Acesso ao Oracle da FIAP (fornecidas pela instituição).
 
 ### 1. Clonar o repositório
 
@@ -114,16 +119,18 @@ cd maia-intelligence-NEXT
 **macOS / Linux:**
 
 ```bash
-python3 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-python -m venv venv
+# O comando 'py -3.12' garante que você use a versão correta instalada no Windows
+py -3.12 -m venv venv
 .\venv\Scripts\Activate.ps1
-# Se der erro de permissão, rode antes:
+
+# Se houver erro de permissão de execução de scripts no Windows:
 # Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
@@ -182,12 +189,6 @@ python3 -m uvicorn app.main:app --reload
 ```
 
 Acesse **http://127.0.0.1:8000/** no navegador.
-
-### Problemas comuns
-
-- **Aviso `pandas only supports SQLAlchemy...`** no terminal: inofensivo, pode ignorar.
-- **Alterações no frontend não aparecem:** o navegador cacheia agressivamente arquivos `.js`. Use `Cmd+Shift+R` (Mac) ou `Ctrl+Shift+R` (Windows) para forçar recarregamento.
-- **`403 Forbidden` ao acessar dados:** confira se `frontend/js/config.js` existe e se a chave bate exatamente com o `.env`.
 
 ---
 

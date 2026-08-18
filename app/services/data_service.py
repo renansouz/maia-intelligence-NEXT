@@ -1,10 +1,18 @@
+"""noted by renansouz
+Módulo de Persistência e Acesso a Dados (Data Access Layer).
+
+Responsável pela interface direta com o Oracle Database para:
+1. Ingestão de telemetria via comando MERGE (Atomic Upsert).
+2. Recuperação de registros históricos e métricas para o frontend.
+3. Abstração das queries SQL para manter o restante do sistema independente do banco.
+
+Decisão de Design: Centraliza o acesso ao dado para garantir que todas as 
+operações utilizem o Oracle Session Pool de forma eficiente.
+"""
 from app.core.database import db
 import oracledb
 
 def salvar_telemetria_db(dados_dict):
-    """
-    insere ou atualiza telemetria na tabela tratado via MERGE
-    """
     conn = db.get_connection()
     cursor = conn.cursor()
     

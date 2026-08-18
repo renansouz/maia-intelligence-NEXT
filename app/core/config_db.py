@@ -65,11 +65,11 @@ def configurar_banco():
                 cursor.execute(f"ALTER TABLE {tab} ADD {col} {tipo}")
 
         conn.commit()
-        print("banco de dados sincronizado (logs inclusos)")
+        print("Infraestrutura de dados: Sincronizada.")
 
     except Exception as e:
         conn.rollback()
-        print(f"erro na sincronizacao: {e}")
+        print(f"Falha na sincronização de infraestrutura: {e}")
     finally:
         cursor.close()
         db.release_connection(conn)

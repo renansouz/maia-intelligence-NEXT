@@ -26,9 +26,7 @@ class Database:
                     max=5,    # Máximo de conexões (seguro para o Oracle da FIAP)
                     increment=1
                 )
-                print("✅ Oracle Session Pool criado com sucesso!")
             except Exception as e:
-                print(f"❌ Erro ao criar o Pool: {e}")
                 raise e
         return self.pool
 

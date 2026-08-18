@@ -1,3 +1,14 @@
+""" noted by renansouz
+Orquestrador de Fluxo de Risco (Service Layer).
+
+Este módulo atua como o 'cérebro' do backend, coordenando a integração:
+1. Recebe dados brutos e aciona o ml_service para gerar a inteligência.
+2. Solicita ao audit_service a geração do elo da corrente de integridade.
+3. Garante a atomicidade da operação (ML + Hash + DB) em uma única transação.
+
+Decisão de Design: Segue o padrão de Camada de Serviço para isolar a lógica de 
+orquestração das rotas da API (FastAPI), facilitando testes e manutenção.
+"""
 from app.core.database import db
 from app.services.ml_service import ml_service
 from app.services.audit_service import gerar_hash_integridade

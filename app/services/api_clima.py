@@ -20,7 +20,6 @@ def buscar_coordenadas(cidade):
 
     resultados = dados.get("results")
     if not resultados:
-        print(f"Aviso: Nenhum resultado encontrado para a cidade {cidade}")
         return None
 
     local = resultados[0]

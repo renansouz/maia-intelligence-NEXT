@@ -1,3 +1,14 @@
+""" noted by renansouz
+Módulo de Protocolo de Segurança e Auditoria (Hash Chain).
+
+Este serviço garante a integridade imutável das decisões da IA:
+1. Implementa uma estrutura de 'ledger' onde cada hash depende do registro anterior.
+2. Utiliza SHA-256 para gerar assinaturas digitais únicas por predição.
+3. Gerencia concorrência via lock transacional (FOR UPDATE) para garantir unicidade da cadeia.
+
+Decisão de Design: O uso de Hash Chain provê segurança jurídica à Sompo, 
+permitindo provar que um registro histórico não foi adulterado após sua criação.
+"""
 import hashlib
 
 def gerar_hash_integridade(cursor, equipamento_id, data_medicao, score):
