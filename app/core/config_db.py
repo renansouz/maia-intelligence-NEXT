@@ -33,10 +33,17 @@ def configurar_banco():
         for nome, campos in tabelas.items():
             try:
                 cursor.execute(f"CREATE TABLE {nome} ({campos})")
+                print(f"Infra: {nome} verificada.")
             except oracledb.DatabaseError as e:
                 if "ORA-00955" not in str(e): raise e
 
         colunas_novas = [
+            ("TB_LOG_ACESSO", "ROTA", "VARCHAR2(255)"),
+            ("TB_LOG_ACESSO", "STATUS_CODE", "NUMBER(3)"),
+            ("TB_LOG_ACESSO", "IP_ORIGEM", "VARCHAR2(50)"),
+            ("TB_LOG_ACESSO", "TEMPO_MS", "NUMBER"),
+            ("TB_LOG_ACESSO", "TIMESTAMP_LOG", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
+            
             ("TB_RISCO_AGRICOLA_TRATADO", "RISCO_OPERACIONAL", "NUMBER(1)"),
             ("TB_RISCO_AGRICOLA_TRATADO", "TEMPERATURA", "NUMBER"),
             ("TB_RISCO_AGRICOLA_TRATADO", "CHUVA_MM", "NUMBER"),
@@ -52,6 +59,7 @@ def configurar_banco():
             ("TB_RISCO_AGRICOLA_TRATADO", "INDICADOR_PERTO_AGUA", "NUMBER(1)"),
             ("TB_RISCO_AGRICOLA_TRATADO", "INDICADOR_INCLINACAO_ALTA", "NUMBER(1)"),
             ("TB_RISCO_AGRICOLA_TRATADO", "INDICADOR_MANUTENCAO_ATRASADA", "NUMBER(1)"),
+            
             ("TB_PREVISAO_RISCO", "HASH_INTEGRIDADE", "VARCHAR2(64)"),
             ("TB_PREVISAO_RISCO", "DATA_PREVISAO", "DATE"),
             ("TB_PREVISAO_RISCO", "CLASSIFICACAO", "VARCHAR2(20)"),
@@ -62,7 +70,14 @@ def configurar_banco():
 
         for tab, col, tipo in colunas_novas:
             if not coluna_existe(cursor, tab, col):
+                print(f"Migração: Adicionando {col} em {tab}...")
                 cursor.execute(f"ALTER TABLE {tab} ADD {col} {tipo}")
+
+        for tab in ["TB_RISCO_AGRICOLA", "TB_RISCO_AGRICOLA_TRATADO", "TB_PREVISAO_RISCO"]:
+            if not pk_correta(cursor, tab):
+                try: cursor.execute(f"ALTER TABLE {tab} DROP PRIMARY KEY")
+                except: pass
+                cursor.execute(f"ALTER TABLE {tab} ADD PRIMARY KEY (EQUIPAMENTO_ID, DATA_MEDICAO)")
 
         conn.commit()
         print("Infraestrutura de dados: Sincronizada.")

@@ -1,140 +1,348 @@
 # 📐 Arquitetura do MAIA
 
-## Visão Geral do Fluxo de Dados
+## Visão Geral
 
-O MAIA é dividido em quatro camadas com responsabilidades isoladas: ingestão, orquestração, inteligência e apresentação. Cada camada se comunica apenas através de contratos bem definidos (API REST), o que permite que qualquer uma delas evolua sem quebrar as demais.
+O MAIA foi estruturado em quatro camadas principais:
+
+1. **Ingestão de Dados** — recebe dados ambientais e operacionais;
+2. **Orquestração** — valida, persiste e coordena os serviços;
+3. **Inteligência e Auditoria** — gera o score, a explicação e o registro íntegro da decisão;
+4. **Apresentação** — disponibiliza os resultados para os usuários por meio de uma interface web.
+
+A arquitetura utiliza o **FastAPI como camada de orquestração**, o **Oracle Database como camada de persistência**, o **Random Forest + SHAP como motor de inteligência** e uma **Hash Chain para integridade das previsões armazenadas**.
 
 ```mermaid
-graph LR
-    %% Definição de Cores Sompo
-    classDef sompoRed fill:#DF082A,stroke:#9E1E24,color:#fff,stroke-width:2px;
-    classDef sompoWine fill:#9E1E24,stroke:#000,color:#fff,stroke-width:1px;
-    classDef database fill:#F2F4F7,stroke:#344054,color:#101828,stroke-width:2px;
-    classDef logic fill:#fff,stroke:#DF082A,color:#101828,stroke-width:1px;
-
-    %% 1. Ingestão
-    subgraph Ingestao ["1. Ingestão de Dados (Gêmeo Digital)"]
-        direction TB
-        S1[Sensor / Mock]
-        S2[Open-Meteo API]
-        P_B[popular_banco.py]
-        S2 --> P_B
+flowchart TD
+    subgraph "1. Ingestão de Dados"
+        S1[Sensor / Cliente Externo] -->|"POST /telemetria"| API[FastAPI]
+        S2[Open-Meteo API] --> B[scripts/popular_banco.py]
+        B -->|"Synthetic Twin"| DB1[(TB_RISCO_AGRICOLA_TRATADO)]
     end
 
-    %% 2. Orquestração
-    subgraph Core ["2. Orquestração (Backend FastAPI)"]
-        direction TB
-        API[FastAPI Main]
-        MID[Middleware Log]
-        VAL[Validação Pydantic]
-        API --- MID
-        API --- VAL
+    subgraph "2. Orquestração — FastAPI"
+        API -->|"Validação Pydantic"| V[Validação]
+        V --> DB1
+        API -->|"Data Service"| DB1
+        API -->|"Risco Service"| RS[risco_service.py]
+        API -->|"Middleware"| LOG[(TB_LOG_ACESSO)]
     end
 
-    %% 3. Inteligência e Auditoria
-    subgraph Inteligencia ["3. Inteligência e Auditoria"]
-        direction TB
-        RS[risco_service.py]
-        ML[ml_service.py]
-        AC[audit_service.py]
-        
-        RS --> ML
-        RS --> AC
-        ML --> SHAP[Explicação SHAP]
-        ML --> RF[Random Forest]
+    subgraph "3. Inteligência e Auditoria"
+        RS --> ML[ml_service.py]
+        ML -->|"Random Forest"| SCORE[Score de Risco]
+        ML -->|"SHAP"| XAI[Explicação]
+        RS --> AC[audit_service.py]
+        SCORE --> DB2[(TB_PREVISAO_RISCO)]
+        XAI --> DB2
+        AC -->|"Hash Chain SHA-256"| DB2
     end
 
-    %% 4. Persistência
-    subgraph Dados ["Camada de Dados (Oracle)"]
-        direction TB
-        DB_LOG[(TB_LOG_ACESSO)]
-        DB_TRATADO[(TB_RISCO_TRATADO)]
-        DB_PREV[(TB_PREVISAO_RISCO)]
+    subgraph "4. Apresentação"
+        UI[Frontend HTML + Tailwind + JavaScript]
+        UI -->|"GET /historico"| API
+        UI -->|"GET /previsao/{id}"| API
+        API --> UI
     end
-
-    %% 5. Apresentação
-    subgraph UI ["4. Apresentação (Frontend)"]
-        FRONT[SPA Vanilla JS + Tailwind]
-    end
-
-    %% Fluxos de Conexão (Organizados)
-    S1 -->|"POST /telemetria"| API
-    P_B -->|"Sync"| DB_TRATADO
-    
-    API -->|"Event"| RS
-    MID -.-> DB_LOG
-    VAL -.-> DB_TRATADO
-    
-    RS --> DB_PREV
-    DB_PREV -->|"GET /historico"| API
-    API --> FRONT
-
-    %% Aplicação de Estilos
-    class API,RS,ML,AC sompoRed;
-    class P_B,FRONT sompoWine;
-    class DB_LOG,DB_TRATADO,DB_PREV database;
-    class S1,S2,VAL,MID,SHAP,RF logic;
 ```
 
-## Fluxo de Entrada de Dados
+## 🔄 Fluxo de Dados
 
-Existem dois caminhos de entrada, com propósitos diferentes:
+O MAIA trabalha com dois contextos de entrada.
 
-- **`POST /telemetria`** — endpoint de ingestão em tempo real. Recebe uma leitura de sensor/equipamento, valida via Pydantic e persiste em `TB_RISCO_AGRICOLA_TRATADO`. É o caminho que representa a operação real do sistema em produção.
-- **`scripts/popular_banco.py`** — gera o histórico da frota simulada (50 equipamentos fixos, 5 cidades), combinando clima real (Open-Meteo) com telemetria sintética correlacionada. Usado para construir a base de treino do modelo e popular o ambiente de demonstração.
+### 1. Ingestão operacional
 
-Os dois caminhos convergem na mesma tabela e no mesmo pipeline de inferência — não existe lógica duplicada entre ingestão em tempo real e ingestão em lote.
+O endpoint:
 
-## Decisões de Engenharia
+```text
+POST /telemetria
+```
+
+recebe dados de um equipamento ou cliente externo, valida a estrutura da informação por meio de **Pydantic** e realiza a persistência conforme o fluxo definido pela aplicação.
+
+Esse endpoint representa a porta de entrada para uma futura integração com fontes reais de telemetria.
+
+### 2. Geração do ambiente de demonstração
+
+O script:
+
+```text
+scripts/popular_banco.py
+```
+
+combina dados climáticos da **Open-Meteo** com a telemetria do **Synthetic Twin**, gerando o histórico utilizado no ambiente atual de treinamento, validação e demonstração.
+
+Os dois contextos utilizam a mesma camada de persistência e os mesmos contratos de dados da aplicação, mantendo uma estrutura preparada para substituir a origem simulada por fontes reais.
+
+---
+
+## 🧩 Fluxo de Predição
+
+A consulta de uma previsão percorre o seguinte fluxo:
+
+```text
+Requisição
+    ↓
+FastAPI
+    ↓
+Validação / Autenticação
+    ↓
+Risco Service
+    ↓
+Random Forest
+    ↓
+SHAP
+    ↓
+Score + Classificação + Explicação
+    ↓
+Hash de Auditoria
+    ↓
+Oracle
+    ↓
+Resposta da API
+    ↓
+Frontend
+```
+
+O resultado entregue ao usuário combina quatro elementos:
+
+- **score probabilístico**;
+- **classificação de risco**;
+- **explicação dos fatores relevantes**;
+- **hash de auditoria associado à previsão**.
+
+Dessa forma, a mesma decisão pode ser visualizada e posteriormente rastreada.
+
+---
+
+## ⚙️ Decisões de Engenharia
 
 ### FastAPI como orquestrador central
 
-Toda a lógica de negócio (validação, chamada ao modelo, geração de hash, persistência) passa por um único ponto de entrada. Isso garante que qualquer cliente — o frontend, um script de teste, ou um sistema externo da Sompo — receba exatamente o mesmo tratamento e as mesmas garantias de segurança e auditoria.
+O FastAPI concentra os endpoints da aplicação e coordena a comunicação entre validação, persistência, serviços de negócio, Machine Learning e auditoria.
 
-### Frontend desacoplado (HTML + Tailwind + JavaScript)
+Essa centralização reduz o acoplamento entre frontend, banco e modelo e mantém o acesso às camadas internas controlado pela API.
 
-O frontend é servido como arquivos estáticos pelo próprio FastAPI (`StaticFiles`) e se comunica com o backend exclusivamente via API REST, sem nunca ter acesso direto ao banco de dados ou às credenciais do Oracle. Essa separação significa que a interface pode ser hospedada separadamente do backend no futuro, sem qualquer alteração na lógica de negócio.
+### Contratos de API com Pydantic
 
-A ausência de um framework de frontend (React, Vue) foi uma escolha deliberada: sem processo de build, sem `node_modules`, sem passo de compilação — o projeto roda com um único comando, e o controle sobre a identidade visual da Sompo é total.
+As entradas recebidas pela aplicação são validadas por schemas Pydantic antes de serem processadas.
+
+Isso cria um contrato explícito para os dados que entram no sistema e reduz a possibilidade de informações incompatíveis chegarem às camadas de persistência ou inteligência.
+
+### Frontend desacoplado
+
+O frontend é servido como conteúdo estático pelo FastAPI e se comunica com o backend exclusivamente por API REST.
+
+A interface não acessa diretamente o Oracle e não contém a lógica de negócio do sistema.
+
+A escolha por HTML, Tailwind CSS e JavaScript foi deliberada para manter a solução simples de executar e permitir controle direto sobre a identidade visual adotada para o MAIA.
 
 ### Session Pooling no Oracle
 
-Conexões com banco de dados relacional têm custo de abertura não-trivial. O `app/core/database.py` mantém um `SessionPool` do `oracledb`, reaproveitando conexões entre requisições em vez de abrir e fechar uma nova a cada chamada — essencial para que a API suporte múltiplas requisições simultâneas sem degradação.
+A camada de acesso ao banco utiliza `oracledb` com **Session Pooling**.
 
-### Migração de schema automática (`config_db.py`)
+Em vez de estabelecer uma nova conexão para cada requisição, a aplicação reutiliza conexões do pool, reduzindo o custo operacional associado à criação e encerramento frequente de sessões.
 
-Ao subir, o backend verifica o estado real das tabelas no Oracle — quais existem, quais colunas faltam, se as chaves primárias estão corretas — e aplica as correções necessárias via `ALTER TABLE`, de forma idempotente. Isso garante que o projeto rode de forma consistente independentemente do estado anterior do banco, sem exigir intervenção manual de quem for executá-lo.
+A configuração está centralizada em:
 
-### Middleware de rastreabilidade
-
-Toda requisição HTTP que chega à API é interceptada por um middleware que registra método, rota, status de resposta, IP de origem e tempo de processamento em `TB_LOG_ACESSO`. Isso é independente do hash chain de auditoria de decisões — o middleware rastreia _acesso ao sistema_, o hash chain garante _integridade do dado gravado_. São camadas complementares de rastreabilidade.
-
-## Estrutura de Diretórios
-
+```text
+app/core/database.py
 ```
+
+### Persistência em Oracle
+
+O Oracle armazena:
+
+- dados tratados da operação;
+- previsões geradas;
+- explicações associadas às previsões;
+- hashes de integridade;
+- logs de acesso da API.
+
+Essa centralização permite manter histórico e rastreabilidade dentro do mesmo ambiente de dados.
+
+### Migração de Schema
+
+O módulo:
+
+```text
+app/core/config_db.py
+```
+
+verifica a estrutura necessária do banco e aplica ajustes de schema quando necessário.
+
+A abordagem é **idempotente**, permitindo que o ambiente seja preparado de forma consistente sem depender exclusivamente de alterações manuais.
+
+Essa decisão surgiu como resposta aos problemas de sincronização de schema encontrados durante o desenvolvimento.
+
+### Middleware de Rastreabilidade
+
+Toda requisição recebida pela API passa por um middleware que registra em `TB_LOG_ACESSO`:
+
+- método HTTP;
+- rota;
+- status da resposta;
+- IP de origem;
+- tempo de processamento.
+
+Esse mecanismo registra o **uso da aplicação**.
+
+Ele é complementar à Hash Chain, que registra a **integridade das decisões armazenadas**.
+
+---
+
+## 🔐 Camada de Segurança
+
+Os endpoints protegidos utilizam autenticação por API Key através do header:
+
+```text
+X-API-KEY
+```
+
+A validação adota comportamento **fail-closed**:
+
+- sem chave configurada, o acesso não é liberado;
+- chave inválida resulta em rejeição;
+- a credencial do backend permanece em variável de ambiente.
+
+A interface frontend utiliza uma configuração própria e não acessa diretamente as credenciais do Oracle.
+
+Os mecanismos de integridade e auditoria estão detalhados em:
+
+```text
+docs/SECURITY.md
+```
+
+---
+
+## 🧠 Inteligência e Auditoria
+
+A camada de serviços separa a responsabilidade entre:
+
+```text
+ml_service.py
+```
+
+Responsável por:
+
+- carregar o modelo treinado;
+- realizar a inferência;
+- calcular a explicação SHAP.
+
+```text
+audit_service.py
+```
+
+Responsável por:
+
+- recuperar o hash anterior;
+- gerar o novo hash;
+- preservar o encadeamento das previsões.
+
+Essa separação permite evoluir o modelo sem misturar sua lógica com a camada de auditoria.
+
+O resultado final armazenado em `TB_PREVISAO_RISCO` associa:
+
+```text
+Equipamento
++ Score
++ Classificação
++ Explicação
++ Hash
+```
+
+---
+
+## 🗂️ Estrutura de Diretórios
+
+```text
 app/
-├── core/ → conexão Oracle, migração de schema
-├── models/ → schemas Pydantic (contratos da API)
-├── services/ → lógica de negócio (ML, auditoria, dados)
-└── main.py → ponto de entrada, rotas e middleware
+├── core/
+│   ├── database.py
+│   └── config_db.py
+├── models/
+│   └── schemas Pydantic
+├── services/
+│   ├── ml_service.py
+│   ├── audit_service.py
+│   └── data services
+└── main.py
 
 frontend/
-├── assets/ → identidade visual (logo)
-├── css/ → estilos
-├── js/ → lógica da aplicação (uma view por arquivo)
+├── assets/
+├── css/
+├── js/
 └── index.html
 
 machine_learning/
-└── treinar_modelo.py → geração do modelo (fonte de treino)
+└── treinar_modelo.py
 
-ml_assets/ → binários do modelo treinado, versionados no Git
+ml_assets/
+└── modelo treinado
 
 scripts/
-├── validacao/ → benchmarks e provas científicas
+├── validacao/
 ├── popular_banco.py
 └── popular_previsoes_historicas.py
 ```
 
-## Segurança de Acesso
+---
 
-Todos os endpoints exigem uma API Key válida via header `X-API-KEY`. A validação é **fail-closed**: se a chave não estiver configurada no ambiente, ou não bater com a enviada, o acesso é bloqueado — o sistema nunca assume acesso liberado por ausência de configuração. Detalhes matemáticos de segurança e auditoria estão em [SECURITY.md](./SECURITY.md).
+## 📈 Capacidade de Evolução
+
+A arquitetura foi organizada para permitir evolução sem substituir o núcleo do sistema.
+
+### Fonte de dados
+
+```text
+Synthetic Twin
+      ↓
+Telemetria real / IoT
+```
+
+A camada de ingestão pode evoluir de dados simulados para dispositivos reais mantendo o restante do pipeline.
+
+### Modelo
+
+```text
+Random Forest
+      ↓
+Novos modelos / versões
+```
+
+O modelo é encapsulado na camada de inteligência, permitindo testar novos algoritmos sem alterar a interface do usuário ou a estrutura de persistência.
+
+### Apresentação
+
+```text
+Frontend atual
+      ↓
+Web App / Portal Sompo / Aplicação integrada
+```
+
+Como o frontend consome a API REST, uma futura substituição da camada visual não exige alterações na lógica central do sistema.
+
+---
+
+## 🎯 Arquitetura em Uma Frase
+
+> **O MAIA transforma dados ambientais e operacionais em uma decisão de risco explicável, persistida e rastreável.**
+
+A arquitetura completa pode ser resumida como:
+
+```text
+ENTRADA
+   ↓
+VALIDAÇÃO
+   ↓
+PERSISTÊNCIA
+   ↓
+PREDIÇÃO
+   ↓
+EXPLICAÇÃO
+   ↓
+AUDITORIA
+   ↓
+DECISÃO
+```
+
+Essa integração é o ponto central da Sprint 3: transformar os componentes desenvolvidos nas etapas anteriores em um fluxo único de ponta a ponta.

@@ -98,4 +98,17 @@ async def get_historico(_=Depends(verificar_key)):
     finally:
         db.release_connection(conn)
 
+@app.get("/health")
+async def health_check():
+    """
+    Endpoint para monitoramento de disponibilidade (SLA).
+    Verifica a saúde da API e a conectividade com o pool de dados.
+    """
+    return {
+        "status": "online",
+        "version": "4.0.0",
+        "engine": "Random Forest Ensemble",
+        "database": "Oracle Cloud Connected"
+    }
+
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

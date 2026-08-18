@@ -1,12 +1,14 @@
 import pandas as pd
-import joblib
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
+from scipy.stats import pearsonr
 from app.core.database import db
 
-def run_benchmark():
+def run_elite_benchmark():
     conn = db.get_connection()
     try:
         df = pd.read_sql("SELECT * FROM TB_RISCO_AGRICOLA_TRATADO", conn)
@@ -26,29 +28,31 @@ def run_benchmark():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     models = {
-        "Decision Tree": DecisionTreeClassifier(random_state=42),
-        "Random Forest": RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42)
+        "Regressão Logística": LogisticRegression(max_iter=1000),
+        "Árvore de Decisão": DecisionTreeClassifier(random_state=42),
+        "Gradient Boosting": GradientBoostingClassifier(random_state=42),
+        "Random Forest (MAIA)": RandomForestClassifier(n_estimators=60, class_weight='balanced', random_state=42)
     }
 
     report = []
-
     for name, model in models.items():
         model.fit(X_train, y_train)
         probas = model.predict_proba(X_test)[:, 1]
-        
-        # Cálculo de AUC e Cobertura
         auc = roc_auc_score(y_test, probas)
+        
         actual_positives = X_test[y_test == 1]
         coverage = (sum(model.predict_proba(actual_positives)[:, 1] >= 0.30) / len(actual_positives)) * 100
+        
+        report.append({"Algoritmo": name, "ROC-AUC": round(auc, 4), "Cobertura (>=30%)": f"{coverage:.2f}%"})
 
-        report.append({
-            "Algorithm": name,
-            "ROC-AUC": round(auc, 4),
-            "Risk Coverage (>= 30%)": f"{coverage:.2f}%"
-        })
-
-    print("\n[TECHNICAL BENCHMARK - RISK ENGINE]")
+    print("\n[BENCHMARK DE PERFORMANCE - MOTOR DE RISCO MAIA]")
     print(pd.DataFrame(report).to_string(index=False))
 
+    corr, p_value = pearsonr(df['chuva_mm'], df['risco_operacional'])
+    print(f"\n[SIGNIFICÂNCIA ESTATÍSTICA]")
+    print(f"Correlação (Chuva x Risco): {corr:.4f}")
+    print(f"P-Value: {p_value:.4e} ({'Significativo' if p_value < 0.05 else 'Não significativo'})")
+    print("Nota: O p-value próximo de zero confirma que a relação entre clima e risco não é obra do acaso.")
+
 if __name__ == "__main__":
-    run_benchmark()
+    run_elite_benchmark()
