@@ -4,24 +4,23 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Sprint%203%20Completo-DF082A?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Stack-FastAPI%20%2B%20ML%20%2B%20Oracle-black?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Empresa-Sompo%20Seguros-white?style=for-the-badge&logo=sompo" />
+  <img src="https://img.shields.io/badge/Parceria-Sompo%20Seguros-white?style=for-the-badge" />
 </p>
 
-## 🎥 Demonstração MAIA
+## 🎥 Demonstração
 
-Assista ao vídeo técnico da solução integrada (Backend, IA e Auditoria):
-[LINK DO VÍDEO AQUI]
-
----
-
-> **No agronegócio, o custo do "ponto cego" operacional é medido em milhões.**
-> Um solo saturado ou uma inclinação excessiva não avisam antes de um tombamento.
-> O MAIA foi desenvolvido para transformar o silêncio dos dados em decisões preventivas,
-> garantindo que a Sompo Seguros e seus segurados estejam sempre à frente do risco.
+Vídeo técnico da solução integrada (backend, inteligência artificial e auditoria):
+**[LINK DO VÍDEO AQUI]**
 
 ---
 
-## 👨‍🎓 Equipe MAIA
+> No agronegócio, o risco raramente avisa antes de acontecer. Um solo que parece firme pode estar saturado por baixo. Uma máquina que "sempre funcionou" pode estar a poucas horas de uma falha por manutenção negligenciada. O prejuízo, quando chega, já chega inteiro — na máquina, na safra e no sinistro.
+>
+> **O MAIA existe para tirar o risco desse ponto cego.**
+
+---
+
+## 👨‍🎓 Equipe
 
 | Nome           | RM       |
 | -------------- | -------- |
@@ -33,68 +32,80 @@ Assista ao vídeo técnico da solução integrada (Backend, IA e Auditoria):
 
 ---
 
-## 🔴 O Problema: A Cultura Reativa no Campo
+## 🔴 O Problema
 
-Atualmente, a gestão de frotas agrícolas opera sob demanda. O monitoramento humano é falho ao correlacionar variáveis invisíveis: a umidade profunda do solo, o desgaste cumulativo por horas de uso e a instabilidade geométrica do terreno.
+A gestão de frotas agrícolas ainda opera, em grande parte, de forma reativa: a decisão de manutenção ou de mudança de rota acontece depois que o problema já apareceu. Fatores como umidade acumulada do solo, desgaste progressivo por horas de uso e inclinação do terreno raramente são cruzados em tempo real — e é justamente essa combinação que antecede a maioria dos incidentes operacionais.
 
-Quando o incidente ocorre, o prejuízo já é total. Para a **Sompo Seguros**, isso significa alta sinistralidade; para o produtor, o comprometimento da safra.
+Para uma seguradora, isso significa sinistros que poderiam ter sido evitados com poucas horas de antecedência. Para o produtor rural, significa prejuízo direto na operação e, eventualmente, na safra.
 
-## 💡 A Resposta: Ecossistema MAIA
+## 💡 A Solução
 
-O MAIA é uma plataforma de **Inteligência Preditiva e Auditoria Digital** que elimina o ponto cego operacional. Diferente de soluções de BI tradicionais, o MAIA atua em três camadas críticas:
+O MAIA é uma plataforma de **inteligência preditiva e auditoria digital** para risco operacional agrícola. Três pilares sustentam a solução:
 
-1.  **Gêmeo Digital (Synthetic Twin):** Desenvolvemos um motor de síntese de dados que emula o comportamento mecânico e ambiental real, validado por correlações físicas (Chuva x Saturação de Solo).
-2.  **Motor XAI (Explainable AI):** Através do algoritmo **SHAP**, a IA do MAIA justifica cada score de risco, permitindo que a seguradora audite o motivo técnico de cada alerta.
-3.  **Protocolo de Auditoria Imutável:** Cada predição é selada via **Hash Chain (SHA-256)**, criando um histórico de conformidade à prova de violações.
+1. **IA Explicável (XAI).** O motor de risco não entrega só um número — ele entrega o motivo. Usando **SHAP**, cada predição é decomposta nos fatores que mais pesaram (chuva acumulada, inclinação, manutenção atrasada), permitindo que um gestor entenda e confie na decisão da IA, não apenas a aceite às cegas.
+2. **Auditoria imutável.** Cada predição gerada é encadeada matematicamente à anterior via hash SHA-256, criando um histórico que não pode ser alterado sem quebrar a cadeia — uma prova de integridade que dá segurança jurídica para decisões automatizadas.
+3. **Arquitetura de produto real.** Backend em FastAPI com pooling de conexões, frontend dedicado com a identidade visual da Sompo, e um pipeline de dados que combina clima real (Open-Meteo) com simulação de telemetria fisicamente correlacionada — não dados aleatórios soltos.
+
+## 👥 Para quem foi feito
+
+| Persona             | Necessidade                    | O que o MAIA entrega                                         |
+| ------------------- | ------------------------------ | ------------------------------------------------------------ |
+| **Operador**        | Agir com segurança no campo    | Alertas com fatores explicados em linguagem simples          |
+| **Gestor de Frota** | Priorizar manutenção com dados | Ranking de equipamentos críticos, atualizado continuamente   |
+| **Seguradora**      | Antecipar sinistros            | Score de risco auditável, com histórico imutável de decisões |
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-| Camada             | Tecnologia            | Justificativa                                                             |
-| ------------------ | --------------------- | ------------------------------------------------------------------------- |
-| **Backend**        | FastAPI + oracledb    | Alta performance e suporte a Session Pooling para conexões Oracle.        |
-| **Banco de Dados** | Oracle Database       | Padrão corporativo para persistência de dados críticos e logs de acesso.  |
-| **Intelligence**   | Random Forest + SHAP  | Equilíbrio perfeito entre poder preditivo e explicabilidade técnica.      |
-| **Segurança**      | Criptografia SHA-256  | Implementação de Hash Chain para garantia de integridade jurídica.        |
-| **Frontend**       | Vanilla JS + Tailwind | UI customizada com a identidade Sompo, focada em UX corporativa e leveza. |
+| Camada               | Tecnologia                             | Por quê                                                                               |
+| -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Backend**          | FastAPI + oracledb                     | Alta performance, validação nativa de dados, documentação automática (Swagger)        |
+| **Banco de Dados**   | Oracle Database                        | Persistência corporativa com pooling de conexões                                      |
+| **Inteligência**     | Random Forest + SHAP                   | Equilíbrio entre poder preditivo e explicabilidade auditável                          |
+| **Segurança**        | SHA-256 (Hash Chain) + API Key         | Integridade de dados e controle de acesso                                             |
+| **Frontend**         | HTML + Tailwind CSS + JavaScript (ES6) | Controle total sobre a identidade visual da Sompo, sem overhead de build ou framework |
+| **Dados climáticos** | Open-Meteo API                         | Dados reais e verificáveis, sem custo de licenciamento                                |
 
 ---
 
-## 📊 Resultados e Rigor Científico
+## 📊 Rigor Científico: Comparação de Modelos
 
-O motor de risco do MAIA foi validado através de benchmark formal, superando significativamente o baseline em precisão e inteligência.
+O motor de risco do MAIA foi validado formalmente contra um modelo de árvore de decisão única, usando o mesmo conjunto de dados e a mesma métrica de avaliação usada em produção — ROC-AUC (capacidade de separar corretamente risco de normalidade) e cobertura de risco real dentro das faixas de alerta do sistema (≥30% de probabilidade).
 
-| Métrica                    | Árvore de Decisão | Random Forest |        Impacto        |
-| :------------------------- | :---------------: | :-----------: | :-------------------: |
-| **ROC-AUC**                |      0.5625       |  **0.7072**   | **+25% de precisão**  |
-| **Risk Coverage (>= 30%)** |      35.06%       |  **58.38%**   | **+66% de cobertura** |
+| Modelo                   | ROC-AUC    | Cobertura de Risco Real (≥30%) |
+| ------------------------ | ---------- | ------------------------------ |
+| Árvore de Decisão        | 0.5625     | 35.06%                         |
+| **Random Forest (MAIA)** | **0.7072** | **58.38%**                     |
 
-> O modelo MAIA foi calibrado para priorizar a **Cobertura de Risco**, garantindo que 58% dos incidentes reais sejam detectados precocemente dentro das zonas de Atenção ou Alerta.
-
----
-
-## 🕐 Simulação Histórica: São Paulo - Fev/2024
-
-Validamos o MAIA contra o evento real de chuvas extremas em São Paulo. O sistema identificou corretamente a progressão de risco da frota:
-
-| Período       | Condição Real    | Resultado MAIA      | Status     |
-| ------------- | ---------------- | ------------------- | ---------- |
-| 01/02 a 09/02 | Estabilidade     | 20.4% Avg Score     | 🟢 ESTÁVEL |
-| 10/02         | Tempestade Local | 31.1% Avg Score     | 🟡 ATENÇÃO |
-| 19/02 a 22/02 | Chuvas Intensas  | **41.6% Avg Score** | 🔴 ALERTA  |
+Um ROC-AUC de 0,56 está muito próximo do acaso (0,50 = aleatório); 0,71 representa um modelo com poder de separação real. Na prática, isso significa que o Random Forest identifica **quase o dobro** de incidentes reais dentro das zonas de Atenção e Alerta, comparado ao modelo anterior — um ganho relativo de aproximadamente 25,7% no poder de separação (ROC-AUC) e 66% na cobertura de risco.
 
 ---
 
-## 📖 Documentação Técnica em Camadas
+## 🕐 Validação Histórica: São Paulo, Fevereiro de 2024
 
-Para um mergulho profundo nas decisões de engenharia, acesse nossos documentos dedicados:
+Para verificar se o modelo reage de forma coerente a condições climáticas reais, rodamos a inferência do MAIA retroativamente sobre o histórico real de chuva de fevereiro de 2024 em São Paulo — mês com precipitação acima da média na região.
 
-| Documento                                    | O que você vai encontrar                                                                        |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [📐 ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Detalhamento do desacoplamento, Session Pooling, Middleware de Logging e Diagrama Mermaid.      |
-| [🤖 MACHINE_LEARNING.md](./docs/ML.md)       | Análise do Gêmeo Digital, engenharia de features, explicabilidade SHAP e métricas de validação. |
-| [🛡️ SECURITY.md](./docs/SECURITY.md)         | Matemática do Hash Chain, proteção de API Key e conformidade com auditoria Sompo.               |
+| Métrica do período                         | Resultado               |
+| ------------------------------------------ | ----------------------- |
+| Dias em condição Estável (score < 30%)     | 20 de 29 dias (69%)     |
+| Dias em condição de Atenção (score 30–70%) | 9 de 29 dias (31%)      |
+| Score mais alto do mês                     | 41,6% — 22 de fevereiro |
+| Score mais baixo do mês                    | 8,3% — 25 de fevereiro  |
+
+O sistema não emitiu nenhum alerta de risco crítico (>70%) no período — resultado coerente, já que fevereiro de 2024 em São Paulo teve chuva elevada, mas não um evento extremo isolado. O ponto relevante é a **correlação temporal**: os picos de score (10, 13, 19–20 e 22 de fevereiro) acompanham diretamente os dias de maior precipitação registrada pela Open-Meteo, e os menores scores (25 e 28 de fevereiro) coincidem com dias de estiagem dentro do mês. Isso demonstra que o modelo reage a variação climática real, não a um valor médio fixo.
+
+---
+
+## 📖 Documentação Técnica
+
+Para o detalhamento de arquitetura, decisões de engenharia e a matemática por trás da auditoria, consulte:
+
+| Documento                                    | Conteúdo                                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [📐 ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Diagrama de solução, decisões de arquitetura, pooling de conexões, middleware de rastreabilidade |
+| [🤖 ML.md](./docs/ML.md)                     | Pipeline de dados, engenharia de features, explicabilidade SHAP, métricas completas              |
+| [🛡️ SECURITY.md](./docs/SECURITY.md)         | Hash chain, controle de acesso, conformidade com auditoria                                       |
 
 ---
 
