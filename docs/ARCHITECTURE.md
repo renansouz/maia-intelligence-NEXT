@@ -5,30 +5,75 @@
 O MAIA é dividido em quatro camadas com responsabilidades isoladas: ingestão, orquestração, inteligência e apresentação. Cada camada se comunica apenas através de contratos bem definidos (API REST), o que permite que qualquer uma delas evolua sem quebrar as demais.
 
 ```mermaid
-flowchart TD
-    subgraph "Ingestão de Dados"
-        S1[Sensor / Cliente Externo] -- "POST /telemetria" --> API
-        S2[Open-Meteo API] --> B[scripts/popular_banco.py]
-        B -- "Correlação Física" --> DB1[(TB_RISCO_AGRICOLA_TRATADO)]
+graph LR
+    %% Definição de Cores Sompo
+    classDef sompoRed fill:#DF082A,stroke:#9E1E24,color:#fff,stroke-width:2px;
+    classDef sompoWine fill:#9E1E24,stroke:#000,color:#fff,stroke-width:1px;
+    classDef database fill:#F2F4F7,stroke:#344054,color:#101828,stroke-width:2px;
+    classDef logic fill:#fff,stroke:#DF082A,color:#101828,stroke-width:1px;
+
+    %% 1. Ingestão
+    subgraph Ingestao ["1. Ingestão de Dados (Gêmeo Digital)"]
+        direction TB
+        S1[Sensor / Mock]
+        S2[Open-Meteo API]
+        P_B[popular_banco.py]
+        S2 --> P_B
     end
 
-    subgraph "Core Backend — FastAPI"
-        API[app/main.py] -- "Middleware" --> LOG[(TB_LOG_ACESSO)]
-        API -- "Data Service" --> DB1
-        API -- "Risco Service" --> S[risco_service.py]
+    %% 2. Orquestração
+    subgraph Core ["2. Orquestração (Backend FastAPI)"]
+        direction TB
+        API[FastAPI Main]
+        MID[Middleware Log]
+        VAL[Validação Pydantic]
+        API --- MID
+        API --- VAL
     end
 
-    subgraph "Inteligência e Auditoria"
-        S -- "Predição + SHAP" --> ML[ml_service.py — Random Forest]
-        S -- "Encadeamento" --> AC[audit_service.py — Hash Chain]
-        ML -- "Score" --> DB2[(TB_PREVISAO_RISCO)]
-        AC -- "Hash" --> DB2
+    %% 3. Inteligência e Auditoria
+    subgraph Inteligencia ["3. Inteligência e Auditoria"]
+        direction TB
+        RS[risco_service.py]
+        ML[ml_service.py]
+        AC[audit_service.py]
+        
+        RS --> ML
+        RS --> AC
+        ML --> SHAP[Explicação SHAP]
+        ML --> RF[Random Forest]
     end
 
-    subgraph "Apresentação"
-        UI[frontend — HTML/Tailwind/JS] -- "GET /historico" --> API
-        UI -- "GET /previsao/{id}" --> API
+    %% 4. Persistência
+    subgraph Dados ["Camada de Dados (Oracle)"]
+        direction TB
+        DB_LOG[(TB_LOG_ACESSO)]
+        DB_TRATADO[(TB_RISCO_TRATADO)]
+        DB_PREV[(TB_PREVISAO_RISCO)]
     end
+
+    %% 5. Apresentação
+    subgraph UI ["4. Apresentação (Frontend)"]
+        FRONT[SPA Vanilla JS + Tailwind]
+    end
+
+    %% Fluxos de Conexão (Organizados)
+    S1 -->|"POST /telemetria"| API
+    P_B -->|"Sync"| DB_TRATADO
+    
+    API -->|"Event"| RS
+    MID -.-> DB_LOG
+    VAL -.-> DB_TRATADO
+    
+    RS --> DB_PREV
+    DB_PREV -->|"GET /historico"| API
+    API --> FRONT
+
+    %% Aplicação de Estilos
+    class API,RS,ML,AC sompoRed;
+    class P_B,FRONT sompoWine;
+    class DB_LOG,DB_TRATADO,DB_PREV database;
+    class S1,S2,VAL,MID,SHAP,RF logic;
 ```
 
 ## Fluxo de Entrada de Dados
