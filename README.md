@@ -9,8 +9,7 @@
 
 ## 🎥 Demonstração
 
-Vídeo técnico da solução integrada (backend, inteligência artificial e auditoria):
-**[LINK DO VÍDEO AQUI]**
+Vídeo técnico da solução integrada (backend, inteligência artificial e auditoria): https://www.youtube.com/watch?v=41B9gDwlYFM
 
 ---
 
