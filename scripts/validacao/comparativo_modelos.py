@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from scipy.stats import pearsonr
 from app.core.database import db
-
+ 
 def run_elite_benchmark():
     conn = db.get_connection()
     try:

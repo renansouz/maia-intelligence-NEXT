@@ -10,7 +10,7 @@ def gerar_e_salvar():
     
     buffer_insercao = []
     
-    print("Iniciando coleta de dados climaticos (com throttling)...")
+    print("Iniciando coleta de dados climaticos...")
     
     for cidade in cidades:
         try:
