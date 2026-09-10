@@ -1,110 +1,145 @@
-<h1 align="center">MAIA 🌾🚜</h1>
-<h3 align="center">Monitoramento e Análise Inteligente Agrícola</h3>
+# MAIA 🌾 - Monitoramento e Análise Inteligente Agrícola
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Status-Sprint%203%20Completo-DF082A?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Stack-FastAPI%20%2B%20ML%20%2B%20Oracle-black?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Parceria-Sompo%20Seguros-white?style=for-the-badge" />
-</p>
-
-## 🎥 Demonstração
-
-Vídeo técnico da solução integrada (backend, inteligência artificial e auditoria): https://www.youtube.com/watch?v=41B9gDwlYFM
+> Este README é o nosso documento de planejamento vivo pro Sprint 4. Esquece a versão de tecnologia antiga por enquanto, aqui vai tudo que discutimos até agora: estrutura de login, personas, ideias de sinistro avaliadas, e o que falta decidir. Conforme formos avançando, isso vira o README final de verdade.
 
 ---
 
-> No agronegócio, o risco raramente avisa antes de acontecer. Um solo que parece firme pode estar saturado por baixo. Uma máquina que "sempre funcionou" pode estar a poucas horas de uma falha por manutenção negligenciada. O prejuízo, quando chega, já chega inteiro — na máquina, na safra e no sinistro.
->
-> **O MAIA existe para tirar o risco desse ponto cego.**
+## 🎯 O que o MAIA precisa ser
+
+Uma plataforma que a Sompo, os gestores de frota e os operadores realmente usam no dia a dia, não um sistema que só existe pra gerar nota de sprint. Ela precisa antecipar sinistro, ser auditável (comprovação jurídica de que o aviso foi dado), e se comunicar entre as três pontas.
 
 ---
 
-## 👨‍🎓 Equipe
+## 🔐 Estrutura de Login e Personas
 
-| Nome           | RM       |
-| -------------- | -------- |
-| Renan Souza    | RM568958 |
-| Kevin Santiago | RM573808 |
-| Thiese Novaes  | RM572659 |
-| João Vitor     | RM572969 |
-| Talles Duran   | RM572772 |
+### Hierarquia (quem enxerga quem)
 
----
+```
+SOMPO (seguradora)
+  └── vê todos os Gestores e todas as máquinas do sistema
+       └── GESTOR DE FROTA
+            └── vê os Operadores dele e as máquinas atribuídas a ele
+                 └── OPERADOR
+                      └── vê só a(s) máquina(s) atribuída(s) a ele
+```
 
-## 🔴 O Problema
+Não são sistemas separados, é a mesma base de dados, com visão recortada por papel (RBAC de verdade).
 
-A gestão de frotas agrícolas ainda opera, em grande parte, de forma reativa: a decisão de manutenção ou de mudança de rota acontece depois que o problema já apareceu. Fatores como umidade acumulada do solo, desgaste progressivo por horas de uso e inclinação do terreno raramente são cruzados em tempo real — e é justamente essa combinação que antecede a maioria dos incidentes operacionais.
+### Quem cadastra o quê
 
-Para uma seguradora, isso significa sinistros que poderiam ter sido evitados com poucas horas de antecedência. Para o produtor rural, significa prejuízo direto na operação e, eventualmente, na safra.
+| Ação                                   | Quem faz                          |
+| -------------------------------------- | --------------------------------- |
+| Criar conta de Gestor                  | Sompo                             |
+| Criar conta de Operador                | Gestor (do próprio time)          |
+| Cadastrar máquina nova                 | Gestor propõe → **Sompo aprova**  |
+| Vincular máquina a um Operador         | Gestor                            |
+| Abrir ticket de problema/observação    | Operador                          |
+| Ver histórico de auditoria/compliance  | Sompo (tudo) e Gestor (só o dele) |
+| Ver camada econômica (R$ de exposição) | Sompo                             |
+| Desativar/remover gestor ou máquina    | Sompo                             |
 
-## 💡 A Solução
+**Por quê a máquina precisa de aprovação da Sompo:** essas máquinas fazem parte da apólice de seguro da Sompo. Não faz sentido o Gestor simplesmente cadastrar e já valer, é igual seguro de verdade, ninguém está coberto só porque preencheu um formulário. Fluxo: Gestor cadastra → status **pendente** → Sompo aprova → status **ativa** (só aí conta pro sistema de risco valer pra seguro). Isso também vira um ponto de auditoria: fica registrado quem aprovou e quando.
 
-O MAIA é uma plataforma de **inteligência preditiva e auditoria digital** para risco operacional agrícola. Três pilares sustentam a solução:
+### Dados essenciais no cadastro de uma máquina
 
-1. **IA Explicável (XAI).** O motor de risco não entrega só um número — ele entrega o motivo. Usando **SHAP**, cada predição é decomposta nos fatores que mais pesaram (chuva acumulada, inclinação, manutenção atrasada), permitindo que um gestor entenda e confie na decisão da IA, não apenas a aceite às cegas.
-2. **Auditoria imutável.** Cada predição gerada é encadeada matematicamente à anterior via hash SHA-256, criando um histórico que não pode ser alterado sem quebrar a cadeia — uma prova de integridade que dá segurança jurídica para decisões automatizadas.
-3. **Arquitetura de produto real.** Backend em FastAPI com pooling de conexões, frontend dedicado com a identidade visual da Sompo, e um pipeline de dados que combina clima real (Open-Meteo) com simulação de telemetria fisicamente correlacionada — não dados aleatórios soltos.
+| Campo                                        | Por quê                                                        |
+| -------------------------------------------- | -------------------------------------------------------------- |
+| ID/identificador do equipamento              | Chave de tudo                                                  |
+| Tipo de máquina (trator, colheitadeira etc.) | Referência pra features específicas no futuro                  |
+| Fazenda/localização (coordenada real)        | Resolve o problema do mapa com posição fake que tínhamos antes |
+| Ano/modelo                                   | Contexto de manutenção                                         |
+| Gestor responsável                           | Vínculo hierárquico                                            |
+| Operador(es) vinculado(s)                    | Vínculo hierárquico                                            |
+| Data da última manutenção                    | Alimenta indicador de manutenção atrasada                      |
+| Status                                       | pendente / ativa / inativa                                     |
 
-## 👥 Para quem foi feito
+### Tela de login
 
-| Persona             | Necessidade                    | O que o MAIA entrega                                         |
-| ------------------- | ------------------------------ | ------------------------------------------------------------ |
-| **Operador**        | Agir com segurança no campo    | Alertas com fatores explicados em linguagem simples          |
-| **Gestor de Frota** | Priorizar manutenção com dados | Ranking de equipamentos críticos, atualizado continuamente   |
-| **Seguradora**      | Antecipar sinistros            | Score de risco auditável, com histórico imutável de decisões |
+Um único formulário (usuário/senha). O backend identifica o papel (JWT com claim de role) e redireciona pro dashboard certo. Cada papel pode ter uma cor de destaque sutil pra facilitar identificar durante a demo (Sompo = vermelho Sompo, Gestor = azul, Operador = verde).
 
----
+### Telas e funcionalidades por persona
 
-## 🛠️ Stack Tecnológica
+| Tela/funcionalidade                 | Sompo      | Gestor          | Operador        |
+| ----------------------------------- | ---------- | --------------- | --------------- |
+| Mapa geral de máquinas              | ✅ (todas) | ✅ (só as dele) | ❌              |
+| Ranking de criticidade/manutenção   | ✅         | ✅              | ❌              |
+| Camada econômica (R$ exposição)     | ✅         | ❌              | ❌              |
+| Compliance/auditoria (hash chain)   | ✅ (tudo)  | ✅ (só dele)    | ❌              |
+| Alerta simples da própria máquina   | ❌         | ❌              | ✅              |
+| Chat com IA (explicação do risco)   | ✅         | ✅              | ✅              |
+| Abrir ticket de problema/observação | ❌         | ❌              | ✅              |
+| Ver tickets abertos da equipe       | ❌         | ✅              | ❌ (só os seus) |
+| Aprovar cadastro de máquina         | ✅         | ❌              | ❌              |
+| Cadastrar máquina/operador          | ❌         | ✅ (propõe)     | ❌              |
 
-| Camada               | Tecnologia                             | Por quê                                                                               |
-| -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Backend**          | FastAPI + oracledb                     | Alta performance, validação nativa de dados, documentação automática (Swagger)        |
-| **Banco de Dados**   | Oracle Database                        | Persistência corporativa com pooling de conexões                                      |
-| **Inteligência**     | Random Forest + SHAP                   | Equilíbrio entre poder preditivo e explicabilidade auditável                          |
-| **Segurança**        | SHA-256 (Hash Chain) + API Key         | Integridade de dados e controle de acesso                                             |
-| **Frontend**         | HTML + Tailwind CSS + JavaScript (ES6) | Controle total sobre a identidade visual da Sompo, sem overhead de build ou framework |
-| **Dados climáticos** | Open-Meteo API                         | Dados reais e verificáveis, sem custo de licenciamento                                |
+### Página principal por persona (o que vê ao logar)
 
----
-
-## 📊 Rigor Científico: Comparação de Modelos
-
-O motor de risco do MAIA foi validado formalmente contra um modelo de árvore de decisão única, usando o mesmo conjunto de dados e a mesma métrica de avaliação usada em produção — ROC-AUC (capacidade de separar corretamente risco de normalidade) e cobertura de risco real dentro das faixas de alerta do sistema (≥30% de probabilidade).
-
-| Modelo                   | ROC-AUC    | Cobertura de Risco Real (≥30%) |
-| ------------------------ | ---------- | ------------------------------ |
-| Árvore de Decisão        | 0.5625     | 35.06%                         |
-| **Random Forest (MAIA)** | **0.7072** | **58.38%**                     |
-
-Um ROC-AUC de 0,56 está muito próximo do acaso (0,50 = aleatório); 0,71 representa um modelo com poder de separação real. Na prática, isso significa que o Random Forest identifica **quase o dobro** de incidentes reais dentro das zonas de Atenção e Alerta, comparado ao modelo anterior — um ganho relativo de aproximadamente 25,7% no poder de separação (ROC-AUC) e 66% na cobertura de risco.
-
----
-
-## 🕐 Validação Histórica: São Paulo, Fevereiro de 2024
-
-Para verificar se o modelo reage de forma coerente a condições climáticas reais, rodamos a inferência do MAIA retroativamente sobre o histórico real de chuva de fevereiro de 2024 em São Paulo — mês com precipitação acima da média na região.
-
-| Métrica do período                         | Resultado               |
-| ------------------------------------------ | ----------------------- |
-| Dias em condição Estável (score < 30%)     | 20 de 29 dias (69%)     |
-| Dias em condição de Atenção (score 30–70%) | 9 de 29 dias (31%)      |
-| Score mais alto do mês                     | 41,6% — 22 de fevereiro |
-| Score mais baixo do mês                    | 8,3% — 25 de fevereiro  |
-
-O sistema não emitiu nenhum alerta de risco crítico (>70%) no período — resultado coerente, já que fevereiro de 2024 em São Paulo teve chuva elevada, mas não um evento extremo isolado. O ponto relevante é a **correlação temporal**: os picos de score (10, 13, 19–20 e 22 de fevereiro) acompanham diretamente os dias de maior precipitação registrada pela Open-Meteo, e os menores scores (25 e 28 de fevereiro) coincidem com dias de estiagem dentro do mês. Isso demonstra que o modelo reage a variação climática real, não a um valor médio fixo.
+- **Sompo:** total de máquinas em risco crítico agora + exposição financeira total + cadastros pendentes de aprovação.
+- **Gestor:** quantas máquinas dele estão em atenção/crítico + tickets pendentes da equipe.
+- **Operador:** status da(s) máquina(s) dele, simples — ex: "Trator 03: Atenção — verifique antes de operar".
 
 ---
 
-## 📖 Documentação Técnica
+## 🎫 Sistema de Tickets (feedback do operador)
 
-Para o detalhamento de arquitetura, decisões de engenharia e a matemática por trás da auditoria, consulte:
+Ideia: o operador pode abrir um ticket relatando um problema real na máquina (categorias pré-definidas + campo de observação livre, podendo ser até por email). Isso não é só um canal de suporte, **esse dado retroalimenta a IA**. Quando o modelo for gerar a análise de risco, ele passa a considerar não só sensor e clima, mas o **estado real relatado pelo operador**. Isso fecha um loop que praticamente nenhum outro grupo vai ter: humano validando e enriquecendo a máquina.
 
-| Documento                                    | Conteúdo                                                                                         |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [📐 ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Diagrama de solução, decisões de arquitetura, pooling de conexões, middleware de rastreabilidade |
-| [🤖 ML.md](./docs/ML.md)                     | Pipeline de dados, engenharia de features, explicabilidade SHAP, métricas completas              |
-| [🛡️ SECURITY.md](./docs/SECURITY.md)         | Hash chain, controle de acesso, conformidade com auditoria                                       |
+---
+
+## 💡 Avaliação das Ideias de Sinistro
+
+A pergunta mais importante do projeto inteiro é: **qual sinistro a gente realmente vai resolver?** Levantamos 4 problemas reais do setor e fui analisando cada um.
+
+### 1. Acidentes operacionais (colisão, tombamento, capotamento)
+
+Esse é o maior em volume, mais de 50% dos casos, então dá muita vontade de ser esse o foco. Mas sendo sincero comigo mesmo: é o mais difícil de resolver de forma 100% funcional no tempo que temos. Envolve física de estabilidade, sensor de inclinação/giroscópio, e um monte de variável (peso da carga, tipo de terreno, velocidade em curva). Se a gente tentar abraçar isso inteiro corre risco real de não terminar funcionando de ponta a ponta, que é exatamente o que o enunciado da Sprint 4 mais cobra. Minha conclusão: não vamos tentar resolver o tombamento inteiro, mas dá pra pegar uma fatia boa dele, um indicador de estabilidade calculado a partir de inclinação + umidade do solo (sem virar uma rede neural nova, só uma feature física a mais no modelo que já temos) e usar um sensor de giroscópio (MPU6050) no Wokwi pra mostrar isso ao vivo na demo. Não é o produto inteiro resolvido, é uma fatia honesta e demonstrável.
+
+### 2. Incêndio e superaquecimento
+
+Pesquisei e essa acho que é a nossa melhor aposta como problema **principal**. É mais simples de resolver de forma completa: sensor de temperatura do motor (dá pra simular no Wokwi com um DHT22 ou sensor de temperatura mesmo), cruzado com tempo de uso contínuo e talvez umidade baixa do ambiente (palha seca é mais perigosa em dia seco). É causa-e-efeito fácil de explicar pra qualquer pessoa leiga no pitch ("acumulou palha seca perto do motor quente, sistema avisa antes de virar incêndio"), e dá pra deixar 100% funcional de verdade dentro do prazo que temos. Motivo pelo qual acho que deveríamos priorizar esse como o problema central da nossa história.
+
+### 3. Danos elétricos
+
+Pesquisei e não achei um caminho claro de como resolver isso com o que temos de tempo e conhecimento no time. Minha recomendação: descartar essa opção por enquanto.
+
+### 4. Solo úmido / proximidade de rio
+
+Esse é basicamente o que o MAIA já resolve hoje (o motor de risco atual usa exatamente isso). A diferença é que dava pra deixar isso muito mais forte usando o projeto Vigia.IA que fizemos antes: em vez de só usar previsão de chuva (Open-Meteo), dá pra puxar dado de satélite real via radar SAR (Sentinel-1, através do Google Earth Engine), que enxerga o solo mesmo com nuvem/chuva forte cobrindo tudo. Isso transforma uma parte que já é "ok" em algo com dado real de peso, sem que a gente precise inventar do zero, é só trazer essa tecnologia que já validei em outro projeto pro contexto do MAIA.
+
+### Conclusão dessa análise
+
+Não vamos tentar resolver os 4 ao mesmo tempo com a mesma profundidade, isso é o caminho certo pra não terminar nada bem. A ideia é: **incêndio/superaquecimento como problema central e mais completo**, **solo úmido/proximidade de água potencializado com dado de satélite real** como a evolução natural do que já existe, e **um indicador simples de estabilidade/tombamento** como algo a mais pra impressionar na demo, sem virar o produto inteiro. Dano elétrico fica de fora dessa entrega.
+
+---
+
+## 🛡️ Segurança e Auditoria (o que muda)
+
+- Login real com papel (JWT), substituindo a chave única compartilhada.
+- Cadeia de hash corrigida: cada evento vira registro novo (nunca sobrescreve), com endpoint de verificação da cadeia.
+- Separação correta entre rotas de leitura (GET) e rotas que processam/gravam (POST).
+- Mensagens de erro genéricas pro usuário final, log completo só internamente.
+- Registro de aprovação de máquina pela Sompo também entra na cadeia de auditoria — reforça a ideia de "comprovação jurídica" que discutimos.
+
+---
+
+## ✅ Como isso atende o que o Sprint 4 pede
+
+- Refinamento de código/arquitetura e tratamento de exceção → correção dos 7 pontos do feedback da Sprint 3.
+- Refinamento de dado e modelo → dado real (satélite/clima) substituindo parte do sintético, novo indicador de estabilidade.
+- Validação de integração com fontes reais/simuladas → sensor via Wokwi + APIs públicas reais rodando juntas.
+- Segurança e rastreabilidade → login por papel, hash chain corrigido, aprovação de máquina auditada.
+- Relatórios e visualização por persona → dashboards diferentes pra Sompo, Gestor e Operador.
+- Documentação final → este README mostrando a evolução real desde as ultimas sprints.
+
+---
+
+## 📌 Em aberto (o que ainda vamos decidir juntos)
+
+- Fórmula exata do indicador de estabilidade (tombamento) — a definir com pesquisa técnica.
+- Qual sensor virtual usar no Wokwi pra cada problema (temperatura pro incêndio, giroscópio pra estabilidade).
+- Se o chatbot (watsonx) entra nesta sprint ou fica como extra se sobrar tempo.
+- Detalhamento final do schema novo do banco (login, tickets, aprovação de máquina, leitura contínua de sensor).
+
 
 ---
 
