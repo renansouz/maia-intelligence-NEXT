@@ -1,10 +1,12 @@
 import os
 import time
+import logging
 from fastapi import FastAPI, Depends, Header, HTTPException, status, Request
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from typing import List
 from app.models.schemas import TelemetriaInput, PrevisaoResponse, StandardResponse
-from app.services.data_service import salvar_telemetria_db, buscar_ultima_telemetria
+from app.services.data_service import salvar_telemetria_db, buscar_ultima_telemetria, buscar_ultima_previsao
 from app.services.risco_service import processar_previsao_completa
 from app.core.config_db import configurar_banco
 from app.core.database import db
@@ -12,10 +14,13 @@ from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("maia")
+
 app = FastAPI(
     title="MAIA - Monitoramento e Análise Inteligente Agrícola",
     description="Interface de Inteligência e Auditoria de Riscos Operacionais - Sompo Seguros",
-    version="3.0.0"
+    version="4.0.0"
 )
 
 API_KEY_SECRET = os.getenv("API_KEY")
@@ -28,33 +33,54 @@ async def verificar_key(x_api_key: str = Header(None)):
         )
     return x_api_key
 
+@app.exception_handler(Exception)
+async def excecao_global_handler(request: Request, exc: Exception):
+    codigo_rastreio = f"{int(time.time())}-{id(exc) % 100000}"
+    logger.error(
+        f"[{codigo_rastreio}] Erro nao tratado em {request.method} {request.url.path}: {exc}",
+        exc_info=True
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "erro",
+            "mensagem": "Ocorreu um erro interno ao processar a requisicao.",
+            "codigo_rastreio": codigo_rastreio
+        }
+    )
+
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     inicio = time.time()
-    response = await call_next(request)
-    duracao = int((time.time() - inicio) * 1000)
-    
-    conn = db.get_connection()
-    cursor = conn.cursor()
+    status_code_resposta = 500
+
     try:
-        sql = """
-            INSERT INTO TB_LOG_ACESSO (METODO, ROTA, STATUS_CODE, IP_ORIGEM, TEMPO_MS)
-            VALUES (:1, :2, :3, :4, :5)
-        """
-        cursor.execute(sql, (
-            request.method,
-            request.url.path,
-            response.status_code,
-            request.client.host if request.client else "unknown",
-            duracao
-        ))
-        conn.commit()
-    except Exception as e:
-        print(f"falha ao gravar log: {e}")
+        response = await call_next(request)
+        status_code_resposta = response.status_code
+        return response
     finally:
-        cursor.close()
-        db.release_connection(conn)
-    return response
+        duracao = int((time.time() - inicio) * 1000)
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        try:
+            sql = """
+                INSERT INTO TB_LOG_ACESSO (METODO, ROTA, STATUS_CODE, IP_ORIGEM, TEMPO_MS)
+                VALUES (:1, :2, :3, :4, :5)
+            """
+            cursor.execute(sql, (
+                request.method,
+                request.url.path,
+                status_code_resposta,
+                request.client.host if request.client else "unknown",
+                duracao
+            ))
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Falha ao gravar log de acesso: {e}")
+        finally:
+            cursor.close()
+            db.release_connection(conn)
 
 @app.on_event("startup")
 async def startup():
@@ -63,25 +89,34 @@ async def startup():
 
 @app.post("/telemetria", response_model=StandardResponse, status_code=201)
 async def post_telemetria(dados: TelemetriaInput, _=Depends(verificar_key)):
-    try:
-        salvar_telemetria_db(dados.model_dump())
-        return {"status": "sucesso", "mensagem": "telemetria registrada"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    salvar_telemetria_db(dados.model_dump())
+    return {"status": "sucesso", "mensagem": "telemetria registrada"}
 
-@app.get("/previsao/{equipamento_id}", response_model=PrevisaoResponse)
-async def get_previsao(equipamento_id: str, _=Depends(verificar_key)):
+@app.post("/previsao/{equipamento_id}", response_model=PrevisaoResponse)
+async def post_previsao(equipamento_id: str, _=Depends(verificar_key)):
     dados = buscar_ultima_telemetria(equipamento_id)
     if not dados:
         raise HTTPException(status_code=404, detail="equipamento nao encontrado")
-    
+
     if 'data_medicao' in dados and not isinstance(dados['data_medicao'], str):
         dados['data_medicao'] = dados['data_medicao'].strftime('%Y-%m-%d')
-    
+
     resultado = processar_previsao_completa(dados)
-    if resultado.get("status") == "erro":
-        raise HTTPException(status_code=500, detail=resultado.get("detalhe"))
     return resultado
+
+@app.get("/previsao/{equipamento_id}/ultima", response_model=PrevisaoResponse)
+async def get_ultima_previsao(equipamento_id: str, _=Depends(verificar_key)):
+    dados = buscar_ultima_previsao(equipamento_id)
+    if not dados:
+        raise HTTPException(status_code=404, detail="nenhuma previsao encontrada para este equipamento")
+
+    return {
+        "score": dados['probabilidade_alto'],
+        "classificacao": dados['classificacao'],
+        "explicacao_completa": dados['explicacao'],
+        "hash_auditoria": dados['hash_integridade'],
+        "status": "sucesso"
+    }
 
 @app.get("/historico", response_model=List[dict])
 async def get_historico(_=Depends(verificar_key)):
@@ -93,17 +128,11 @@ async def get_historico(_=Depends(verificar_key)):
         for col in df.select_dtypes(include=['datetime64', 'datetime']).columns:
             df[col] = df[col].dt.strftime('%Y-%m-%d %H:%M:%S')
         return df.to_dict(orient="records")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.release_connection(conn)
 
 @app.get("/health")
 async def health_check():
-    """
-    Endpoint para monitoramento de disponibilidade (SLA).
-    Verifica a saúde da API e a conectividade com o pool de dados.
-    """
     return {
         "status": "online",
         "version": "4.0.0",

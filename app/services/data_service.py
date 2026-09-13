@@ -1,12 +1,10 @@
 """noted by renansouz
-Módulo de Persistência e Acesso a Dados (Data Access Layer).
-
 Responsável pela interface direta com o Oracle Database para:
-1. Ingestão de telemetria via comando MERGE (Atomic Upsert).
+1. Ingestão de telemetria via INSERT (cada leitura é um evento novo).
 2. Recuperação de registros históricos e métricas para o frontend.
 3. Abstração das queries SQL para manter o restante do sistema independente do banco.
 
-Decisão de Design: Centraliza o acesso ao dado para garantir que todas as 
+Centraliza o acesso ao dado para garantir que todas as 
 operações utilizem o Oracle Session Pool de forma eficiente.
 """
 from app.core.database import db
@@ -16,21 +14,17 @@ def salvar_telemetria_db(dados_dict):
     conn = db.get_connection()
     cursor = conn.cursor()
     
-    # extraindo e convertendo a data para string iso
     dt_str = dados_dict['data_medicao'].isoformat()
     
     sql = """
-    MERGE INTO TB_RISCO_AGRICOLA_TRATADO t
-    USING (SELECT :eq_id as eq, TO_DATE(:dt_med, 'YYYY-MM-DD') as dt FROM DUAL) s
-    ON (t.EQUIPAMENTO_ID = s.eq AND t.DATA_MEDICAO = s.dt)
-    WHEN MATCHED THEN
-        UPDATE SET TEMPERATURA = :temp, CHUVA_MM = :chuva, UMIDADE_SOLO = :umid
-    WHEN NOT MATCHED THEN
-        INSERT (EQUIPAMENTO_ID, CIDADE, DATA_MEDICAO, TEMPERATURA, CHUVA_MM, 
-                UMIDADE_SOLO, VELOCIDADE_KMH, PROXIMIDADE_AGUA_M, INCLINACAO_GRAUS, 
-                TEMPO_USO_HORAS, MANUTENCAO_DIAS)
-        VALUES (:eq_id, :cid, TO_DATE(:dt_med, 'YYYY-MM-DD'), :temp, :chuva, 
-                :umid, :vel, :prox, :incl, :t_uso, :manut)
+    INSERT INTO TB_RISCO_AGRICOLA_TRATADO (
+        EQUIPAMENTO_ID, CIDADE, DATA_MEDICAO, TEMPERATURA, CHUVA_MM,
+        UMIDADE_SOLO, VELOCIDADE_KMH, PROXIMIDADE_AGUA_M, INCLINACAO_GRAUS,
+        TEMPO_USO_HORAS, MANUTENCAO_DIAS
+    ) VALUES (
+        :eq_id, :cid, TO_DATE(:dt_med, 'YYYY-MM-DD'), :temp, :chuva,
+        :umid, :vel, :prox, :incl, :t_uso, :manut
+    )
     """
     
     params = {
@@ -59,23 +53,49 @@ def salvar_telemetria_db(dados_dict):
         db.release_connection(conn)
 
 def buscar_ultima_telemetria(eq_id):
-    """
-    busca o registro mais recente de um equipamento para processar o risco
-    """
     conn = db.get_connection()
     cursor = conn.cursor()
     
     sql = """
-        SELECT * FROM (
-            SELECT * FROM TB_RISCO_AGRICOLA_TRATADO 
-            WHERE EQUIPAMENTO_ID = :eq_id 
-            ORDER BY DATA_MEDICAO DESC
-        ) WHERE ROWNUM = 1
+        SELECT * FROM TB_RISCO_AGRICOLA_TRATADO
+        WHERE EQUIPAMENTO_ID = :eq_id
+        AND ID_TELEMETRIA = (
+            SELECT MAX(ID_TELEMETRIA) FROM TB_RISCO_AGRICOLA_TRATADO
+            WHERE EQUIPAMENTO_ID = :eq_id
+        )
     """
     
     try:
         cursor.execute(sql, eq_id=eq_id)
-        # transforma o resultado em dicionario para o ml_service
+        colunas = [col[0].lower() for col in cursor.description]
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return dict(zip(colunas, row))
+    finally:
+        cursor.close()
+        db.release_connection(conn)
+
+def buscar_ultima_previsao(equipamento_id):
+    """
+    Busca a PREVISAO mais recente ja processada para um equipamento,
+    sem disparar novo processamento de ML. Usada pela rota de leitura
+    (GET), que deve ser segura/idempotente por definicao REST.
+    """
+    conn = db.get_connection()
+    cursor = conn.cursor()
+
+    sql = """
+        SELECT * FROM TB_PREVISAO_RISCO
+        WHERE EQUIPAMENTO_ID = :eq_id
+        AND ID_PREVISAO = (
+            SELECT MAX(ID_PREVISAO) FROM TB_PREVISAO_RISCO
+            WHERE EQUIPAMENTO_ID = :eq_id
+        )
+    """
+
+    try:
+        cursor.execute(sql, eq_id=equipamento_id)
         colunas = [col[0].lower() for col in cursor.description]
         row = cursor.fetchone()
         if not row:

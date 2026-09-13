@@ -23,7 +23,10 @@ export async function fetchHistorico() {
 
 export async function fetchPrevisao(equipamentoId) {
   try {
-    const response = await fetch(`${BASE_URL}/previsao/${equipamentoId}`, { headers });
+    const response = await fetch(`${BASE_URL}/previsao/${equipamentoId}`, {
+      method: "POST",
+      headers
+    });
     if (!response.ok) throw new Error(`Erro API: ${response.status}`);
     return await response.json();
   } catch (error) {

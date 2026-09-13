@@ -9,14 +9,21 @@ def coluna_existe(cursor, tabela, coluna):
     cursor.execute(query, tname=tabela.upper(), cname=coluna.upper())
     return cursor.fetchone()[0] > 0
 
-def pk_correta(cursor, tabela):
+def obter_colunas_pk(cursor, tabela):
+    """
+    Retorna a lista de colunas que compoem a PRIMARY KEY atual da tabela,
+    na ordem correta. Usado para verificar se a PK ja esta no formato
+    desejado (chave substituta unica) antes de tentar migrar.
+    """
     query = """
-        SELECT COUNT(*) FROM user_cons_columns ucc
+        SELECT ucc.column_name
+        FROM user_cons_columns ucc
         JOIN user_constraints uc ON ucc.constraint_name = uc.constraint_name
         WHERE uc.table_name = :tname AND uc.constraint_type = 'P'
+        ORDER BY ucc.position
     """
     cursor.execute(query, tname=tabela.upper())
-    return cursor.fetchone()[0] == 2
+    return [row[0] for row in cursor.fetchall()]
 
 def configurar_banco():
     conn = db.get_connection()
@@ -65,7 +72,14 @@ def configurar_banco():
             ("TB_PREVISAO_RISCO", "CLASSIFICACAO", "VARCHAR2(20)"),
             ("TB_PREVISAO_RISCO", "PROBABILIDADE_ALTO", "NUMBER"),
             ("TB_PREVISAO_RISCO", "MODELO_UTILIZADO", "VARCHAR2(50)"),
-            ("TB_PREVISAO_RISCO", "EXPLICACAO", "VARCHAR2(4000)")
+            ("TB_PREVISAO_RISCO", "EXPLICACAO", "VARCHAR2(4000)"),
+
+            # --- NOVO: chaves substitutas (Problema #6) ---
+            # Permitem multiplas leituras/previsoes por equipamento no mesmo dia,
+            # sem depender de (EQUIPAMENTO_ID, DATA_MEDICAO) como identificador unico.
+            ("TB_PREVISAO_RISCO", "ID_PREVISAO", "NUMBER GENERATED ALWAYS AS IDENTITY"),
+            ("TB_RISCO_AGRICOLA_TRATADO", "ID_TELEMETRIA", "NUMBER GENERATED ALWAYS AS IDENTITY"),
+            ("TB_RISCO_AGRICOLA", "ID_REGISTRO", "NUMBER GENERATED ALWAYS AS IDENTITY")
         ]
 
         for tab, col, tipo in colunas_novas:
@@ -73,11 +87,24 @@ def configurar_banco():
                 print(f"Migração: Adicionando {col} em {tab}...")
                 cursor.execute(f"ALTER TABLE {tab} ADD {col} {tipo}")
 
-        for tab in ["TB_RISCO_AGRICOLA", "TB_RISCO_AGRICOLA_TRATADO", "TB_PREVISAO_RISCO"]:
-            if not pk_correta(cursor, tab):
-                try: cursor.execute(f"ALTER TABLE {tab} DROP PRIMARY KEY")
-                except: pass
-                cursor.execute(f"ALTER TABLE {tab} ADD PRIMARY KEY (EQUIPAMENTO_ID, DATA_MEDICAO)")
+        # --- Migração de chave primária (Problema #6) ---
+        # Antes: PK = (EQUIPAMENTO_ID, DATA_MEDICAO) -> so permitia 1 registro/dia.
+        # Agora: PK = coluna substituta (ID_*) -> permite historico continuo real.
+        pk_alvo = {
+            "TB_PREVISAO_RISCO": "ID_PREVISAO",
+            "TB_RISCO_AGRICOLA_TRATADO": "ID_TELEMETRIA",
+            "TB_RISCO_AGRICOLA": "ID_REGISTRO"
+        }
+
+        for tab, id_col in pk_alvo.items():
+            pk_atual = obter_colunas_pk(cursor, tab)
+            if pk_atual != [id_col]:
+                print(f"Migração de chave primária: {tab} -> {id_col}")
+                try:
+                    cursor.execute(f"ALTER TABLE {tab} DROP PRIMARY KEY")
+                except oracledb.DatabaseError:
+                    pass
+                cursor.execute(f"ALTER TABLE {tab} ADD PRIMARY KEY ({id_col})")
 
         conn.commit()
         print("Infraestrutura de dados: Sincronizada.")

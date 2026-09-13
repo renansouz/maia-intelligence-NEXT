@@ -1,6 +1,4 @@
 """ noted by renansouz
-Módulo de Protocolo de Segurança e Auditoria (Hash Chain).
-
 Este serviço garante a integridade imutável das decisões da IA:
 1. Implementa uma estrutura de 'ledger' onde cada hash depende do registro anterior.
 2. Utiliza SHA-256 para gerar assinaturas digitais únicas por predição.
@@ -14,13 +12,9 @@ import hashlib
 def gerar_hash_integridade(cursor, equipamento_id, data_medicao, score):
     
     sql_ultimo = """
-        SELECT hash_integridade FROM TB_PREVISAO_RISCO
-        WHERE ROWID = (
-            SELECT rid FROM (
-                SELECT ROWID as rid FROM TB_PREVISAO_RISCO 
-                ORDER BY data_previsao DESC, equipamento_id DESC
-            ) WHERE ROWNUM = 1
-        )
+        SELECT HASH_INTEGRIDADE
+        FROM TB_PREVISAO_RISCO
+        WHERE ID_PREVISAO = (SELECT MAX(ID_PREVISAO) FROM TB_PREVISAO_RISCO)
         FOR UPDATE
     """
     
