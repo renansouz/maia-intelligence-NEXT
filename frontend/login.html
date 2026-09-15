@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAIA | Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/sompo-logo.webp" type="image/webp">
+</head>
+<body class="antialiased bg-[#F9FAFB] min-h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div class="flex flex-col items-center mb-8">
+            <img src="assets/sompo-logo.webp" alt="Sompo" class="h-10 mb-3" onerror="this.style.display='none'">
+            <h1 class="text-2xl font-extrabold tracking-tighter text-[#DF082A]">MAIA</h1>
+            <p class="text-xs text-gray-400 mt-1">Monitoramento e Análise Inteligente Agrícola</p>
+        </div>
+
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-[#475467] uppercase mb-1">Email</label>
+                <input type="email" id="email" required
+                    class="w-full bg-white border border-[#D0D5DD] rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#DF082A] transition">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-[#475467] uppercase mb-1">Senha</label>
+                <input type="password" id="senha" required
+                    class="w-full bg-white border border-[#D0D5DD] rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#DF082A] transition">
+            </div>
+
+            <p id="erro-login" class="text-sm text-red-600 hidden"></p>
+
+            <button type="submit" id="btn-login"
+                class="w-full bg-[#DF082A] text-white py-2.5 rounded-lg font-bold hover:bg-[#9E1E24] transition-all shadow-md active:scale-95">
+                ENTRAR
+            </button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { salvarSessao, getToken } from './js/auth.js';
+
+        if (getToken()) {
+            window.location.href = 'index.html';
+        }
+
+        const form = document.getElementById('login-form');
+        const erroEl = document.getElementById('erro-login');
+        const btn = document.getElementById('btn-login');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            erroEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'ENTRANDO...';
+
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Credenciais inválidas.');
+                }
+
+                const dados = await response.json();
+                salvarSessao(dados.token, dados.papel, dados.nome);
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                erroEl.textContent = 'Email ou senha incorretos.';
+                erroEl.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'ENTRAR';
+            }
+        });
+    </script>
+</body>
+</html>

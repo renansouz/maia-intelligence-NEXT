@@ -25,3 +25,37 @@ class PrevisaoResponse(BaseModel):
 class StandardResponse(BaseModel):
     status: str
     mensagem: str
+
+class LoginInput(BaseModel):
+    email: str = Field(..., example="sompo@maia.com")
+    senha: str = Field(..., example="senha-super-secreta")
+
+class TokenResponse(BaseModel):
+    token: str
+    papel: str
+    nome: str
+
+class CriarUsuarioInput(BaseModel):
+    nome: str = Field(..., example="Kevin Gestor")
+    email: str = Field(..., example="kevin@fazendeiro.com")
+    senha: str = Field(..., min_length=6, example="senhaboa123")
+    papel: str = Field(..., example="OPERADOR")  # "GESTOR" ou "OPERADOR"
+    tipo_cobertura: str | None = Field(None, example="BASICA")
+
+class CriarFazendaInput(BaseModel):
+    nome: str = Field(..., example="Fazenda Boa Vista")
+    latitude: float
+    longitude: float
+    endereco: str | None = None
+
+class CriarMaquinaInput(BaseModel):
+    equipamento_id: str = Field(..., example="EQP-SAO-99")
+    tipo: str | None = Field(None, example="Trator")
+    modelo: str | None = None
+    ano: int | None = None
+
+class VincularFazendaInput(BaseModel):
+    fazenda_id: int
+
+class VincularOperadorInput(BaseModel):
+    operador_id: int

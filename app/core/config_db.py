@@ -10,11 +10,6 @@ def coluna_existe(cursor, tabela, coluna):
     return cursor.fetchone()[0] > 0
 
 def obter_colunas_pk(cursor, tabela):
-    """
-    Retorna a lista de colunas que compoem a PRIMARY KEY atual da tabela,
-    na ordem correta. Usado para verificar se a PK ja esta no formato
-    desejado (chave substituta unica) antes de tentar migrar.
-    """
     query = """
         SELECT ucc.column_name
         FROM user_cons_columns ucc
@@ -34,7 +29,86 @@ def configurar_banco():
             "TB_RISCO_AGRICOLA": "EQUIPAMENTO_ID VARCHAR2(20), CIDADE VARCHAR2(100), DATA_MEDICAO DATE",
             "TB_RISCO_AGRICOLA_TRATADO": "EQUIPAMENTO_ID VARCHAR2(20), CIDADE VARCHAR2(100), DATA_MEDICAO DATE",
             "TB_PREVISAO_RISCO": "EQUIPAMENTO_ID VARCHAR2(20), CIDADE VARCHAR2(100), DATA_MEDICAO DATE",
-            "TB_LOG_ACESSO": "ID_LOG NUMBER GENERATED ALWAYS AS IDENTITY, METODO VARCHAR2(10)"
+            "TB_LOG_ACESSO": "ID_LOG NUMBER GENERATED ALWAYS AS IDENTITY, METODO VARCHAR2(10)",
+
+            "TB_USUARIO": """
+                ID_USUARIO NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                NOME VARCHAR2(150) NOT NULL,
+                EMAIL VARCHAR2(150) NOT NULL UNIQUE,
+                SENHA_HASH VARCHAR2(255) NOT NULL,
+                PAPEL VARCHAR2(20) NOT NULL CHECK (PAPEL IN ('SOMPO','GESTOR','OPERADOR')),
+                GESTOR_ID NUMBER,
+                TIPO_COBERTURA VARCHAR2(20),
+                ATIVO NUMBER(1) DEFAULT 1 NOT NULL,
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT FK_USUARIO_GESTOR FOREIGN KEY (GESTOR_ID) REFERENCES TB_USUARIO(ID_USUARIO)
+            """,
+
+            "TB_FAZENDA": """
+                ID_FAZENDA NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                GESTOR_ID NUMBER NOT NULL,
+                NOME VARCHAR2(150) NOT NULL,
+                LATITUDE NUMBER,
+                LONGITUDE NUMBER,
+                ENDERECO VARCHAR2(255),
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT FK_FAZENDA_GESTOR FOREIGN KEY (GESTOR_ID) REFERENCES TB_USUARIO(ID_USUARIO)
+            """,
+
+            "TB_MAQUINA": """
+                ID_MAQUINA NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                EQUIPAMENTO_ID VARCHAR2(20) NOT NULL UNIQUE,
+                FAZENDA_ID NUMBER,
+                TIPO VARCHAR2(50),
+                MODELO VARCHAR2(100),
+                ANO NUMBER(4),
+                STATUS VARCHAR2(20) DEFAULT 'ATIVA' NOT NULL CHECK (STATUS IN ('ATIVA','INATIVA')),
+                CRIADO_POR NUMBER,
+                LATITUDE NUMBER,
+                LONGITUDE NUMBER,
+                DATA_ULTIMA_MANUTENCAO DATE,
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT FK_MAQUINA_FAZENDA FOREIGN KEY (FAZENDA_ID) REFERENCES TB_FAZENDA(ID_FAZENDA),
+                CONSTRAINT FK_MAQUINA_CRIADOR FOREIGN KEY (CRIADO_POR) REFERENCES TB_USUARIO(ID_USUARIO)
+            """,
+
+            "TB_MAQUINA_OPERADOR": """
+                MAQUINA_ID NUMBER NOT NULL,
+                OPERADOR_ID NUMBER NOT NULL,
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT PK_MAQUINA_OPERADOR PRIMARY KEY (MAQUINA_ID, OPERADOR_ID),
+                CONSTRAINT FK_MO_MAQUINA FOREIGN KEY (MAQUINA_ID) REFERENCES TB_MAQUINA(ID_MAQUINA),
+                CONSTRAINT FK_MO_OPERADOR FOREIGN KEY (OPERADOR_ID) REFERENCES TB_USUARIO(ID_USUARIO)
+            """,
+
+            "TB_MANUTENCAO": """
+                ID_MANUTENCAO NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                MAQUINA_ID NUMBER NOT NULL,
+                SOLICITADO_POR NUMBER,
+                DATA_MANUTENCAO DATE,
+                DESCRICAO VARCHAR2(2000),
+                TIPO VARCHAR2(20) CHECK (TIPO IN ('PREVENTIVA','CORRETIVA')),
+                TOKEN_LINK VARCHAR2(64) UNIQUE,
+                TOKEN_EXPIRA_EM TIMESTAMP,
+                STATUS VARCHAR2(20) DEFAULT 'SOLICITADA' NOT NULL CHECK (STATUS IN ('SOLICITADA','CONCLUIDA')),
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONCLUIDO_EM TIMESTAMP,
+                CONSTRAINT FK_MANUT_MAQUINA FOREIGN KEY (MAQUINA_ID) REFERENCES TB_MAQUINA(ID_MAQUINA),
+                CONSTRAINT FK_MANUT_SOLICITANTE FOREIGN KEY (SOLICITADO_POR) REFERENCES TB_USUARIO(ID_USUARIO)
+            """,
+
+            "TB_TICKET": """
+                ID_TICKET NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                MAQUINA_ID NUMBER NOT NULL,
+                OPERADOR_ID NUMBER NOT NULL,
+                CATEGORIA VARCHAR2(50),
+                OBSERVACAO VARCHAR2(2000),
+                STATUS VARCHAR2(20) DEFAULT 'ABERTO' NOT NULL CHECK (STATUS IN ('ABERTO','RESOLVIDO')),
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                RESOLVIDO_EM TIMESTAMP,
+                CONSTRAINT FK_TICKET_MAQUINA FOREIGN KEY (MAQUINA_ID) REFERENCES TB_MAQUINA(ID_MAQUINA),
+                CONSTRAINT FK_TICKET_OPERADOR FOREIGN KEY (OPERADOR_ID) REFERENCES TB_USUARIO(ID_USUARIO)
+            """
         }
 
         for nome, campos in tabelas.items():
@@ -73,10 +147,6 @@ def configurar_banco():
             ("TB_PREVISAO_RISCO", "PROBABILIDADE_ALTO", "NUMBER"),
             ("TB_PREVISAO_RISCO", "MODELO_UTILIZADO", "VARCHAR2(50)"),
             ("TB_PREVISAO_RISCO", "EXPLICACAO", "VARCHAR2(4000)"),
-
-            # --- NOVO: chaves substitutas (Problema #6) ---
-            # Permitem multiplas leituras/previsoes por equipamento no mesmo dia,
-            # sem depender de (EQUIPAMENTO_ID, DATA_MEDICAO) como identificador unico.
             ("TB_PREVISAO_RISCO", "ID_PREVISAO", "NUMBER GENERATED ALWAYS AS IDENTITY"),
             ("TB_RISCO_AGRICOLA_TRATADO", "ID_TELEMETRIA", "NUMBER GENERATED ALWAYS AS IDENTITY"),
             ("TB_RISCO_AGRICOLA", "ID_REGISTRO", "NUMBER GENERATED ALWAYS AS IDENTITY")
@@ -87,9 +157,6 @@ def configurar_banco():
                 print(f"Migração: Adicionando {col} em {tab}...")
                 cursor.execute(f"ALTER TABLE {tab} ADD {col} {tipo}")
 
-        # --- Migração de chave primária (Problema #6) ---
-        # Antes: PK = (EQUIPAMENTO_ID, DATA_MEDICAO) -> so permitia 1 registro/dia.
-        # Agora: PK = coluna substituta (ID_*) -> permite historico continuo real.
         pk_alvo = {
             "TB_PREVISAO_RISCO": "ID_PREVISAO",
             "TB_RISCO_AGRICOLA_TRATADO": "ID_TELEMETRIA",

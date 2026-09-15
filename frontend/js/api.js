@@ -1,20 +1,30 @@
 /**
- * Módulo de integração com a API MAIA.
- * Centraliza as chamadas fetch e o gerenciamento de headers de segurança.
+ * Centraliza as chamadas fetch e o gerenciamento de autenticação.
  */
-import { API_KEY } from './config.js';
+import { getAuthHeaders, logout } from './auth.js';
+
 const BASE_URL = window.location.origin;
 
-const headers = {
-  "X-API-KEY": API_KEY,
-  "Content-Type": "application/json"
-};
+function buildHeaders() {
+  return {
+    ...getAuthHeaders(),
+    "Content-Type": "application/json"
+  };
+}
+
+async function handleResponse(response) {
+  if (response.status === 401) {
+    logout();
+    throw new Error("Sessao expirada.");
+  }
+  if (!response.ok) throw new Error(`Erro API: ${response.status}`);
+  return response.json();
+}
 
 export async function fetchHistorico() {
   try {
-    const response = await fetch(`${BASE_URL}/historico`, { headers });
-    if (!response.ok) throw new Error(`Erro API: ${response.status}`);
-    return await response.json();
+    const response = await fetch(`${BASE_URL}/historico`, { headers: buildHeaders() });
+    return await handleResponse(response);
   } catch (error) {
     console.error("Falha ao buscar histórico:", error);
     return [];
@@ -25,10 +35,9 @@ export async function fetchPrevisao(equipamentoId) {
   try {
     const response = await fetch(`${BASE_URL}/previsao/${equipamentoId}`, {
       method: "POST",
-      headers
+      headers: buildHeaders()
     });
-    if (!response.ok) throw new Error(`Erro API: ${response.status}`);
-    return await response.json();
+    return await handleResponse(response);
   } catch (error) {
     console.error(`Falha ao buscar previsão do equipamento ${equipamentoId}:`, error);
     return null;

@@ -29,6 +29,12 @@
                     <a href="#diagnostico" id="nav-diagnostico" class="font-semibold transition">Diagnóstico XAI</a>
                     <a href="#compliance" id="nav-compliance" class="font-semibold transition border-l pl-8">Compliance</a>
                 </div>
+                <div class="flex items-center gap-4">
+                    <span id="usuario-info" class="text-sm text-gray-500 hidden md:block"></span>
+                    <button id="btn-logout" class="text-sm font-bold text-gray-400 hover:text-[#DF082A] transition">
+                        Sair
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -53,6 +59,12 @@
         import { renderGestao } from './js/gestao.js';
         import { renderDiagnostico } from './js/diagnostico.js';
         import { renderCompliance } from './js/compliance.js';
+        import { exigirAutenticacao, getNome, getPapel, logout } from './js/auth.js';
+
+        exigirAutenticacao();
+
+        document.getElementById('usuario-info').textContent = `${getNome()} · ${getPapel()}`;
+        document.getElementById('btn-logout').addEventListener('click', logout);
 
         const routes = {
             '#operacional': renderOperacional,
