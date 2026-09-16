@@ -108,6 +108,63 @@ def configurar_banco():
                 RESOLVIDO_EM TIMESTAMP,
                 CONSTRAINT FK_TICKET_MAQUINA FOREIGN KEY (MAQUINA_ID) REFERENCES TB_MAQUINA(ID_MAQUINA),
                 CONSTRAINT FK_TICKET_OPERADOR FOREIGN KEY (OPERADOR_ID) REFERENCES TB_USUARIO(ID_USUARIO)
+            """,
+
+            "TB_ML_DATASET": """
+                ID_DATASET NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                CODIGO VARCHAR2(50) NOT NULL UNIQUE,
+                NOME VARCHAR2(200) NOT NULL,
+                FONTE VARCHAR2(500),
+                FREQUENCIA_HZ NUMBER,
+                TIPO_DADO VARCHAR2(30) NOT NULL,
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            """,
+
+            "TB_ML_SESSAO": """
+                ID_SESSAO NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                DATASET_ID NUMBER NOT NULL,
+                IDENTIFICADOR VARCHAR2(120) NOT NULL,
+                OPERACAO VARCHAR2(100),
+                IMPLEMENTO VARCHAR2(150),
+                ARQUIVO_ORIGEM VARCHAR2(500) NOT NULL,
+                HASH_ARQUIVO VARCHAR2(64),
+                TOTAL_LINHAS NUMBER,
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT FK_ML_SESSAO_DATASET FOREIGN KEY (DATASET_ID) REFERENCES TB_ML_DATASET(ID_DATASET),
+                CONSTRAINT UK_ML_SESSAO UNIQUE (DATASET_ID, IDENTIFICADOR)
+            """,
+
+            "TB_ML_TELEMETRIA": """
+                ID_AMOSTRA NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                SESSAO_ID NUMBER NOT NULL,
+                LINHA_ORIGEM NUMBER NOT NULL,
+                TIMESTAMP_ORIGEM TIMESTAMP,
+                TEMPO_MS NUMBER,
+                TEMP_COOLANT_C NUMBER,
+                TEMP_OLEO_C NUMBER,
+                TEMP_AMBIENTE_C NUMBER,
+                TEMP_ADMISSAO_C NUMBER,
+                PRESSAO_OLEO_KPA NUMBER,
+                TORQUE_PCT NUMBER,
+                CARGA_MOTOR_PCT NUMBER,
+                RPM NUMBER,
+                COMBUSTIVEL_L_H NUMBER,
+                VELOCIDADE_KMH NUMBER,
+                VENTOINHA_PCT NUMBER,
+                POSICAO_ENGATE_PCT NUMBER,
+                DRAFT1_PCT NUMBER,
+                DRAFT2_PCT NUMBER,
+                TRACAO_4X4 NUMBER(1),
+                PTO_STATUS NUMBER(1),
+                IMPLEMENTO_CODIGO VARCHAR2(30),
+                ESTADO_OPERACIONAL VARCHAR2(30),
+                ANOMALIA_SINTETICA VARCHAR2(80),
+                RISCO_SCORE NUMBER,
+                CLASSIFICACAO_RISCO VARCHAR2(20),
+                MOTIVOS_RISCO VARCHAR2(1000),
+                CRIADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT FK_ML_TELEMETRIA_SESSAO FOREIGN KEY (SESSAO_ID) REFERENCES TB_ML_SESSAO(ID_SESSAO),
+                CONSTRAINT UK_ML_TELEMETRIA_LINHA UNIQUE (SESSAO_ID, LINHA_ORIGEM)
             """
         }
 
@@ -152,6 +209,19 @@ def configurar_banco():
             ("TB_RISCO_AGRICOLA", "ID_REGISTRO", "NUMBER GENERATED ALWAYS AS IDENTITY")
         ]
 
+        colunas_ml_contexto = [
+            ("TB_ML_TELEMETRIA", "POSICAO_ENGATE_PCT", "NUMBER"),
+            ("TB_ML_TELEMETRIA", "DRAFT1_PCT", "NUMBER"),
+            ("TB_ML_TELEMETRIA", "DRAFT2_PCT", "NUMBER"),
+            ("TB_ML_TELEMETRIA", "TRACAO_4X4", "NUMBER(1)"),
+            ("TB_ML_TELEMETRIA", "PTO_STATUS", "NUMBER(1)"),
+            ("TB_ML_TELEMETRIA", "IMPLEMENTO_CODIGO", "VARCHAR2(30)"),
+            ("TB_ML_TELEMETRIA", "RISCO_SCORE", "NUMBER"),
+            ("TB_ML_TELEMETRIA", "CLASSIFICACAO_RISCO", "VARCHAR2(20)"),
+            ("TB_ML_TELEMETRIA", "MOTIVOS_RISCO", "VARCHAR2(1000)"),
+        ]
+        colunas_novas.extend(colunas_ml_contexto)
+
         for tab, col, tipo in colunas_novas:
             if not coluna_existe(cursor, tab, col):
                 print(f"Migração: Adicionando {col} em {tab}...")
@@ -172,6 +242,91 @@ def configurar_banco():
                 except oracledb.DatabaseError:
                     pass
                 cursor.execute(f"ALTER TABLE {tab} ADD PRIMARY KEY ({id_col})")
+
+        indices = [
+            ("IX_ML_SESSAO_DATASET", "TB_ML_SESSAO(DATASET_ID)"),
+            ("IX_ML_TELEMETRIA_SESSAO", "TB_ML_TELEMETRIA(SESSAO_ID)"),
+            ("IX_ML_TELEMETRIA_TEMPO", "TB_ML_TELEMETRIA(TIMESTAMP_ORIGEM)"),
+            ("IX_ML_TELEMETRIA_COOLANT", "TB_ML_TELEMETRIA(TEMP_COOLANT_C)"),
+            ("IX_ML_TELEMETRIA_RISCO", "TB_ML_TELEMETRIA(CLASSIFICACAO_RISCO)"),
+            ("IX_ML_TELEMETRIA_SESSAO_LINHA", "TB_ML_TELEMETRIA(SESSAO_ID, LINHA_ORIGEM)")
+        ]
+
+        for nome_indice, alvo in indices:
+            try:
+                cursor.execute(f"CREATE INDEX {nome_indice} ON {alvo}")
+            except oracledb.DatabaseError as e:
+                if "ORA-00955" not in str(e):
+                    raise
+
+        views = {
+            "VW_ML_TELEMETRIA_ALINHADA": """
+                SELECT
+                    d.CODIGO AS DATASET,
+                    d.NOME AS DATASET_NOME,
+                    s.IDENTIFICADOR AS SESSAO,
+                    s.OPERACAO,
+                    s.IMPLEMENTO,
+                    s.ARQUIVO_ORIGEM,
+                    t.ID_AMOSTRA,
+                    t.LINHA_ORIGEM,
+                    t.TIMESTAMP_ORIGEM,
+                    t.TEMPO_MS,
+                    t.TEMP_COOLANT_C,
+                    t.TEMP_OLEO_C,
+                    t.TEMP_AMBIENTE_C,
+                    t.TEMP_ADMISSAO_C,
+                    t.PRESSAO_OLEO_KPA,
+                    t.TORQUE_PCT,
+                    t.CARGA_MOTOR_PCT,
+                    t.RPM,
+                    t.COMBUSTIVEL_L_H,
+                    t.VELOCIDADE_KMH,
+                    t.VENTOINHA_PCT,
+                    t.POSICAO_ENGATE_PCT,
+                    t.DRAFT1_PCT,
+                    t.DRAFT2_PCT,
+                    t.TRACAO_4X4,
+                    t.PTO_STATUS,
+                    t.IMPLEMENTO_CODIGO,
+                    t.ESTADO_OPERACIONAL,
+                    t.ANOMALIA_SINTETICA,
+                    t.RISCO_SCORE,
+                    t.CLASSIFICACAO_RISCO,
+                    t.MOTIVOS_RISCO
+                FROM TB_ML_TELEMETRIA t
+                JOIN TB_ML_SESSAO s ON s.ID_SESSAO = t.SESSAO_ID
+                JOIN TB_ML_DATASET d ON d.ID_DATASET = s.DATASET_ID
+            """,
+            "VW_ML_RESUMO_SESSAO": """
+                SELECT
+                    d.CODIGO AS DATASET,
+                    s.IDENTIFICADOR AS SESSAO,
+                    s.OPERACAO,
+                    s.IMPLEMENTO,
+                    s.ARQUIVO_ORIGEM,
+                    COUNT(t.ID_AMOSTRA) AS AMOSTRAS,
+                    MIN(t.TIMESTAMP_ORIGEM) AS PRIMEIRO_TIMESTAMP,
+                    MAX(t.TIMESTAMP_ORIGEM) AS ULTIMO_TIMESTAMP,
+                    MIN(t.TEMP_COOLANT_C) AS COOLANT_MIN_C,
+                    MAX(t.TEMP_COOLANT_C) AS COOLANT_MAX_C,
+                    AVG(t.TEMP_COOLANT_C) AS COOLANT_MEDIA_C,
+                    AVG(t.TORQUE_PCT) AS TORQUE_MEDIO_PCT,
+                    AVG(t.RPM) AS RPM_MEDIO
+                FROM TB_ML_TELEMETRIA t
+                JOIN TB_ML_SESSAO s ON s.ID_SESSAO = t.SESSAO_ID
+                JOIN TB_ML_DATASET d ON d.ID_DATASET = s.DATASET_ID
+                GROUP BY d.CODIGO, s.IDENTIFICADOR, s.OPERACAO,
+                    s.IMPLEMENTO, s.ARQUIVO_ORIGEM
+            """
+        }
+
+        for nome_view, consulta in views.items():
+            try:
+                cursor.execute(f"CREATE OR REPLACE VIEW {nome_view} AS {consulta}")
+            except oracledb.DatabaseError as e:
+                if "ORA-00955" not in str(e):
+                    raise
 
         conn.commit()
         print("Infraestrutura de dados: Sincronizada.")
