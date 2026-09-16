@@ -13,6 +13,11 @@ body {
     color: var(--text-main);
 }
 
-.bg-sompo-red { background-color: var(--color-primary-red); }
-.text-sompo-red { color: var(--color-primary-red); }
-.border-sompo-red { border-color: var(--color-primary-red); }
+.bg-sompo { background-color: #DF082A; }
+.text-sompo { color: #DF082A; }
+
+.bg-gestor { background-color: #1E3A8A; }
+.text-gestor { color: #1E3A8A; }
+
+.bg-operador { background-color: #047857; }
+.text-operador { color: #047857; }

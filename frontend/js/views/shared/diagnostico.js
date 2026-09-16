@@ -1,4 +1,4 @@
-import { fetchHistorico, fetchPrevisao } from './api.js';
+import { fetchHistorico, fetchPrevisao } from '../../core/api.js';
 
 let isProcessing = false;
 

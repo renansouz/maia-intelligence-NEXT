@@ -1,4 +1,4 @@
-import { fetchHistorico } from './api.js';
+import { fetchHistorico } from '../../core/api.js';
 
 export async function renderOperacional() {
     const container = document.getElementById('view-content');

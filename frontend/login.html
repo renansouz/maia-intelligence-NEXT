@@ -30,7 +30,7 @@
                     class="w-full bg-white border border-[#D0D5DD] rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#DF082A] transition">
             </div>
 
-            <p id="erro-login" class="text-sm text-red-600 hidden"></p>
+            <p id="erro-login" class="text-sm text-red-600 hidden bg-red-50 p-3 rounded-lg border border-red-100"></p>
 
             <button type="submit" id="btn-login"
                 class="w-full bg-[#DF082A] text-white py-2.5 rounded-lg font-bold hover:bg-[#9E1E24] transition-all shadow-md active:scale-95">
@@ -40,7 +40,7 @@
     </div>
 
     <script type="module">
-        import { salvarSessao, getToken } from './js/auth.js';
+        import { salvarSessao, getToken } from './js/core/auth.js';
 
         if (getToken()) {
             window.location.href = 'index.html';
@@ -67,7 +67,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Credenciais inválidas.');
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.detail || 'Credenciais inválidas.');
                 }
 
                 const dados = await response.json();
@@ -75,7 +76,7 @@
                 window.location.href = 'index.html';
 
             } catch (error) {
-                erroEl.textContent = 'Email ou senha incorretos.';
+                erroEl.textContent = error.message;
                 erroEl.classList.remove('hidden');
                 btn.disabled = false;
                 btn.textContent = 'ENTRAR';

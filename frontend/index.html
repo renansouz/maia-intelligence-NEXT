@@ -3,109 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAIA | Sompo Seguros</title>
+    <title>MAIA | Inteligência em Risco Agrícola</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="assets/sompo-logo.webp" type="image/webp">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 </head>
-<body class="antialiased bg-[#F9FAFB]">
+<body class="antialiased bg-[#F9FAFB] flex flex-col min-h-screen transition-colors duration-500">
 
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <!-- Navegação Dinâmica -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
+                
+                <!-- Identidade Visual -->
                 <div class="flex items-center gap-3">
                     <img src="assets/sompo-logo.webp" alt="Sompo Logo" class="h-8" onerror="this.style.display='none'">
-                    <span class="text-xl font-extrabold tracking-tighter text-[#DF082A]">MAIA</span>
+                    <span id="logo-text" class="text-xl font-extrabold tracking-tighter">MAIA</span>
+                    <span id="role-badge" class="hidden md:inline-block ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-full border"></span>
                 </div>
-                <div class="hidden md:flex space-x-8">
-                    <a href="#operacional" id="nav-operacional" class="font-semibold transition">Operacional</a>
-                    <a href="#gestao" id="nav-gestao" class="font-semibold transition">Gestão</a>
-                    <a href="#diagnostico" id="nav-diagnostico" class="font-semibold transition">Diagnóstico XAI</a>
-                    <a href="#compliance" id="nav-compliance" class="font-semibold transition border-l pl-8">Compliance</a>
+                
+                <!-- Menus Dinâmicos (Injetados via JS) -->
+                <div id="nav-menus" class="hidden md:flex space-x-6 items-center">
+                    <!-- Links entram aqui -->
                 </div>
+                
+                <!-- Perfil e Logout -->
                 <div class="flex items-center gap-4">
-                    <span id="usuario-info" class="text-sm text-gray-500 hidden md:block"></span>
-                    <button id="btn-logout" class="text-sm font-bold text-gray-400 hover:text-[#DF082A] transition">
-                        Sair
+                    <span id="usuario-info" class="text-sm font-semibold text-gray-700 hidden md:block"></span>
+                    <button id="btn-logout" class="text-sm font-bold text-gray-400 hover:text-gray-900 transition flex items-center gap-1">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Sair
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <header id="hero-section" class="bg-[#DF082A] text-white py-16 px-4 transition-all duration-500">
+    <!-- Header / Hero Section Dinâmico -->
+    <header id="hero-section" class="text-white py-12 px-4 transition-colors duration-500">
         <div class="max-w-4xl mx-auto text-center">
-            <h2 class="text-3xl md:text-3xl font-extrabold mb-4 tracking-tighter">Monitoramento e Análise Inteligente Agrícola</h2>
-            <p class="text-lg opacity-80 leading-relaxed max-w-4xl mx-auto">
-                Inteligência preditiva e auditoria de riscos operacionais aplicada ao setor agrícola da Sompo Seguros. 
-                Transformando dados climáticos e de telemetria em segurança para o patrimônio rural.
+            <h2 id="hero-title" class="text-3xl font-extrabold mb-3 tracking-tighter">Monitoramento Inteligente</h2>
+            <p id="hero-subtitle" class="text-lg opacity-90 leading-relaxed max-w-3xl mx-auto font-medium">
+                Protegendo sua operação no campo com previsibilidade e dados reais.
             </p>
         </div>
     </header>
 
-    <main id="view-container" class="max-w-7xl mx-auto px-4 py-12 -mt-10">
-        <section id="view-content" class="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 min-h-[500px]">
+    <!-- Container Principal das Views -->
+    <main class="max-w-7xl mx-auto px-4 w-full flex-1 -mt-8 mb-12">
+        <section id="view-content" class="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-gray-100 min-h-[500px]">
+            <!-- O roteador injeta as telas aqui -->
         </section>
     </main>
 
     <script type="module">
-        import { renderOperacional } from './js/operacional.js';
-        import { renderGestao } from './js/gestao.js';
-        import { renderDiagnostico } from './js/diagnostico.js';
-        import { renderCompliance } from './js/compliance.js';
-        import { exigirAutenticacao, getNome, getPapel, logout } from './js/auth.js';
-
-        exigirAutenticacao();
-
-        document.getElementById('usuario-info').textContent = `${getNome()} · ${getPapel()}`;
-        document.getElementById('btn-logout').addEventListener('click', logout);
-
-        const routes = {
-            '#operacional': renderOperacional,
-            '#gestao': renderGestao,
-            '#diagnostico': renderDiagnostico,
-            '#compliance': renderCompliance
-        };
-
-        function router() {
-            const hash = window.location.hash || '#operacional';
-            const renderFunc = routes[hash] || renderOperacional;
-            const hero = document.getElementById('hero-section');
-
-            if (hash === '#operacional') {
-                hero.style.display = 'block';
-            } else {
-                hero.style.display = 'none';
-            }
-
-            Object.keys(routes).forEach(routeId => {
-                const el = document.querySelector(`a[href="${routeId}"]`);
-                if (routeId === hash) {
-                    el.classList.add('text-[#DF082A]');
-                    el.classList.remove('text-gray-500');
-                } else {
-                    el.classList.remove('text-[#DF082A]');
-                    el.classList.add('text-gray-500');
-                }
-            });
-
-            renderFunc();
-        }
-
-        window.addEventListener('hashchange', router);
+        import { initRouter } from './js/core/router.js';
         
         window.addEventListener('DOMContentLoaded', () => {
-            router();
+            initRouter();
             lucide.createIcons();
         });
     </script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 </body>
 </html>
-

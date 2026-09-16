@@ -1,4 +1,4 @@
-import { fetchHistorico } from './api.js';
+import { fetchHistorico } from '../../core/api.js';
 
 let isProcessing = false;
 let allData = [];
