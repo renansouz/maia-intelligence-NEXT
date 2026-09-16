@@ -1,6 +1,6 @@
-# 📋 Estado final do MAIA no Sprint 3 (Ponto de Partida do Sprint 4)
+# 📋 Estado Atual do MAIA
 
-> Este documento existe pra qualquer pessoa do time entender, em 10 minutos, onde o projeto está, o que já funciona, o que está quebrado, e por quê. Serve como mapa antes de mexer em qualquer código.
+> Este documento existe pra qualquer pessoa do time entender, em 10 minutos, onde o projeto está, o que já foi corrigido, e o que ainda falta. Serve como mapa antes de mexer em qualquer código.
 
 ---
 
@@ -10,101 +10,99 @@
 app/
 ├── core/
 │   ├── database.py       → conexão com o Oracle (pool de conexões)
-│   └── config_db.py      → cria/atualiza as tabelas do banco automaticamente
+│   └── config_db.py      → cria/atualiza todas as tabelas do banco
 ├── models/
-│   └── schemas.py        → define o formato dos dados que a API aceita (Pydantic)
+│   └── schemas.py        → formato dos dados aceitos pela API
 ├── services/
-│   ├── data_service.py         → salva/busca telemetria no banco
-│   ├── processamento_service.py → calcula indicadores de risco (chuva alta, solo úmido etc.)
-│   ├── ml_service.py           → carrega o modelo de IA e gera o score + explicação (SHAP)
-│   ├── audit_service.py        → gera o hash de auditoria (cadeia de integridade)
-│   └── risco_service.py        → orquestra tudo: chama o ML, gera o hash, salva no banco
-└── main.py                → onde ficam as rotas da API (endpoints)
-
-docs/                      → documentação técnica (será reorganizada nesta sprint)
+│   ├── data_service.py         → telemetria (salvar/buscar)
+│   ├── processamento_service.py → cálculo de indicadores de risco (chuva alta, solo úmido etc.)
+│   ├── ml_service.py           → modelo de IA, score e explicação (SHAP)
+│   ├── audit_service.py        → geração do hash de auditoria
+│   ├── risco_service.py        → orquestra ML + hash + persistência
+│   ├── auth_service.py         → hash de senha, geração/validação de JWT, controle de papel
+│   ├── user_service.py         → cadastro/busca de usuário, criação do usuário Sompo inicial
+│   ├── fazenda_service.py      → cadastro e listagem de fazenda
+│   └── maquina_service.py      → cadastro de máquina, vínculos, controle de acesso por equipamento
+└── main.py                → rotas da API
 
 frontend/
-├── assets/                → logos e imagens
-├── css/styles.css         → cores e identidade visual da Sompo
+├── assets/
+├── css/styles.css
+├── login.html              → tela de login
+├── index.html              → aplicação principal (protegida por login)
 ├── js/
-│   ├── api.js             → faz as chamadas pro backend
-│   ├── operacional.js     → tela do mapa e status geral
-│   ├── gestao.js          → tela de gráficos e ranking
-│   ├── diagnostico.js     → tela de laudo individual (SHAP + gauge)
-│   ├── compliance.js      → tela de auditoria/histórico
-│   └── config.example.js  → onde fica a chave de API do frontend
-└── index.html             → estrutura da página e navegação entre telas
+│   ├── auth.js             → sessão do usuário
+│   ├── api.js              → chamadas pro backend, autenticadas
+│   ├── operacional.js      → mapa e status geral
+│   ├── gestao.js           → gráficos e ranking
+│   ├── diagnostico.js      → laudo individual (SHAP + gauge)
+│   └── compliance.js       → auditoria/histórico
 
 machine_learning/
 └── treinar_modelo.py      → treina o Random Forest com os dados do banco
 
 ml_assets/
-└── modelo_risco.pkl       → o modelo já treinado, usado em produção
+└── modelo_risco.pkl       → modelo já treinado, usado em produção
 
 scripts/
 ├── popular_banco.py               → gera dados de telemetria (clima real + resto simulado)
-└── popular_previsoes_historicas.py → roda o modelo em massa pra popular o histórico de previsões
+└── popular_previsoes_historicas.py → roda o modelo em massa pra popular o histórico
 ```
 
 ---
 
-## 🔴 Problemas Identificados no Feedback da Sprint 3
+## 🔧 Problemas do feedback da sprint anterior — o que foi corrigido
 
-Isso **não é crítica pelo trabalho feito** — a nota foi 8.37/9, nos entregamos algo funcional e bem comunicado. Mas o professor encontrou falhas reais que precisamos resolver antes de qualquer coisa nova:
+A nota da última sprint foi alta, entregamos algo funcional e bem comunicado. Mas o professor encontrou falhas reais, e aqui está o que foi feito com cada uma.
 
-### 1. A cadeia de hash não é imutável de verdade
+### A cadeia de hash não era imutável de verdade — ✅ corrigido
 
-**Onde:** `risco_service.py`, no comando `MERGE`.
-**O problema:** se alguém consulta o risco do mesmo equipamento duas vezes no mesmo dia, o sistema **sobrescreve** o registro antigo e recalcula um hash novo. Isso quebra a cadeia de auditoria, a mesma coisa que devia provar que "nada foi alterado" está sendo alterada pelo próprio sistema.
-**O que precisa mudar:** cada previsão deve virar um **registro novo**, nunca sobrescrever o anterior.
+**Onde estava:** `risco_service.py`, no comando `MERGE`.
+**O problema:** consultar o risco do mesmo equipamento duas vezes no mesmo dia sobrescrevia o registro antigo e recalculava um hash novo, quebrando a cadeia de auditoria.
+**Como foi corrigido:** `risco_service.py` agora usa `INSERT` sempre, nunca sobrescreve. Durante o teste encontramos um bug extra que não estava no feedback original: a busca pelo "último hash" em `audit_service.py` podia empatar quando várias previsões eram geradas no mesmo segundo, causando hashes repetidos. Corrigido usando o identificador sequencial do registro em vez de data/hora. Criamos também um endpoint (`verificar_integridade_cadeia`) que audita a cadeia inteira sob demanda.
 
-### 2. Uma consulta (GET) está alterando dados
+### Uma consulta (GET) estava alterando dados — ✅ corrigido
 
-**Onde:** `main.py`, rota `GET /previsao/{equipamento_id}`.
-**O problema:** um GET deveria só _ler_ informação. Mas essa rota está processando e **gravando** uma nova previsão no banco toda vez que é chamada. Isso viola a lógica básica de API REST.
-**O que precisa mudar:** separar isso, talvez um endpoint de leitura (GET) e outro de processamento (POST).
+**Onde estava:** `main.py`, rota `GET /previsao/{equipamento_id}`.
+**O problema:** a rota processava o modelo e gravava uma previsão nova a cada chamada, violando a lógica de API REST (GET deveria ser só leitura).
+**Como foi corrigido:** separado em duas rotas: `POST /previsao/{id}` (processa e grava uma previsão nova) e `GET /previsao/{id}/ultima` (só lê a previsão mais recente, sem processar nada de novo). Testado chamando a rota de leitura várias vezes seguidas e confirmando que o hash retornado nunca muda.
 
-### 3. Mensagens de erro cruas voltam pro usuário
+### Mensagens de erro cruas voltavam pro usuário — ✅ corrigido
 
-**Onde:** `main.py`, em `/telemetria` e `/historico` (`detail=str(e)`).
-**O problema:** se algo falha no servidor, o erro técnico completo (que pode revelar detalhes internos do sistema) aparece pra quem está usando a API.
-**O que precisa mudar:** capturar o erro internamente (logar) e devolver uma mensagem genérica pro usuário.
+**Onde estava:** `main.py`, em `/telemetria` e `/historico`.
+**O problema:** erro técnico completo do servidor aparecia pra quem estava usando a API.
+**Como foi corrigido:** adicionado um tratador global de exceção — qualquer erro não previsto retorna mensagem genérica + código de rastreio pro cliente, com o detalhe técnico completo só no log do servidor. Encontramos um efeito colateral no meio do caminho: o registro de log de acesso não gravava nada quando a requisição falhava (a exceção "vazava" antes do registro rodar). Corrigido também.
 
-### 4. Não existe identidade de quem acessa
+### Não existia identidade de quem acessava — ✅ corrigido
 
-**Onde:** `main.py`, função `verificar_key` (chave única `API_KEY`).
-**O problema:** todo mundo usa a mesma senha/chave. O sistema sabe _que alguém_ acessou, mas não sabe _quem_. Não existe separação entre operador, gestor e seguradora.
-**O que precisa mudar:** login de verdade, com identidade e papel (role) de cada usuário.
+**Onde estava:** `main.py`, chave única `API_KEY` compartilhada por todo mundo.
+**O problema:** o sistema sabia que alguém tinha acessado, mas não sabia quem, nem separava operador de gestor de seguradora.
+**Como foi corrigido:** sistema de login completo (email/senha com hash bcrypt, token JWT com papel), com hierarquia real de criação de usuário (Sompo cria Gestor, Gestor cria Operador) e controle de acesso por máquina baseado em vínculo real (fazenda do gestor, vínculo direto do operador). Testado com casos de acesso permitido e negado, incluindo tentativa de um papel acessar rota de outro papel.
 
-### 5. A telemetria perde informação quando atualizada
+### A telemetria perdia informação quando atualizada — ✅ corrigido
 
-**Onde:** `data_service.py`, função `salvar_telemetria_db`.
-**O problema:** o `MERGE` só atualiza 3 campos (temperatura, chuva, umidade) quando já existe leitura do dia, os outros 6 campos enviados são descartados.
-**O que precisa mudar:** ou atualizar todos os campos, ou (melhor) permitir múltiplas leituras por dia.
+**Onde estava:** `data_service.py`, função `salvar_telemetria_db`.
+**O problema:** o `MERGE` só atualizava 3 de 9 campos quando já existia leitura do dia, descartando o resto.
+**Como foi corrigido:** trocado por `INSERT` sempre, preservando todos os campos de cada leitura enviada. Testado inserindo duas leituras do mesmo equipamento no mesmo dia com valores diferentes em todos os campos, e confirmando que nenhum campo se perdeu.
 
-### 6. Só é possível ter uma leitura por equipamento por dia
+### Só era possível ter uma leitura por equipamento por dia — ✅ corrigido
 
-**Onde:** `config_db.py`, chave primária `(EQUIPAMENTO_ID, DATA_MEDICAO)`.
-**O problema:** um sensor de verdade manda dado várias vezes ao dia. Essa trava impede isso.
-**O que precisa mudar:** repensar a chave, talvez incluir hora/timestamp, não só data.
-
-### 7. O mapa mostra localização que não existe
-
-**Onde:** `frontend/js/operacional.js`, função `initMap` (`Math.random()` somado à coordenada da cidade).
-**O problema:** os pontos no mapa são posições aleatórias em volta do centro da cidade, não é a localização real do equipamento.
-**O que precisa mudar:** usar coordenada real cadastrada por máquina (isso já está sendo resolvido com o novo cadastro de máquina que vamos desenhar).
+**Onde estava:** `config_db.py`, chave primária composta por equipamento e data.
+**O problema:** um sensor de verdade manda dado várias vezes ao dia, e essa trava impedia isso.
+**Como foi corrigido:** trocada a chave primária composta por um identificador sequencial próprio em cada tabela (previsão, telemetria, dado bruto). Essa mudança foi a base que permitiu corrigir os dois problemas de cadeia de hash e perda de telemetria também, já que os dois dependiam dessa mesma limitação.
 
 ---
 
-## ✅ O que já está bom e não precisa mudar
+## ✅ O que já estava bom e não precisou mudar
 
-- Separação em camadas (`ml_service`, `audit_service`, `risco_service`, `data_service`), arquitetura limpa, só corrigir o conteúdo, não a estrutura.
-- O uso de SHAP no `ml_service.py`, incluindo o filtro de redundância entre variável bruta e indicador, detalhe fino, mantém.
-- O frontend já tem identidade visual da Sompo e 4 telas funcionais com gráficos reais (Plotly) e mapa (Leaflet).
-- O pool de conexões Oracle (`database.py`) está bem implementado.
+- Separação em camadas (`ml_service`, `audit_service`, `risco_service`, `data_service`), arquitetura limpa.
+- O uso de SHAP no `ml_service.py`, incluindo o filtro de redundância entre variável bruta e indicador.
+- O pool de conexões Oracle (`database.py`).
 
 ---
 
-## 🎯 Por onde começar
+## 🎯 Onde estamos agora
 
-A prioridade nesta sprint é: **primeiro corrigir os 7 pontos acima, depois evoluir com as ideias novas** (login/personas, dado real, ideias de sinistro). Não adianta construir coisa nova em cima de uma base que ainda tem furo de segurança e integridade.
+Com a base técnica corrigida e testada, e o sistema de login/hierarquia/controle de acesso funcionando de ponta a ponta, o foco passa a ser o que está descrito no README principal: sistema de ticket, manutenção com link pro técnico, telas novas por persona, e a evolução do motor de risco com dado real de satélite e indicador de estabilidade.
+
+**Lembrete técnico:** o histórico de previsões precisa ser regenerado (`popular_previsoes_historicas.py`) antes de qualquer demonstração final, já que parte dele eu apaguei durante os testes de correção da cadeia de hash.
