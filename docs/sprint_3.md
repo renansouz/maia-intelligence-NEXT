@@ -27,16 +27,32 @@ app/
 
 frontend/
 ├── assets/
-├── css/styles.css
-├── login.html              → tela de login
-├── index.html              → aplicação principal (protegida por login)
+│   └── sompo-logo.webp
+├── css/
+│   └── styles.css
 ├── js/
-│   ├── auth.js             → sessão do usuário
-│   ├── api.js              → chamadas pro backend, autenticadas
-│   ├── operacional.js      → mapa e status geral
-│   ├── gestao.js           → gráficos e ranking
-│   ├── diagnostico.js      → laudo individual (SHAP + gauge)
-│   └── compliance.js       → auditoria/histórico
+│   ├── core/
+│   │   ├── api.js             → chamadas pro backend, autenticadas
+│   │   ├── auth.js            → sessão do usuário (token, papel, logout)
+│   │   └── router.js          → roteamento e controle de navegação por persona
+│   ├── views/
+│   │   ├── sompo/
+│   │   │   ├── dashboard.js   → visão executiva e central de risco da seguradora
+│   │   │   └── cadastros.js   → cadastro de máquinas na apólice
+│   │   ├── gestor/
+│   │   │   ├── dashboard.js   → gestão de fazendas e frota
+│   │   │   ├── tickets.js     → gerenciamento de tickets da equipe
+│   │   │   └── cadastros.js   → cadastro de fazendas e operadores
+│   │   ├── operador/
+│   │   │   └── painel.js      → status simplificado da máquina e abertura de ticket
+│   │   └── shared/
+│   │       ├── compliance.js  → auditoria e cadeia de hash
+│   │       ├── diagnostico.js → laudo técnico explicável (XAI/SHAP)
+│   │       └── mapa.js        → visualização geográfica de incidentes
+    └── manutencao.js          → script da tela externa do técnico
+├── index.html                 → aplicação principal SPA (protegida por login)
+├── login.html                 → tela de autenticação
+└── manutencao.html            → página isolada do técnico de manutenção (sem login)
 
 machine_learning/
 └── treinar_modelo.py      → treina o Random Forest com os dados do banco
