@@ -68,3 +68,45 @@ def buscar_clima_historico_intervalo(latitude, longitude):
         })
 
     return registros
+
+def buscar_previsao_horaria(latitude, longitude):
+    """
+    Busca a previsão horária das próximas 24h (Open-Meteo Forecast API,
+    gratuita e sem necessidade de chave). Diferente de
+    buscar_clima_historico_intervalo (que consulta o Archive, dado
+    passado), esta função consulta previsão futura.
+    """
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "hourly": "temperature_2m,precipitation,windspeed_10m",
+        "forecast_days": 2,
+        "timezone": "America/Sao_Paulo"
+    }
+
+    try:
+        resposta = requests.get(url, params=params, timeout=15)
+        resposta.raise_for_status()
+        dados = resposta.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Erro na API de Previsao: {e}")
+        return None
+
+    horario = dados.get("hourly")
+    if not horario:
+        return None
+
+    registros = []
+    for hora, temp, chuva, vento in zip(
+        horario["time"], horario["temperature_2m"],
+        horario["precipitation"], horario["windspeed_10m"]
+    ):
+        registros.append({
+            "hora": hora,
+            "temperatura": temp,
+            "chuva_mm": chuva,
+            "vento_kmh": vento
+        })
+
+    return registros

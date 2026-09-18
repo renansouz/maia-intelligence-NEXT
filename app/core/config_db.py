@@ -20,6 +20,19 @@ def obter_colunas_pk(cursor, tabela):
     cursor.execute(query, tname=tabela.upper())
     return [row[0] for row in cursor.fetchall()]
 
+def garantir_fk_maquina_gestor(cursor):
+    cursor.execute("""
+        SELECT COUNT(*) FROM user_constraints
+        WHERE table_name = 'TB_MAQUINA' AND constraint_name = 'FK_MAQUINA_GESTOR'
+    """)
+    if cursor.fetchone()[0] == 0:
+        print("Migração: Adicionando FK_MAQUINA_GESTOR...")
+        cursor.execute("""
+            ALTER TABLE TB_MAQUINA
+            ADD CONSTRAINT FK_MAQUINA_GESTOR FOREIGN KEY (GESTOR_ID) REFERENCES TB_USUARIO(ID_USUARIO)
+        """)
+    
+
 def configurar_banco():
     conn = db.get_connection()
     cursor = conn.cursor()
@@ -149,13 +162,21 @@ def configurar_banco():
             ("TB_PREVISAO_RISCO", "EXPLICACAO", "VARCHAR2(4000)"),
             ("TB_PREVISAO_RISCO", "ID_PREVISAO", "NUMBER GENERATED ALWAYS AS IDENTITY"),
             ("TB_RISCO_AGRICOLA_TRATADO", "ID_TELEMETRIA", "NUMBER GENERATED ALWAYS AS IDENTITY"),
-            ("TB_RISCO_AGRICOLA", "ID_REGISTRO", "NUMBER GENERATED ALWAYS AS IDENTITY")
+            ("TB_RISCO_AGRICOLA", "ID_REGISTRO", "NUMBER GENERATED ALWAYS AS IDENTITY"),
+            ("TB_MAQUINA", "GESTOR_ID", "NUMBER"),
+            ("TB_MAQUINA", "VALOR_SEGURADO", "NUMBER(12,2)"),
+            ("TB_FAZENDA", "CIDADE", "VARCHAR2(100)"),
+            ("TB_TICKET", "ESCALADO_EM", "TIMESTAMP"),
         ]
 
         for tab, col, tipo in colunas_novas:
             if not coluna_existe(cursor, tab, col):
                 print(f"Migração: Adicionando {col} em {tab}...")
                 cursor.execute(f"ALTER TABLE {tab} ADD {col} {tipo}")
+
+        garantir_fk_maquina_gestor(cursor)
+        garantir_status_ticket_atualizado(cursor)
+
 
         pk_alvo = {
             "TB_PREVISAO_RISCO": "ID_PREVISAO",
@@ -182,6 +203,29 @@ def configurar_banco():
     finally:
         cursor.close()
         db.release_connection(conn)
+
+def garantir_status_ticket_atualizado(cursor):
+    cursor.execute("""
+        SELECT COUNT(*) FROM user_constraints
+        WHERE table_name = 'TB_TICKET' AND constraint_name = 'CK_TICKET_STATUS'
+    """)
+    if cursor.fetchone()[0] > 0:
+        return
+
+    cursor.execute("""
+        SELECT constraint_name, search_condition FROM user_constraints
+        WHERE table_name = 'TB_TICKET' AND constraint_type = 'C'
+    """)
+    for nome, condicao in cursor.fetchall():
+        if condicao and 'STATUS' in condicao.upper() and 'ABERTO' in condicao.upper():
+            print(f"Migração: removendo constraint antiga de status ({nome})...")
+            cursor.execute(f"ALTER TABLE TB_TICKET DROP CONSTRAINT {nome}")
+
+    print("Migração: adicionando ESCALADO_SOMPO como status válido de ticket...")
+    cursor.execute("""
+        ALTER TABLE TB_TICKET
+        ADD CONSTRAINT CK_TICKET_STATUS CHECK (STATUS IN ('ABERTO','RESOLVIDO','ESCALADO_SOMPO'))
+    """)
 
 if __name__ == "__main__":
     configurar_banco()

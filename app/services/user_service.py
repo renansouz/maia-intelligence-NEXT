@@ -91,3 +91,52 @@ def listar_operadores_do_gestor(gestor_id: int):
     finally:
         cursor.close()
         db.release_connection(conn)
+
+def buscar_usuario_por_id(id_usuario: int):
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT ID_USUARIO, NOME, EMAIL, PAPEL, GESTOR_ID, TIPO_COBERTURA, ATIVO
+            FROM TB_USUARIO WHERE ID_USUARIO = :id
+        """, id=id_usuario)
+        row = cursor.fetchone()
+        if not row:
+            return None
+        colunas = [c[0].lower() for c in cursor.description]
+        return dict(zip(colunas, row))
+    finally:
+        cursor.close()
+        db.release_connection(conn)
+
+
+def listar_gestores_com_estatisticas():
+    """
+    Lista todos os gestores com contadores de fazenda e máquina, usada
+    pela tela da Sompo ao clicar em "Gestores Ativos".
+    """
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT ID_USUARIO, NOME, EMAIL, TIPO_COBERTURA, ATIVO
+            FROM TB_USUARIO WHERE PAPEL = 'GESTOR' ORDER BY NOME
+        """)
+        colunas = [c[0].lower() for c in cursor.description]
+        gestores = [dict(zip(colunas, row)) for row in cursor.fetchall()]
+
+        for g in gestores:
+            cursor.execute("SELECT COUNT(*) FROM TB_FAZENDA WHERE GESTOR_ID = :id", id=g["id_usuario"])
+            g["total_fazendas"] = cursor.fetchone()[0]
+
+            cursor.execute("""
+                SELECT COUNT(*) FROM TB_MAQUINA m
+                JOIN TB_FAZENDA f ON m.FAZENDA_ID = f.ID_FAZENDA
+                WHERE f.GESTOR_ID = :id
+            """, id=g["id_usuario"])
+            g["total_maquinas"] = cursor.fetchone()[0]
+
+        return gestores
+    finally:
+        cursor.close()
+        db.release_connection(conn)

@@ -3,16 +3,22 @@ Este módulo atua como o 'cérebro' do backend, coordenando a integração:
 1. Recebe dados brutos e aciona o ml_service para gerar a inteligência.
 2. Solicita ao audit_service a geração do elo da corrente de integridade.
 3. Garante a atomicidade da operação (ML + Hash + DB) em uma única transação.
-
-Decisão de Design: Segue o padrão de Camada de Serviço para isolar a lógica de 
-orquestração das rotas da API (FastAPI), facilitando testes e manutenção.
 """
 from app.core.database import db
 from app.services.ml_service import ml_service
 from app.services.audit_service import gerar_hash_integridade
+from app.services.ticket_service import buscar_contexto_tickets
 
 def processar_previsao_completa(dados_telemetria):
     resultado_ml = ml_service.prever_score(dados_telemetria)
+
+    tickets = buscar_contexto_tickets(dados_telemetria["equipamento_id"])
+    if tickets:
+        contexto = ", ".join(f"{categoria}: {qtd}" for categoria, qtd in tickets)
+        resultado_ml["explicacao_completa"] += (
+            f" || RELATOS PENDENTES: {contexto}. Contexto operacional complementar; "
+            "não altera a probabilidade do modelo."
+        )
     
     eq_id = dados_telemetria.get('equipamento_id')
     dt_med = dados_telemetria.get('data_medicao')

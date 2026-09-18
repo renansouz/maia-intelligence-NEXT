@@ -1,13 +1,21 @@
 from app.core.database import db
 
-def criar_fazenda(gestor_id, nome, latitude, longitude, endereco=None):
+def criar_fazenda(gestor_id, nome, cidade, latitude=None, longitude=None, endereco=None):
+    if latitude is None or longitude is None:
+        from app.services.api_clima import buscar_coordenadas
+        coords = buscar_coordenadas(cidade)
+        if not coords:
+            raise ValueError(f"Não foi possível localizar a cidade '{cidade}'.")
+        latitude = coords["latitude"]
+        longitude = coords["longitude"]
+
     conn = db.get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            INSERT INTO TB_FAZENDA (GESTOR_ID, NOME, LATITUDE, LONGITUDE, ENDERECO)
-            VALUES (:gestor_id, :nome, :lat, :lon, :end)
-        """, gestor_id=gestor_id, nome=nome, lat=latitude, lon=longitude, end=endereco)
+            INSERT INTO TB_FAZENDA (GESTOR_ID, NOME, CIDADE, LATITUDE, LONGITUDE, ENDERECO)
+            VALUES (:gestor_id, :nome, :cidade, :lat, :lon, :end)
+        """, gestor_id=gestor_id, nome=nome, cidade=cidade, lat=latitude, lon=longitude, end=endereco)
         conn.commit()
         return True
     except Exception as e:

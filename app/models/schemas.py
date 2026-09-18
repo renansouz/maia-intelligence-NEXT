@@ -44,18 +44,36 @@ class CriarUsuarioInput(BaseModel):
 
 class CriarFazendaInput(BaseModel):
     nome: str = Field(..., example="Fazenda Boa Vista")
-    latitude: float
-    longitude: float
+    cidade: str = Field(..., example="Campinas")
+    latitude: float | None = None
+    longitude: float | None = None
     endereco: str | None = None
 
 class CriarMaquinaInput(BaseModel):
     equipamento_id: str = Field(..., example="EQP-SAO-99")
+    gestor_id: int = Field(..., example=2)
     tipo: str | None = Field(None, example="Trator")
     modelo: str | None = None
     ano: int | None = None
+    valor_segurado: float | None = Field(None, example=350000.00)
 
 class VincularFazendaInput(BaseModel):
     fazenda_id: int
 
 class VincularOperadorInput(BaseModel):
     operador_id: int
+
+class AbrirTicketInput(BaseModel):
+    equipamento_id: str = Field(..., example="DEMO-01")
+    categoria: str = Field(..., example="Falha ou Ruído Mecânico")
+    observacao: str | None = Field(None, example="Motor fazendo barulho estranho ao ligar.")
+
+class SolicitarManutencaoInput(BaseModel):
+    equipamento_id: str = Field(..., example="DEMO-01")
+    descricao: str | None = Field(None, example="Verificar barulho reportado pelo operador.")
+    tipo: str = Field("PREVENTIVA", example="PREVENTIVA")
+
+class ConcluirManutencaoInput(BaseModel):
+    data_realizada: str = Field(..., example="2026-09-17")
+    hora_realizada: str = Field(..., example="14:30")
+    descricao: str = Field(..., example="Troca de correia e verificação geral.")
