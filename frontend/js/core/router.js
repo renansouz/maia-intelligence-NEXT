@@ -3,7 +3,6 @@ import { renderSompoDashboard } from '../views/sompo/dashboard.js';
 import { renderGestorDashboard } from '../views/gestor/dashboard.js';
 import { renderPainelOperador } from '../views/operador/painel.js';
 import { renderGestorTickets } from '../views/gestor/tickets.js';
-import { renderDiagnostico } from '../views/shared/diagnostico.js';
 import { renderCompliance } from '../views/shared/compliance.js';
 import { renderSompoCadastro } from '../views/sompo/cadastros.js';
 import { renderGestorCadastro } from '../views/gestor/cadastros.js';
@@ -140,7 +139,6 @@ function resolverRota(config) {
     '#gestor/dashboard': renderGestorDashboard,
     '#gestor/tickets': renderGestorTickets,
     '#operador/painel': renderPainelOperador,
-    '#diagnostico': renderDiagnostico,
     '#cadastros': () => {
       const papel = getPapel();
       if (papel === 'SOMPO') renderSompoCadastro();

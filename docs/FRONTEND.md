@@ -53,7 +53,6 @@ frontend/
 │   │   └── shared/
 │   │       ├── compliance.js  → Auditoria de Decisões e cadeia de hash imutável
 │   │       ├── detalhe-maquina.js → detalhes e laudo técnico compartilhado (Sompo, Gestor e Operador)
-│   │       ├── diagnostico.js → diagnostico XAI (Explicabilidade de IA via SHAP)
 │   │       └── mapa.js        → Mapeamento de distribuição de frotas
 │   └── manutencao.js          → Script isolado para o fluxo do técnico externo
 ├── index.html                 → Ponto de entrada SPA (protegido por autenticação JWT)
