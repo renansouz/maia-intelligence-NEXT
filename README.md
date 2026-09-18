@@ -2,6 +2,7 @@
 
 > Este README é o nosso documento de planejamento vivo pro Sprint 4. Aqui tem tudo: o que decidimos, o que já construímos, o que ainda falta, e por quê. Conforme formos avançando isso vira o README final de verdade.
 
+<img src="./frontend/assets/preview.png" alt="Preview of the Site">
 ---
 
 ## 🎯 O que o MAIA é agora
