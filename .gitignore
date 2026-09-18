@@ -31,3 +31,10 @@ data/*.csv
 dist/
 build/
 *.egg-info/
+
+
+# Datasets e retornos filtrados não subirão por conta de serem muito grandes
+machine_learning/data/raw
+machine_learning/models/
+machine_learning/data/raw/
+machine_learning/data/raw.zip
