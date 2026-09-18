@@ -3,38 +3,49 @@ const BASE_URL = window.location.origin;
 document.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
 
-  // Pega o token da URL (ex: manutencao.html?token=abc123xyz)
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
 
   if (!token) {
-    showError("Nenhum código de acesso foi fornecido na URL.");
+    showError("Link de acesso inválido. Nenhum token encontrado na URL.");
     return;
   }
 
-  // Preenche data e hora com o momento atual para facilitar pro técnico
+  // Preenche data e hora atuais por padrão
   const agora = new Date();
-  document.getElementById('data').value = agora.toISOString().split('T')[0];
-  document.getElementById('hora').value = agora.toTimeString().split(' ')[0].substring(0, 5);
+  const dataInput = document.getElementById('data');
+  const horaInput = document.getElementById('hora');
 
-  await carregarDadosMaquina(token);
+  if (dataInput) dataInput.value = agora.toISOString().split('T')[0];
+  if (horaInput) horaInput.value = agora.toTimeString().split(' ')[0].substring(0, 5);
+
+  await carregarDadosManutencao(token);
 });
 
-async function carregarDadosMaquina(token) {
+async function carregarDadosManutencao(token) {
   try {
     const response = await fetch(`${BASE_URL}/manutencao/externo/${token}`);
 
     if (!response.ok) {
-      throw new Error("Este link expirou, é inválido, ou a manutenção já foi registrada.");
+      throw new Error("Este link já foi utilizado ou expirou. Entre em contato com quem solicitou a manutenção para gerar um novo link.");
     }
 
     const data = await response.json();
 
     document.getElementById('loading-state').classList.add('hidden');
     document.getElementById('form-state').classList.remove('hidden');
-    document.getElementById('eqp-id').textContent = data.equipamento_id;
 
-    document.getElementById('form-manutencao').addEventListener('submit', (e) => concluirManutencao(e, token));
+    // Exibe dados da máquina e o motivo solicitado pelo gestor
+    document.getElementById('eqp-id').textContent = data.equipamento_id || 'Ativo Rural';
+    const descSolicitada = document.getElementById('motivo-solicitado');
+    if (descSolicitada) {
+      descSolicitada.textContent = data.descricao || data.motivo || 'Manutenção preventiva solicitada pelo gestor da frota.';
+    }
+
+    const form = document.getElementById('form-manutencao');
+    if (form) {
+      form.onsubmit = (e) => concluirManutencao(e, token);
+    }
 
   } catch (error) {
     showError(error.message);
@@ -44,15 +55,16 @@ async function carregarDadosMaquina(token) {
 async function concluirManutencao(e, token) {
   e.preventDefault();
   const btn = document.getElementById('btn-submit');
+  const errorBanner = document.getElementById('form-error');
 
-  // Evita duplo clique
+  if (errorBanner) errorBanner.classList.add('hidden');
   btn.disabled = true;
-  btn.innerHTML = `<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> Registrando...`;
+  btn.textContent = "Registrando manutenção...";
 
   const payload = {
     data_realizada: document.getElementById('data').value,
     hora_realizada: document.getElementById('hora').value,
-    descricao: document.getElementById('descricao').value
+    descricao: document.getElementById('descricao').value.trim()
   };
 
   try {
@@ -63,24 +75,30 @@ async function concluirManutencao(e, token) {
     });
 
     if (!response.ok) {
-      throw new Error("Ocorreu um erro ao tentar salvar. Tente novamente.");
+      const errJson = await response.json().catch(() => ({}));
+      throw new Error(errJson.detail || "Não foi possível registrar a manutenção. O link pode ter expirado.");
     }
 
-    // Sucesso
+    // Transição limpa para a tela de sucesso definitiva
     document.getElementById('form-state').classList.add('hidden');
     document.getElementById('success-state').classList.remove('hidden');
+    lucide.createIcons();
 
   } catch (error) {
-    alert(error.message);
+    if (errorBanner) {
+      errorBanner.textContent = error.message;
+      errorBanner.classList.remove('hidden');
+    }
     btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> REGISTRAR MANUTENÇÃO`;
-    lucide.createIcons();
+    btn.textContent = "REGISTRAR MANUTENÇÃO";
   }
 }
 
 function showError(msg) {
   document.getElementById('loading-state').classList.add('hidden');
   const errEl = document.getElementById('error-state');
-  errEl.classList.remove('hidden');
-  document.getElementById('error-message').textContent = msg;
+  if (errEl) {
+    errEl.classList.remove('hidden');
+    document.getElementById('error-message').textContent = msg;
+  }
 }

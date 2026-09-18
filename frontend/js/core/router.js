@@ -7,6 +7,7 @@ import { renderDiagnostico } from '../views/shared/diagnostico.js';
 import { renderCompliance } from '../views/shared/compliance.js';
 import { renderSompoCadastro } from '../views/sompo/cadastros.js';
 import { renderGestorCadastro } from '../views/gestor/cadastros.js';
+import { renderDetalheMaquina } from '../views/shared/detalhe-maquina.js';
 
 const CONFIG_PERFIS = {
   'SOMPO': {
@@ -119,9 +120,10 @@ function configurarEventos() {
 
 function resolverRota(config) {
   const hash = window.location.hash;
+  const baseHash = hash.split('?')[0];
 
   document.querySelectorAll('.nav-link').forEach(link => {
-    if (link.getAttribute('data-target') === hash) {
+    if (link.getAttribute('data-target') === baseHash) {
       link.classList.remove('text-gray-500', 'border-transparent');
       link.style.color = '';
     } else {
@@ -143,10 +145,11 @@ function resolverRota(config) {
       const papel = getPapel();
       if (papel === 'SOMPO') renderSompoCadastro();
       else if (papel === 'GESTOR') renderGestorCadastro();
-    }
+    },
+    '#detalhe': renderDetalheMaquina
   };
 
-  const renderFunc = rotas[hash];
+  const renderFunc = rotas[baseHash];
   if (renderFunc) {
     renderFunc();
   } else {

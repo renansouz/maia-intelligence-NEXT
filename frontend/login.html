@@ -76,38 +76,10 @@
                 window.location.href = 'index.html';
 
             } catch (error) {
-                form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                erroEl.classList.add('hidden');
-                btn.disabled = true;
-                btn.textContent = 'ENTRANDO...';
-
-                const email = document.getElementById('email').value;
-                const senha = document.getElementById('senha').value;
-
-                try {
-                    const response = await fetch('/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, senha })
-                    });
-
-                    if (!response.ok) {
-                        const erro = await response.json();
-                        throw new Error(erro.detail || 'Não foi possível entrar.');
-                    }
-
-                    const dados = await response.json();
-                    salvarSessao(dados.token, dados.papel, dados.nome);
-                    window.location.href = 'index.html';
-
-                } catch (error) {
-                    erroEl.textContent = error.message;
-                    erroEl.classList.remove('hidden');
-                    btn.disabled = false;
-                    btn.textContent = 'ENTRAR';
-                }
-            });
+                erroEl.textContent = error.message;
+                erroEl.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'ENTRAR';
             }
         });
     </script>

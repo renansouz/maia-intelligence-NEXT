@@ -25,10 +25,11 @@ export async function renderSompoDashboard() {
         container.innerHTML = `
             <div class="space-y-10 animate-in fade-in duration-500">
                 
-                <!-- 1. OS QUATRO NÚMEROS-CHAVE DE DECISÃO -->
+                <!-- 1. OS QUATRO NÚMEROS-CHAVE DE DECISÃO (Com regra de clique condicional) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     
-                    <div class="bg-red-50 border border-red-100 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                    <div onclick="${totalCriticas > 0 ? "document.getElementById('tabela-risco-critico').scrollIntoView({behavior: 'smooth'})" : ""}" 
+                        class="bg-red-50 border border-red-100 p-6 rounded-2xl shadow-sm flex flex-col justify-between ${totalCriticas > 0 ? 'cursor-pointer hover:border-red-300 transition' : ''}">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-bold text-[#9E1E24] uppercase tracking-wider">Risco Crítico</span>
                             <div class="p-2 bg-red-100/60 rounded-xl text-[#DF082A]">
@@ -54,7 +55,7 @@ export async function renderSompoDashboard() {
                         </div>
                     </div>
 
-                    <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                    <div onclick="window.location.hash='#sompo/compliance'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Sinistros / Tickets</span>
                             <div class="p-2 bg-gray-100 rounded-xl text-gray-700">
@@ -67,7 +68,7 @@ export async function renderSompoDashboard() {
                         </div>
                     </div>
 
-                    <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                    <div onclick="window.location.hash='#sompo/gestores'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Gestores Ativos</span>
                             <div class="p-2 bg-gray-100 rounded-xl text-gray-700">
@@ -82,12 +83,12 @@ export async function renderSompoDashboard() {
 
                 </div>
 
-                <!-- 2. LISTA PRIORITÁRIA DE RISCO -->
-                <div class="space-y-4">
+                <!-- 2. LISTA PRIORITÁRIA DE RISCO (Linhas clicáveis levando ao Detalhe da Máquina) -->
+                <div id="tabela-risco-critico" class="space-y-4">
                     <div class="flex justify-between items-end">
                         <div>
                             <h3 class="text-xl font-extrabold text-[#101828] tracking-tight">Equipamentos em Maior Risco</h3>
-                            <p class="text-gray-500 text-sm">Ordenados por probabilidade acumulada de sinistro.</p>
+                            <p class="text-gray-500 text-sm">Clique em qualquer linha para abrir o detalhe e o laudo técnico do ativo.</p>
                         </div>
                         <span class="text-xs font-bold px-3 py-1 bg-red-50 text-[#DF082A] rounded-full border border-red-100">
                             Foco de Intervenção Hoje
@@ -102,7 +103,7 @@ export async function renderSompoDashboard() {
                                     <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Localidade</th>
                                     <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Score de Risco</th>
                                     <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Classificação</th>
-                                    <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">Ação</th>
+                                    <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">Detalhes</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
@@ -113,19 +114,17 @@ export async function renderSompoDashboard() {
                                         </td>
                                     </tr>
                                 ` : maquinasCriticas.slice(0, 5).map(m => `
-                                    <tr class="hover:bg-gray-50 transition">
+                                    <tr onclick="window.location.hash='#detalhe?eqp=${m.EQUIPAMENTO_ID}'" class="hover:bg-gray-50 transition cursor-pointer">
                                         <td class="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-900">${m.EQUIPAMENTO_ID}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">${m.CIDADE || 'Não informada'}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-red-600">${(m.PROBABILIDADE_ALTO * 100).toFixed(1)}%</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#D92D20] border border-red-100">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-red-50 text-[#D92D20] border-red-100">
                                                 ${m.CLASSIFICACAO}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                                            <a href="#diagnostico" class="text-xs font-bold text-[#DF082A] hover:underline bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 transition inline-block">
-                                                Ver Laudo XAI →
-                                            </a>
+                                            <span class="text-xs font-bold text-[#DF082A] hover:underline">Ver Detalhes →</span>
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -134,7 +133,7 @@ export async function renderSompoDashboard() {
                     </div>
                 </div>
 
-                <!-- 3. MINI-MAPA DE CONTEXTO (OSM limpo) -->
+                <!-- 3. MINI-MAPA DE CONTEXTO -->
                 <div class="space-y-4">
                     <h4 class="font-extrabold text-gray-800 text-base flex items-center gap-2">
                         <i data-lucide="map-pin" class="w-4 h-4 text-[#DF082A]"></i> Distribuição Geográfica de Alertas
@@ -179,13 +178,18 @@ function initSompoMap(criticos) {
         const lat = base[0] + (Math.random() - 0.5) * 0.03;
         const lon = base[1] + (Math.random() - 0.5) * 0.03;
 
-        L.circleMarker([lat, lon], {
+        const marker = L.circleMarker([lat, lon], {
             radius: 7,
             fillColor: "#DF082A",
             color: "#FFFFFF",
             weight: 2,
             opacity: 1,
             fillOpacity: 0.9
-        }).addTo(map).bindPopup(`<b>${p.EQUIPAMENTO_ID}</b><br>Risco: ${(p.PROBABILIDADE_ALTO * 100).toFixed(1)}%`);
+        }).addTo(map);
+
+        marker.bindPopup(`<b>${p.EQUIPAMENTO_ID}</b><br>Risco: ${(p.PROBABILIDADE_ALTO * 100).toFixed(1)}%`);
+        marker.on('click', () => {
+            window.location.hash = `#detalhe?eqp=${p.EQUIPAMENTO_ID}`;
+        });
     });
 }
