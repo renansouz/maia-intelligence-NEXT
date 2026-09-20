@@ -69,7 +69,7 @@ export async function renderPainelOperador() {
                                         <p class="text-xs text-gray-500 mt-1">Propriedade: <span class="font-semibold text-gray-800">${maquina.fazenda_nome || 'Área Rural'}</span></p>
                                     </div>
                                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                                        <button onclick="abrirModalTicket('${eqpId}')" class="bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-emerald-800 transition shadow-sm text-xs flex items-center gap-1.5">
+                                        <button data-eqp="${eqpId}" class="btn-reportar bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-emerald-800 transition shadow-sm text-xs flex items-center gap-1.5">
                                             <i data-lucide="message-square-warning" class="w-4 h-4"></i> Reportar Problema
                                         </button>
                                         <a href="#detalhe?eqp=${eqpId}" class="bg-gray-100 text-gray-800 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition text-xs">
@@ -130,7 +130,7 @@ export async function renderPainelOperador() {
                                 <h4 class="font-extrabold text-gray-900 text-lg">Reportar Problema</h4>
                                 <p class="text-xs text-gray-500" id="modal-eqp-label">Máquina: ---</p>
                             </div>
-                            <button onclick="document.getElementById('ticket-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+                            <button id="btn-fechar-modal" class="text-gray-400 hover:text-gray-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
                         
                         <div id="ticket-feedback" class="hidden"></div>
@@ -163,28 +163,37 @@ export async function renderPainelOperador() {
 
         lucide.createIcons();
 
+        // Vinculação correta dos eventos diretamente no DOM recém-criado
+        configurarEventosOperador();
+
     } catch (error) {
         container.innerHTML = `<p class="text-center py-10 text-red-500">Erro ao carregar painel do operador.</p>`;
     }
 }
 
-window.abrirModalTicket = function (equipamentoId) {
+function configurarEventosOperador() {
     const modal = document.getElementById('ticket-modal');
+    const btnFechar = document.getElementById('btn-fechar-modal');
+    const form = document.getElementById('ticket-form');
     const banner = document.getElementById('ticket-feedback');
-    const form = document.getElementById('ticket-form');
 
-    document.getElementById('modal-eqp-label').textContent = `Máquina: ${equipamentoId}`;
-    document.getElementById('ticket-eqp-input').value = equipamentoId;
+    // Botões de reportar problema de cada máquina
+    document.querySelectorAll('.btn-reportar').forEach(btn => {
+        btn.onclick = () => {
+            const eqpId = btn.getAttribute('data-eqp');
+            document.getElementById('modal-eqp-label').textContent = `Máquina: ${eqpId}`;
+            document.getElementById('ticket-eqp-input').value = eqpId;
 
-    banner.classList.add('hidden');
-    form.classList.remove('hidden');
-    modal.classList.remove('hidden');
-};
+            banner.classList.add('hidden');
+            form.classList.remove('hidden');
+            modal.classList.remove('hidden');
+        };
+    });
 
-setTimeout(() => {
-    const form = document.getElementById('ticket-form');
-    if (form && !form.dataset.bound) {
-        form.dataset.bound = "true";
+    if (btnFechar) btnFechar.onclick = () => modal.classList.add('hidden');
+    if (modal) modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
+
+    if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
             const equipamentoId = document.getElementById('ticket-eqp-input').value;
@@ -223,7 +232,7 @@ setTimeout(() => {
                 form.classList.add('hidden');
                 banner.className = "p-4 rounded-xl text-sm font-bold bg-red-50 text-red-800 border border-red-200 text-center space-y-2";
                 banner.innerHTML = `
-                    <p>${err.message}</p>
+                    <p>${err.message || "Erro ao conectar com o servidor."}</p>
                     <button onclick="document.getElementById('ticket-modal').classList.add('hidden')" class="text-xs bg-red-700 text-white px-4 py-2 rounded-lg font-bold">Fechar</button>
                 `;
                 banner.classList.remove('hidden');
@@ -233,4 +242,4 @@ setTimeout(() => {
             }
         };
     }
-}, 500);
+}
