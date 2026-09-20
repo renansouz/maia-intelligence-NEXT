@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "global_weights": {
+    "operational": 0.55,
+    "maintenance": 0.2,
+    "age": 0.1,
+    "environment": 0.1,
+    "operator_feedback": 0.05
+  },
+  "mechanical_claim_penalty": {
+    "max_points": 10
+  },
+  "profile_learning": {
+    "observation_min_approved_windows": 300,
+    "mature_profile_min_approved_windows": 1000,
+    "candidate_min_score": 50,
+    "max_training_windows": 5000
+  },
+  "note": "Pesos e limites iniciais de engenharia do MVP; calibrar com dados reais."
+}

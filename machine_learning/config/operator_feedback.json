@@ -1,0 +1,69 @@
+{
+  "categories": {
+    "noise": {
+      "label": "Ruído anormal",
+      "severities": {
+        "mild": 15,
+        "moderate": 40,
+        "severe": 70
+      }
+    },
+    "smoke": {
+      "label": "Fumaça anormal",
+      "severities": {
+        "mild": 35,
+        "moderate": 70,
+        "severe": 100
+      }
+    },
+    "power_loss": {
+      "label": "Perda de potência",
+      "severities": {
+        "mild": 30,
+        "moderate": 65,
+        "severe": 90
+      }
+    },
+    "overheating_report": {
+      "label": "Aquecimento percebido",
+      "severities": {
+        "mild": 30,
+        "moderate": 65,
+        "severe": 95
+      }
+    },
+    "vibration": {
+      "label": "Vibração fora do padrão",
+      "severities": {
+        "mild": 20,
+        "moderate": 50,
+        "severe": 80
+      }
+    },
+    "leak": {
+      "label": "Vazamento",
+      "severities": {
+        "mild": 30,
+        "moderate": 65,
+        "severe": 95
+      }
+    },
+    "movement": {
+      "label": "Dificuldade de movimentação",
+      "severities": {
+        "mild": 25,
+        "moderate": 55,
+        "severe": 85
+      }
+    },
+    "dashboard_alert": {
+      "label": "Alerta no painel",
+      "severities": {
+        "mild": 20,
+        "moderate": 50,
+        "severe": 85
+      }
+    }
+  },
+  "note": "Severidades iniciais de engenharia; não são diagnóstico mecânico."
+}
