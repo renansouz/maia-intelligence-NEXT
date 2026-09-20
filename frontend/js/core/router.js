@@ -7,6 +7,9 @@ import { renderCompliance } from '../views/shared/compliance.js';
 import { renderSompoCadastro } from '../views/sompo/cadastros.js';
 import { renderGestorCadastro } from '../views/gestor/cadastros.js';
 import { renderDetalheMaquina } from '../views/shared/detalhe-maquina.js';
+import { renderSompoSinistros } from '../views/sompo/sinistros.js';
+import { renderSompoGestores } from '../views/sompo/gestores.js';
+import { renderGestorOperadores } from '../views/gestor/operadores.js';
 
 const CONFIG_PERFIS = {
   'SOMPO': {
@@ -14,8 +17,9 @@ const CONFIG_PERFIS = {
     classeTexto: 'text-sompo',
     menus: [
       { id: '#sompo/dashboard', label: 'Central de Risco' },
-      { id: '#sompo/compliance', label: 'Auditoria & Compliance' },
-      { id: '#cadastros', label: 'Cadastrar Máquinas' }
+      { id: '#sompo/sinistros', label: 'Sinistros' },
+      { id: '#sompo/compliance', label: 'Auditoria de Decisões' },
+      { id: '#cadastros', label: 'Cadastros' }
     ],
     rotaInicial: '#sompo/dashboard',
     textos: {
@@ -27,9 +31,10 @@ const CONFIG_PERFIS = {
     classeFundo: 'bg-gestor',
     classeTexto: 'text-gestor',
     menus: [
-      { id: '#gestor/dashboard', label: 'Minhas Fazendas' },
+      { id: '#gestor/dashboard', label: 'Central' },
+      { id: '#gestor/operadores', label: 'Operadores' },
       { id: '#gestor/tickets', label: 'Tickets da Equipe' },
-      { id: '#cadastros', label: 'Cadastros & Vínculos' }
+      { id: '#cadastros', label: 'Cadastros' }
     ],
     rotaInicial: '#gestor/dashboard',
     textos: {
@@ -135,10 +140,13 @@ function resolverRota(config) {
 
   const rotas = {
     '#sompo/dashboard': renderSompoDashboard,
+    '#sompo/sinistros': renderSompoSinistros,
     '#sompo/compliance': renderCompliance,
+    '#sompo/gestores': renderSompoGestores,
     '#gestor/dashboard': renderGestorDashboard,
     '#gestor/tickets': renderGestorTickets,
     '#operador/painel': renderPainelOperador,
+    '#gestor/operadores': renderGestorOperadores,
     '#cadastros': () => {
       const papel = getPapel();
       if (papel === 'SOMPO') renderSompoCadastro();

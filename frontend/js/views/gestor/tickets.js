@@ -62,6 +62,7 @@ export async function renderGestorTickets() {
                         <h4 class="font-extrabold text-gray-900 text-lg">Detalhes do Relato</h4>
                         <button onclick="fecharModalTicket()" class="text-gray-400 hover:text-gray-700"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
+                    <div id="ticket-feedback" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
                     <div id="conteudo-modal-ticket" class="space-y-4 text-sm text-gray-700">
                         <!-- Injetado dinamicamente -->
                     </div>
@@ -84,6 +85,8 @@ function getTicketBadge(status) {
 window.abrirDetalheTicket = async function (idTicket) {
     const modal = document.getElementById('ticket-detalhe-modal');
     const conteudo = document.getElementById('conteudo-modal-ticket');
+    const feedback = document.getElementById('ticket-feedback');
+    feedback.classList.add('hidden');
     conteudo.innerHTML = `<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div></div>`;
     modal.classList.remove('hidden');
 
@@ -96,7 +99,12 @@ window.abrirDetalheTicket = async function (idTicket) {
 
         conteudo.innerHTML = `
             <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl text-xs">
-                <div><strong class="text-gray-400 block uppercase">Equipamento</strong> ${t.equipamento_id}</div>
+                <div>
+                    <strong class="text-gray-400 block uppercase">Equipamento</strong> 
+                    <a href="#detalhe?eqp=${t.equipamento_id}" onclick="fecharModalTicket()" class="text-blue-900 font-extrabold hover:underline inline-flex items-center gap-1 mt-0.5">
+                        ${t.equipamento_id} ↗
+                    </a>
+                </div>
                 <div><strong class="text-gray-400 block uppercase">Operador</strong> ${t.operador_nome || 'N/D'}</div>
                 <div><strong class="text-gray-400 block uppercase">Categoria</strong> ${t.categoria}</div>
                 <div><strong class="text-gray-400 block uppercase">Data</strong> ${new Date(t.criado_em).toLocaleString('pt-BR')}</div>
@@ -129,30 +137,47 @@ window.fecharModalTicket = function () {
 };
 
 window.resolverTicket = async function (idTicket) {
+    const feedback = document.getElementById('ticket-feedback');
     try {
         const res = await fetch(`/tickets/${idTicket}/resolver`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('maia_token')}` }
         });
         if (!res.ok) throw new Error("Erro ao resolver ticket.");
-        fecharModalTicket();
-        renderGestorTickets();
+
+        feedback.className = "p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 text-center";
+        feedback.textContent = "Ticket marcado como resolvido com sucesso!";
+        feedback.classList.remove('hidden');
+        setTimeout(() => {
+            fecharModalTicket();
+            renderGestorTickets();
+        }, 1200);
     } catch (e) {
-        alert("Erro ao processar solicitação.");
+        feedback.className = "p-3 rounded-xl text-xs font-bold bg-red-50 text-red-800 border border-red-200 text-center";
+        feedback.textContent = "Erro ao processar solicitação.";
+        feedback.classList.remove('hidden');
     }
 };
 
 window.escalarTicket = async function (idTicket) {
-    if (!confirm("Tem certeza que deseja encaminhar este ticket como sinistro para a Sompo?")) return;
+    const feedback = document.getElementById('ticket-feedback');
     try {
         const res = await fetch(`/tickets/${idTicket}/encaminhar-sompo`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('maia_token')}` }
         });
         if (!res.ok) throw new Error("Erro ao encaminhar ticket.");
-        fecharModalTicket();
-        renderGestorTickets();
+
+        feedback.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 text-center";
+        feedback.textContent = "Ticket encaminhado como sinistro para a Sompo!";
+        feedback.classList.remove('hidden');
+        setTimeout(() => {
+            fecharModalTicket();
+            renderGestorTickets();
+        }, 1200);
     } catch (e) {
-        alert("Erro ao processar solicitação.");
+        feedback.className = "p-3 rounded-xl text-xs font-bold bg-red-50 text-red-800 border border-red-200 text-center";
+        feedback.textContent = "Erro ao processar solicitação.";
+        feedback.classList.remove('hidden');
     }
 };

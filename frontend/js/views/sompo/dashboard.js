@@ -55,7 +55,7 @@ export async function renderSompoDashboard() {
                         </div>
                     </div>
 
-                    <div onclick="window.location.hash='#sompo/compliance'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
+                    <div onclick="window.location.hash='#sompo/sinistros'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Sinistros / Tickets</span>
                             <div class="p-2 bg-gray-100 rounded-xl text-gray-700">

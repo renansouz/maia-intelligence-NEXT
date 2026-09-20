@@ -290,8 +290,9 @@ def listar_operadores_sem_vinculo_na_maquina(maquina_equipamento_id: str, gestor
             SELECT u.ID_USUARIO, u.NOME, u.EMAIL
             FROM TB_USUARIO u
             WHERE u.GESTOR_ID = :gestor_id AND u.PAPEL = 'OPERADOR'
-            AND u.ID_USUARIO NOT IN (
-                SELECT OPERADOR_ID FROM TB_MAQUINA_OPERADOR WHERE MAQUINA_ID = :maquina_id
+            AND NOT EXISTS (
+                SELECT 1 FROM TB_MAQUINA_OPERADOR mo 
+                WHERE mo.MAQUINA_ID = :maquina_id AND mo.OPERADOR_ID = u.ID_USUARIO
             )
             ORDER BY u.NOME
         """, gestor_id=gestor_id, maquina_id=maquina_id)
@@ -300,6 +301,7 @@ def listar_operadores_sem_vinculo_na_maquina(maquina_equipamento_id: str, gestor
     finally:
         cursor.close()
         db.release_connection(conn)
+
 
 def calcular_exposicao_financeira_total():
     conn = db.get_connection()

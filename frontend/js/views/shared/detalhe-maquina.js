@@ -99,7 +99,7 @@ export async function renderDetalheMaquina() {
 
                             <!-- Fatores de Influência -->
                             <div class="bg-white border border-[#EAECF0] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Fatores de Influência (SHAP)</h4>
+                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Fatores de Influência</h4>
                                 <div class="space-y-3 flex-1 flex flex-col justify-center">
                                     ${listaFatores.length > 0 && listaFatores[0].trim() !== "" ? listaFatores.map(f => `
                                         <div class="flex items-center gap-3 text-xs font-semibold text-[#101828] bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -258,8 +258,12 @@ export async function renderDetalheMaquina() {
             modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
 
             btnEnviar.onclick = async () => {
-                const desc = document.getElementById('manut-desc').value.trim();
-                if (!desc) { alert("Informe a descrição."); return; }
+                const descInput = document.getElementById('manut-desc');
+                const desc = descInput.value.trim();
+                if (!desc) {
+                    descInput.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+                    return;
+                }
 
                 btnEnviar.disabled = true;
                 btnEnviar.textContent = "Gerando link...";
@@ -274,7 +278,10 @@ export async function renderDetalheMaquina() {
                         body: JSON.stringify({ equipamento_id: equipamentoId, descricao: desc, tipo: "PREVENTIVA" })
                     });
 
-                    if (!res.ok) throw new Error("Erro ao gerar solicitação.");
+                    if (!res.ok) {
+                        const errJson = await res.json().catch(() => ({}));
+                        throw new Error(errJson.detail || "Erro ao gerar solicitação.");
+                    }
                     const data = await res.json();
 
                     const linkTecnico = `${window.location.origin}/manutencao.html?token=${data.token}`;

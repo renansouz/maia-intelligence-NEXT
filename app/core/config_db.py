@@ -269,15 +269,14 @@ def configurar_banco():
             ("IX_ML_TELEMETRIA_SESSAO", "TB_ML_TELEMETRIA(SESSAO_ID)"),
             ("IX_ML_TELEMETRIA_TEMPO", "TB_ML_TELEMETRIA(TIMESTAMP_ORIGEM)"),
             ("IX_ML_TELEMETRIA_COOLANT", "TB_ML_TELEMETRIA(TEMP_COOLANT_C)"),
-            ("IX_ML_TELEMETRIA_RISCO", "TB_ML_TELEMETRIA(CLASSIFICACAO_RISCO)"),
-            ("IX_ML_TELEMETRIA_SESSAO_LINHA", "TB_ML_TELEMETRIA(SESSAO_ID, LINHA_ORIGEM)")
+            ("IX_ML_TELEMETRIA_RISCO", "TB_ML_TELEMETRIA(CLASSIFICACAO_RISCO)")
         ]
 
         for nome_indice, alvo in indices:
             try:
                 cursor.execute(f"CREATE INDEX {nome_indice} ON {alvo}")
             except oracledb.DatabaseError as e:
-                if "ORA-00955" not in str(e):
+                if "ORA-00955" not in str(e) and "ORA-01408" not in str(e):
                     raise
 
         views = {
