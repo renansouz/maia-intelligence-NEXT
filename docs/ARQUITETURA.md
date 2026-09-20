@@ -146,3 +146,28 @@ A arquitetura foi pensada para crescer sem precisar de reconstrução:
 - **Fonte de dado:** hoje mistura dado real de clima com telemetria simulada; a mesma camada de ingestão aceita substituição por sensor físico real (ESP32/Wokwi) sem mudar nada rio abaixo.
 - **Modelo:** encapsulado em `ml_service.py` - trocar o algoritmo ou adicionar novas variáveis (como um indicador de estabilidade ou temperatura de motor) não exige tocar em API, auditoria ou frontend.
 - **Cobertura e regras de negócio:** o catálogo de apólice está isolado em `cobertura_service.py`, pronto para crescer com mais planos ou regras específicas por região sem afetar o resto do sistema.
+
+parte kevin:
+
+# Arquitetura
+
+```text
+ESP32/CAN → janela 60 s → MODELO OPERACIONAL → score + explicação
+                               │
+                               ├→ histórico bruto
+                               │    └→ candidatos aprovados → perfil individual
+                               │
+Cadastro/manutenção/clima/feedback ─→ MOTOR CONTEXTUAL
+                               │
+                               └────────→ SAÚDE GLOBAL
+```
+
+O modelo da máquina não recebe penalização arbitrária. Ele deve selecionar o perfil operacional adequado.
+
+### Evolução do perfil
+
+1. INITIAL: Tümosan/família é referência principal.
+2. ADAPTING: histórico individual já permite treinar um candidato, mas o baseline continua como decisão principal.
+3. INDIVIDUAL: após validação, o perfil da unidade pode assumir a referência principal; baseline permanece como fallback.
+
+Retreino deve ser versionado e em lote, nunca a cada pacote CAN.

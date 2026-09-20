@@ -1,40 +1,138 @@
-# --- IDE & OS ---
+# =========================================================
+# IDE & SISTEMA OPERACIONAL
+# =========================================================
+
 .vscode/
 .idea/
 .DS_Store
-*.swp
 Thumbs.db
+*.swp
 
-# --- Python & Environment ---
+
+# =========================================================
+# PYTHON / CACHE / AMBIENTE
+# =========================================================
+
 __pycache__/
 *.py[cod]
 *$py.class
+
 venv/
 .venv/
 env/
+
 .env
 .python-version
+
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-frontend/js/config.js
+# =========================================================
+# BANCO DE DADOS
+# =========================================================
 
-# --- Database & Data ---
 *.db
+*.sqlite
 *.sqlite3
-data/*.csv
-# scripts/validacao/data/ 
 
-# --- Machine Learning ---
-# ml_assets/*.pkl
 
-# --- Distribution ---
+# =========================================================
+# DATASETS / DADOS PESADOS
+# =========================================================
+
+# Dados brutos
+data/raw/
+machine_learning/data/raw/
+
+# Dados processados
+data/processed/
+machine_learning/data/processed/
+
+# CSV / Excel / Parquet
+*.csv
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+*.ods
+*.parquet
+*.feather
+
+# Outros formatos comuns de datasets
+*.jsonl
+*.ndjson
+*.arff
+
+
+# =========================================================
+# ARQUIVOS COMPACTADOS / DATASETS BAIXADOS
+# =========================================================
+
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+
+
+# =========================================================
+# MACHINE LEARNING - MODELOS E ARTEFATOS PESADOS
+# =========================================================
+
+machine_learning/models/
+
+*.pickle
+*.joblib
+
+*.h5
+*.hdf5
+*.keras
+
+*.pt
+*.pth
+*.ckpt
+
+*.onnx
+
+# Caso futuramente use TensorFlow
+saved_model/
+*.tflite
+
+
+# =========================================================
+# HISTÓRICO LOCAL DAS MÁQUINAS
+# =========================================================
+
+data/machine_history/
+machine_learning/data/machine_history/
+
+
+# =========================================================
+# LOGS / RESULTADOS TEMPORÁRIOS
+# =========================================================
+
+*.log
+
+logs/
+tmp/
+temp/
+.cache/
+
+
+# =========================================================
+# BUILD / DISTRIBUIÇÃO
+# =========================================================
+
 dist/
 build/
 *.egg-info/
 
 
-# Datasets e retornos filtrados não subirão por conta de serem muito grandes
-machine_learning/data/raw
-machine_learning/models/
-machine_learning/data/raw/
-machine_learning/data/raw.zip
+# =========================================================
+# JUPYTER
+# =========================================================
+
+.ipynb_checkpoints/
