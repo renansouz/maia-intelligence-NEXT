@@ -1,44 +1,86 @@
 # MAIA - Evolução do Projeto
 
-Este documento conta a trajetória do MAIA ao longo do desafio: como a proposta amadureceu, o que aprendemos em cada etapa, e como cada rodada de avaliação nos ajudou a construir um produto mais sólido do que tínhamos no início. Não escondemos os pontos que precisaram de ajuste, eles fazem parte de como um projeto de verdade evolui, e achamos que mostrar esse percurso é mais honesto (e mais forte) do que apresentar só o resultado final como se ele tivesse nascido pronto.
+Este documento registra a trajetória evolutiva do MAIA ao longo do Challenge Sompo Seguros (Sprints 1 a 4). O histórico demonstra como a proposta amadureceu de uma concepção conceitual até um MVP funcional, validado e integrado, incorporando as diretrizes e feedbacks de cada entrega.
 
 ---
 
-## Sprint 1 - Estruturando a ideia
+## Sprint 1 - Estruturação e Concepção do Problema
 
-Começamos com a proposta de usar dados de clima, solo e operação para antecipar riscos operacionais em equipamentos agrícolas, com foco inicial em máquinas atuando perto de corpos d'água. Nessa etapa, entregamos a arquitetura conceitual (diagrama de 8 camadas), a definição de personas e um dataset de exemplo ainda bastante enxuto. O feedback recebido foi claro sobre dois pontos de melhoria: as User Stories precisavam de critérios de aceite mais formais, e o volume de dado de exemplo era insuficiente para sustentar qualquer análise séria. Levamos os dois pontos para as sprints seguintes como prioridade.
+### O Ponto de Partida
 
-## Sprint 2 - Da ideia ao motor de inteligência
+O projeto nasceu da necessidade de endereçar a baixa previsibilidade de riscos operacionais em frotas agrícolas seguradas pela **Sompo Seguros** (foco no produto _Sompo Benfeitorias_). O cenário inicial focava em mitigar perdas em equipamentos operando em condições adversas, como proximidade de corpos d'água após períodos de chuva.
 
-Demos o salto mais importante da nossa jornada técnica: passamos de um dataset de exemplo praticamente vazio para um pipeline real, combinando dados climáticos reais (Open-Meteo) com um motor de geração de risco probabilístico, em vez de uma regra fixa de threshold, o modelo passou a aprender padrão de verdade a partir dos dados. Escolhemos Random Forest justamente pelo equilíbrio entre poder preditivo e possibilidade de explicação via SHAP, alinhado à necessidade real de uma seguradora de entender e auditar cada classificação de risco. O feedback dessa entrega reconheceu a maturidade metodológica do trabalho e apontou apenas ajustes de organização de documentação, nada estrutural.
+### Entregáveis da Etapa
 
-## Sprint 3 - Integração de ponta a ponta
+- Arquitetura conceitual inicial em diagrama de camadas.
+- Definição preliminar das quatro personas (Sompo, Gestor, Operador e Técnico).
+- Estruturação teórica de variáveis de risco ambiental e operacional.
 
-Consolidamos o sistema como um fluxo único e funcional: backend em FastAPI orquestrando a entrada de telemetria, o motor de risco e uma camada de auditoria baseada em hash encadeado, com frontend próprio já com a identidade visual da Sompo. Essa foi uma entrega ambiciosa, muito mais código, muito mais integração, e, junto com a ambição, veio o tipo de feedback que só aparece quando um sistema é testado de verdade sob a lupa técnica: identificamos, com a ajuda da avaliação recebida, que a cadeia de auditoria podia ser sobrescrita em vez de permanecer imutável, que uma rota de leitura estava alterando dados, que erros internos podiam vazar detalhe técnico, e que o controle de acesso ainda dependia de uma chave única compartilhada em vez de identidade real por usuário.
+### Feedback e Aprendizados
 
-Encaramos isso não como retrocesso, mas como exatamente o tipo de auditoria rigorosa que uma seguradora de verdade faria antes de confiar num sistema, e tratamos cada ponto como prioridade máxima da etapa seguinte.
-
-## Consolidação final - de protótipo a produto
-
-Esta foi a fase em que transformamos o MAIA de um sistema funcional em uma plataforma completa, corrigindo com rigor cada ponto identificado e construindo, em cima dessa base mais sólida, tudo que faltava para o produto fazer sentido de ponta a ponta para os quatro perfis que o usam no dia a dia.
-
-**Integridade e confiabilidade técnica.** Reescrevemos a cadeia de auditoria para que cada decisão do modelo gere sempre um novo registro, nunca uma sobrescrita, e, no processo de validar essa correção, encontramos e resolvemos também uma fonte sutil de colisão de hash que nem tinha sido apontada no feedback original, o que reforçou nossa cultura de testar cada correção contra cenários reais de concorrência, não apenas contra o caso feliz. Criamos também um endpoint dedicado que verifica a integridade de toda a cadeia sob demanda, uma prova concreta e reproduzível de que o histórico de decisões nunca foi adulterado.
-
-**Semântica de API e tratamento de erro.** Separamos claramente as operações de leitura das operações que processam e gravam dado, e implementamos um tratamento centralizado de exceções: qualquer erro interno agora é registrado com um código de rastreio para investigação técnica, sem nunca expor detalhe de implementação para quem está usando o sistema.
-
-**Identidade e controle de acesso reais.** Substituímos a chave de acesso única por um sistema completo de autenticação com login, senha protegida por hash e sessão por token, com três papéis (Sompo, Gestor, Operador) e uma hierarquia de criação de conta que espelha como a relação comercial funciona de verdade, a seguradora cadastra o gestor, o gestor administra a própria equipe. Cada rota do sistema passou a verificar não apenas o papel de quem está pedindo, mas também se aquela pessoa realmente tem vínculo com a máquina em questão.
-
-**Do score ao ciclo completo de prevenção.** Foi aqui que o MAIA deixou de ser "um sistema que calcula risco" para virar uma plataforma de gestão de risco de verdade:
-
-- Implementamos um sistema de ticket que permite ao operador relatar problemas reais observados na máquina, e fizemos esse relato retroalimentar automaticamente a próxima análise de risco gerada pelo modelo, fechando um ciclo entre observação humana e inteligência do sistema.
-- Construímos o fluxo de manutenção externa, com geração de link único e temporário para o técnico responsável registrar o serviço realizado sem precisar de conta no sistema, e conectamos essa conclusão ao reprocessamento automático do score da máquina.
-- Demos à Sompo um caminho direto de escalonamento: quando um ticket é, de fato, um sinistro, o gestor pode encaminhá-lo diretamente para a seguradora tratar, sem etapa manual no meio do caminho.
-- Agregamos tickets e manutenções numa linha do tempo única por máquina, dando a qualquer pessoa autorizada uma visão completa da vida operacional daquele equipamento.
-- Conectamos o sistema ao catálogo real de cobertura de apólice da Sompo (Básica, Adicional, Condições Particulares) e ao valor segurado de cada máquina, o que tornou possível calcular exposição financeira com dado real, não estimativa de mercado.
-- Demos ao operador uma camada de contexto adicional, previsão climática das próximas horas, com alerta simples de chuva ou vento forte, reforçando a proposta de decisão preventiva na ponta mais crítica da operação.
+A avaliação destacou a clareza do escopo e das personas, mas pontuou a necessidade de formalizar as _User Stories_ com critérios de aceite rigorosos e de expandir o conjunto de dados para além de registros estáticos. Esses apontamentos orientaram diretamente o planejamento técnico das sprints seguintes.
 
 ---
 
-## O que essa trajetória demonstra
+## Sprint 2 - Engenharia de Dados e Motor Preditivo
 
-Cada rodada de feedback que recebemos apontou algo real, e cada correção nos deixou tecnicamente mais maduros do que estávamos antes, não só corrigimos o que foi apontado, como em mais de uma ocasião fomos além, encontrando e resolvendo problemas adjacentes que a própria correção revelou. O MAIA de hoje carrega a marca dessa evolução: uma arquitetura testada sob pressão, uma hierarquia de acesso pensada para o negócio real de seguros, e um conjunto de funcionalidades que nasceram diretamente das lacunas que identificamos no caminho, não de uma lista de requisitos definida no primeiro dia.
+### Evolução Técnica
+
+Nesta fase, a solução ganhou base quantitativa real. Abandonamos as regras puramente estáticas de limiar (_threshold_) e implementamos um motor de Machine Learning supervisionado, combinando dados climáticos reais da API Open-Meteo com indicadores operacionais. A escolha por modelos baseados em árvores permitiu gerar scores de probabilidade de risco auditáveis, alinhados à exigência da seguradora por transparência analítica.
+
+### Entregáveis da Etapa
+
+- Pipeline de ingestão e persistência de dados estruturados em banco relacional (Oracle).
+- Implementação dos scripts de modelagem estatística e cálculo de scores de risco por equipamento.
+- Relatórios iniciais de validação de acurácia e correlação de variáveis críticas.
+
+### Feedback e Aprendizados
+
+O trabalho foi reconhecido pela maturidade metodológica ao empregar uma abordagem probabilística coerente com a auditoria de apólices. Os apontamentos concentraram-se na consistência das referências cruzadas da documentação técnica no repositório.
+
+---
+
+## Sprint 3 - Integração End-to-End e Arquitetura de Serviços
+
+### Evolução Técnica
+
+O desafio da Sprint 3 foi a integração sistêmica. Unimos o backend em **FastAPI**, o banco de dados **Oracle**, o motor preditivo e uma interface web inicial refletindo a identidade visual da Sompo.
+
+### O Ponto de Virada (Auditoria Crítica)
+
+A avaliação técnica sob rigorosa lupa apontou vulnerabilidades cruciais que uma seguradora real jamais aceitaria:
+
+1. **Mutabilidade de Hash:** A cadeia de auditoria anterior realizava `MERGE` nas previsões diárias, sobrescrevendo registros e quebrando o encadeamento histórico.
+2. **Semântica REST Inadequada:** Uma rota `GET` de consulta estava processando e gravando novas previsões colateralmente.
+3. **Segurança Genérica:** O acesso dependia de uma chave única global (`API_KEY`) compartilhada, sem distinção de papéis ou rastreabilidade de quem executava cada ação.
+4. **Perda de Telemetria:** A rotina de salvamento descartava campos secundários ao atualizar leituras do mesmo dia.
+
+Encaramos esses apontamentos não como falhas isoladas, mas como o teste de estresse essencial para um produto corporativo de seguros. Cada item foi classificado como prioridade absoluta para a consolidação.
+
+---
+
+## Sprint 4 e Consolidação Final - De Protótipo a Produto de Mercado
+
+A etapa final representou a consolidação estrutural, eliminando débitos técnicos e elevando o MAIA ao padrão de um MVP corporativo pronto para produção.
+
+### Principais Marcos da Consolidação
+
+1. **Imutabilidade e Verificabilidade da Cadeia de Auditoria:**
+   - O serviço de risco (`risco_service.py` e `audit_service.py`) foi reescrito para operar exclusivamente com inserções sequenciais (`INSERT`), garantindo que o histórico de decisões do modelo seja imutável.
+   - Implementação de um mecanismo de verificação de integridade sob demanda que recalcula a cadeia criptográfica (SHA-256) bloco a bloco.
+
+2. **Segurança Corporativa com RBAC e JWT:**
+   - Substituição da chave única por um sistema robusto de autenticação baseada em tokens **JWT** com papéis restritos (`SOMPO`, `GESTOR`, `OPERADOR`) e senhas protegidas por **hash bcrypt**.
+   - Implementação de autorização em duas camadas (validação de papel combinada ao escopo relacional de propriedade/vínculo do ativo).
+
+3. **Ciclo Completo de Prevenção e Retroalimentação Humana:**
+   - **Tickets Operacionais:** Operadores relatam ocorrências no campo por meio de interface simplificada; os registros alimentam o contexto de risco analisado nas previsões subsequentes do modelo.
+   - **Manutenção Externa Desimpedida:** Geração de links seguros com tokens de uso único (`manutencao.html`) permitindo que técnicos externos registrem serviços sem fricção de login.
+   - **Escalonamento Direto de Sinistros:** Gestores podem encaminhar tickets críticos diretamente para a esteira de regulação da Sompo com um único clique.
+   - **Valoração de Apólice Real:** Integração com o catálogo de coberturas do produto _Sompo Benfeitorias_ e com o valor segurado dos ativos, permitindo o cálculo real de exposição financeira em Reais (R$).
+
+---
+
+## O que a Trajetória Demonstra
+
+A evolução do MAIA reflete um ciclo real de desenvolvimento de software corporativo. Cada rodada de auditoria e feedback transformou o protótipo acadêmico em uma plataforma resiliente, com arquitetura testada sob pressão, governança de dados alinhada ao setor de seguros e fluxos operacionais desenhados para mitigar riscos reais no campo.

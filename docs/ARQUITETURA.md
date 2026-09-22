@@ -1,173 +1,99 @@
-# 🏗️ MAIA - Arquitetura
+# 🏗️ MAIA — Arquitetura do Sistema
 
-Este documento descreve como o MAIA é construído por dentro: as camadas do sistema, o fluxo de dados de ponta a ponta, e as decisões técnicas que sustentam cada parte. A ideia é que qualquer pessoa consiga entender rapidamente como as peças se encaixam.
+Este documento descreve a arquitetura técnica do MAIA, detalhando as camadas do sistema, o fluxo de dados de ponta a ponta, os contratos de segurança e as decisões de engenharia que sustentam a plataforma.
 
 ---
 
-## 🧭 Visão geral
+## 🧭 Visão Sistêmica e Camadas
 
-O MAIA é organizado em quatro camadas principais, com uma hierarquia de acesso (Sompo → Gestor → Operador, mais o Técnico sem login) atravessando todas elas:
+O MAIA é estruturado em cinco camadas principais, integrando a coleta física de dados até a visualização executiva por persona:
 
 ```mermaid
 flowchart TD
-    subgraph "1. Entrada de Dados"
-        S1["📡 Sensor / Wokwi"] -->|"POST /telemetria"| API["⚙️ FastAPI"]
-        S2["🌦️ Open-Meteo API"] --> B["scripts/popular_banco.py"]
-        B --> DB1[("🗄️ TB_RISCO_AGRICOLA_TRATADO")]
+    subgraph "1. Camada de Ingestão"
+        S1["📡 Sensor / Wokwi (ESP32)"] -->|"POST /telemetria (X-API-KEY)"| API["⚙️ FastAPI Backend"]
+        S2["🌦️ Open-Meteo / Clima API"] --> CLIMA["clima_service.py"]
+        SAT["🛰️ Sentinel-1 / GEE (Satélite)"] -.->|"Em andamento"| SATSERV["satelite_service.py"]
     end
 
-    subgraph "2. Autenticação e Acesso"
-        LOGIN["🔐 /auth/login"] --> JWT["🎫 Token JWT + papel"]
-        JWT --> RBAC["🛡️ Verificação de papel e vínculo por máquina"]
+    subgraph "2. Camada de Segurança e Acesso"
+        LOGIN["🔐 POST /auth/login"] --> JWT["🎫 Token JWT (24h + Papel)"]
+        JWT --> RBAC["🛡️ RBAC: Papel + Vínculo por Máquina"]
     end
 
-    subgraph "3. Inteligência e Auditoria"
+    subgraph "3. Camada de Inteligência e Auditoria"
         API --> RS["🧠 risco_service.py"]
-        RS --> ML["🤖 ml_service.py - Random Forest + SHAP"]
-        RS --> AUD["🔗 audit_service.py - Hash Chain"]
-        RS --> TCK["🎫 ticket_service.py - contexto do operador"]
-        ML --> DB2[("📊 TB_PREVISAO_RISCO")]
-        AUD --> DB2
+        RS --> ML["🤖 ml_service.py (Isolation Forest + SHAP)"]
+        RS --> AUD["🔗 audit_service.py (Hash Chain SHA-256)"]
+        ML --> DB[("🗄️ Banco Oracle Cloud")]
+        AUD --> DB
     end
 
-    subgraph "4. Ciclo Operacional"
-        TICKET["🛠️ Ticket do Operador"] --> GESTOR["👔 Gestor avalia"]
-        GESTOR -->|"resolve"| FIM1["✅ Encerrado"]
-        GESTOR -->|"escala"| SOMPO["🏢 Sompo trata como sinistro"]
-        GESTOR -->|"solicita manutenção"| LINK["🔗 Link único do Técnico"]
-        LINK --> TEC["🔧 Técnico registra execução"]
-        TEC --> RECALC["🔄 Reprocessa score"]
+    subgraph "4. Ciclo Operacional (Human-in-the-loop)"
+        TICKET["🛠️ Ticket do Operador"] --> GESTOR["👔 Gestor Avalia/Resolve"]
+        GESTOR -->|"Escala"| SOMPO["🏢 Sompo (Sinistro)"]
+        GESTOR -->|"Solicita"| LINK["🔗 Link Temporário do Técnico"]
+        TEC["🔧 Técnico Registra Manutenção"] --> RECALC["🔄 Reprocessa Score da Máquina"]
     end
 
-    subgraph "5. Apresentação"
-        UI["💻 Frontend (HTML + JS modular)"]
-        UI -->|"Bearer token"| API
-        API --> UI
+    subgraph "5. Camada de Apresentação"
+        UI["💻 Frontend (SPA ES6 Modules + Tailwind)"] -->|"Bearer Token"| API
     end
 ```
 
 ---
 
-## 🔄 Fluxo de uma decisão de risco
+## 🔄 Fluxo de uma Decisão de Risco (End-to-End)
 
-```
- Telemetria chega (sensor real ou histórico populado)
-        ↓
- Validação (Pydantic)
-        ↓
- Persistência (Oracle, sempre um novo registro)
-        ↓
- Predição (Random Forest)
-        ↓
- Explicação (SHAP, traduzida para linguagem simples)
-        ↓
- Contexto de tickets abertos é anexado à explicação
-        ↓
- Hash de auditoria é gerado, encadeado ao anterior
-        ↓
- Resposta entregue à interface certa, de acordo com o papel de quem está vendo
-```
-
-Cada etapa é isolada em seu próprio módulo de serviço - isso significa que o modelo de IA pode evoluir (novas variáveis, novo algoritmo) sem que a camada de auditoria ou a API precisem mudar uma linha.
+1. **Ingestão:** Dados de telemetria CAN (temperatura, RPM, torque, pressões) chegam via `POST /telemetria` validados por chave de dispositivo.
+2. **Validação:** O FastAPI utiliza schemas Pydantic (`schemas.py`) para garantir a integridade estrutural.
+3. **Persistência Transacional:** Os dados brutos são gravados no banco Oracle (`TB_RISCO_AGRICOLA_TRATADO`).
+4. **Inferência de IA:** O `ml_service.py` aciona o modelo operacional (Isolation Forest) e o motor contextual para calcular o score de aderência ao padrão (0 a 100) e os fatores de desvio.
+5. **Auditoria Criptográfica:** O `audit_service.py` gera um hash SHA-256 encadeado ao registro anterior, garantindo imutabilidade histórica.
+6. **Entrega Baseada em Papel:** O resultado é formatado e entregue à interface de acordo com as permissões restritas da persona logada.
 
 ---
 
-## 🔐 Camada de Acesso
+## 🔐 Segurança e Governança de Acesso
 
-| Papel           | O que enxerga                                                                         |
-| --------------- | ------------------------------------------------------------------------------------- |
-| 🏢 **Sompo**    | Todos os gestores, todas as máquinas, exposição financeira total, sinistros escalados |
-| 👔 **Gestor**   | Suas propriedades, suas máquinas, seus operadores, tickets da própria equipe          |
-| 🧑‍🌾 **Operador** | Apenas a(s) máquina(s) vinculada(s) a ele                                             |
-| 🔧 **Técnico**  | Nenhum login - acesso único por link com token temporário                             |
-
-A autenticação usa **JWT** (token assinado, com papel embutido e expiração de 24h), e cada rota da API confere duas coisas antes de responder: o papel do usuário **e** se ele realmente tem vínculo com o recurso pedido (por exemplo, um Gestor só processa a previsão de uma máquina que está numa fazenda dele).
+- **Autenticação Baseada em Hash e Token:** Senhas protegidas por **hash bcrypt**. Sessões controladas por **Tokens JWT** com expiração de 24 horas.
+- **Autorização em Duas Camadas (RBAC):** O sistema valida não apenas o papel do usuário (`SOMPO`, `GESTOR`, `OPERADOR`), mas também se o usuário possui vínculo relacional direto com o ativo consultado.
+- **Isolamento do Técnico Externo:** O técnico de manutenção acessa a plataforma exclusivamente via link com token único e uso restrito, sem necessidade de credenciais de login.
 
 ---
 
-## 🗂️ Estrutura de pastas
+## 🗂️ Modelo de Dados (Oracle Cloud)
 
-```
-app/
-├── core/
-│   ├── database.py          pool de conexões Oracle
-│   └── config_db.py         criação e migração de schema
-├── models/
-│   └── schemas.py           contratos de entrada/saída (Pydantic)
-├── services/
-│   ├── auth_service.py      hash de senha, JWT, controle de papel
-│   ├── user_service.py      cadastro e hierarquia de usuário
-│   ├── fazenda_service.py   propriedades e geocodificação
-│   ├── maquina_service.py   cadastro, vínculos, controle de acesso, histórico
-│   ├── ticket_service.py    relatos do operador e escalonamento
-│   ├── manutencao_service.py  link externo do técnico
-│   ├── clima_service.py     previsão e alerta climático
-│   ├── cobertura_service.py  catálogo de apólice
-│   ├── data_service.py      telemetria
-│   ├── processamento_service.py  indicadores de risco
-│   ├── ml_service.py        modelo de IA e explicabilidade
-│   ├── audit_service.py     cadeia de hash
-│   └── risco_service.py     orquestrador central
-└── main.py                  rotas da API
+O banco relacional gerencia a hierarquia corporativa e o histórico analítico através das seguintes tabelas principais:
 
-frontend/
-├── login.html                autenticação
-├── index.html                 aplicação principal (SPA)
-├── manutencao.html           página isolada do técnico
-└── js/
-    ├── core/                 (auth, api, router)
-    └── views/                (telas por persona)
-```
+- **`TB_USUARIO`**: Credenciais, papéis e vínculos hierárquicos.
+- **`TB_FAZENDA`**: Propriedades rurais vinculadas aos gestores.
+- **`TB_MAQUINA`**: Ativos monitorados, valores segurados e vínculo com fazendas.
+- **`TB_MAQUINA_OPERADOR`**: Relacionamento N para N entre operadores e equipamentos.
+- **`TB_TICKET`**: Ocorrências de campo abertas por operadores.
+- **`TB_MANUTENCAO`**: Ordens de serviço e histórico de intervenções mecânicas.
+- **`TB_PREVISAO_RISCO`**: Scores calculados, explicações textuais e hashes de auditoria encadeados.
+- **`TB_ML_*` e `TB_ML_AMBIENTAL`**: Estruturas de suporte ao treinamento, sessões e variáveis geoespaciais.
 
 ---
 
-## ⚙️ Decisões técnicas (e por quê)
+## ⚙️ Decisões Técnicas Principais
 
-**FastAPI como orquestrador central.** Documentação automática (Swagger), validação nativa via Pydantic, e desempenho assíncrono - resolve bem a mistura de rotas de leitura simples e rotas que disparam processamento de ML.
-
-**Oracle com pool de conexões.** Ambiente já disponibilizado pela instituição, com boa maturidade para carga transacional. O pool evita o custo de abrir/fechar conexão a cada requisição.
-
-**Chave substituta (ID auto-incremento) em vez de chave composta.** As tabelas de telemetria e previsão usam um identificador sequencial próprio como chave primária, em vez de combinar equipamento + data - isso permite múltiplas leituras e múltiplas previsões por dia, refletindo como um sensor de verdade se comporta.
-
-**Hash encadeado para auditoria.** Cada previsão carrega um hash calculado a partir do próprio conteúdo mais o hash da previsão anterior - qualquer alteração num registro histórico quebra a cadeia a partir daquele ponto, tornando adulteração detectável. Um endpoint dedicado permite verificar a integridade de toda a cadeia a qualquer momento.
-
-**JWT em vez de chave única compartilhada.** Dá identidade real a cada acesso - essencial para um sistema com quatro perfis diferentes e regras de visibilidade distintas entre eles. A única exceção deliberada é a ingestão de telemetria (`/telemetria`), que usa uma chave de dispositivo simples, porque quem chama essa rota é um sensor, não uma pessoa autenticando-se.
-
-**Frontend sem framework, com módulos ES6.** Mantém o projeto leve e sem necessidade de etapa de build, o que facilita tanto o desenvolvimento em equipe quanto a apresentação ao vivo (sem dependência de processo de compilação no dia do pitch).
-
-**Retroalimentação humana no modelo.** Tickets abertos por operadores entram no contexto da explicação gerada na próxima previsão - uma escolha de arquitetura que conecta deliberadamente a camada de machine learning à camada operacional humana, em vez de tratá-las como mundos separados.
+- **FastAPI:** Escolhido pela tipagem estática (Pydantic), documentação nativa (Swagger) e suporte assíncrono para operações de ML e banco.
+- **Oracle Cloud:** Plataforma transacional oficial da instituição, operada via pool de conexões otimizado (`database.py`).
+- **Hash Chain de Auditoria:** Garante que qualquer adulteração manual no histórico de previsões seja matematicamente detectável por auditoria sob demanda.
+- **Frontend sem Build Step:** Utilização de ES6 Modules nativos com Tailwind via CDN, garantindo agilidade extrema no desenvolvimento e facilidade de demonstração ao vivo.
 
 ---
 
-## 📈 Capacidade de evolução
+## 🚧 Status de Evolução (Em Andamento)
 
-A arquitetura foi pensada para crescer sem precisar de reconstrução:
+As seguintes frentes encontram-se em estágio avançado de implementação e refinamento técnico:
 
-- **Fonte de dado:** hoje mistura dado real de clima com telemetria simulada; a mesma camada de ingestão aceita substituição por sensor físico real (ESP32/Wokwi) sem mudar nada rio abaixo.
-- **Modelo:** encapsulado em `ml_service.py` - trocar o algoritmo ou adicionar novas variáveis (como um indicador de estabilidade ou temperatura de motor) não exige tocar em API, auditoria ou frontend.
-- **Cobertura e regras de negócio:** o catálogo de apólice está isolado em `cobertura_service.py`, pronto para crescer com mais planos ou regras específicas por região sem afetar o resto do sistema.
+- **Integração de Hardware Real (ESP32/CAN):** Conectividade física ponta a ponta substituindo gradualmente os ambientes simulados no Wokwi.
+- **Modelo de Solo Úmido e Alagamento (Sentinel-1 / GEE):** Operacionalização do pipeline de dados geoespaciais e radar SAR (derivado do _Vigia.IA_) para cruzar umidade de solo e proximidade de corpos d'água com as rotas operacionais dos tratores.
+- **Retreino Automatizado em Lote:** Versionamento de artefatos de IA para atualização periódica dos perfis individuais das máquinas.
 
-parte kevin:
+---
 
-# Arquitetura
-
-```text
-ESP32/CAN → janela 60 s → MODELO OPERACIONAL → score + explicação
-                               │
-                               ├→ histórico bruto
-                               │    └→ candidatos aprovados → perfil individual
-                               │
-Cadastro/manutenção/clima/feedback ─→ MOTOR CONTEXTUAL
-                               │
-                               └────────→ SAÚDE GLOBAL
-```
-
-O modelo da máquina não recebe penalização arbitrária. Ele deve selecionar o perfil operacional adequado.
-
-### Evolução do perfil
-
-1. INITIAL: Tümosan/família é referência principal.
-2. ADAPTING: histórico individual já permite treinar um candidato, mas o baseline continua como decisão principal.
-3. INDIVIDUAL: após validação, o perfil da unidade pode assumir a referência principal; baseline permanece como fallback.
-
-Retreino deve ser versionado e em lote, nunca a cada pacote CAN.
+_Documentação oficial de arquitetura — Challenge Sompo Seguros / FIAP 2026._
