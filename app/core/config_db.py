@@ -195,7 +195,6 @@ def configurar_banco():
         for nome, campos in tabelas.items():
             try:
                 cursor.execute(f"CREATE TABLE {nome} ({campos})")
-                print(f"Infra: {nome} verificada.")
             except oracledb.DatabaseError as e:
                 if "ORA-00955" not in str(e): raise e
 
