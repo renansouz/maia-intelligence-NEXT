@@ -3,18 +3,18 @@ from typing import Optional
 from datetime import date
 
 class TelemetriaInput(BaseModel):
-    equipamento_id: str = Field(..., example="EQP-SAO-01")
-    cidade: str = Field(..., example="Sao Paulo")
-    data_medicao: date = Field(..., example="2024-05-20")
-    temperatura: float = Field(..., ge=-10, le=55)
-    chuva_mm: float = Field(..., ge=0, le=500)
-    umidade_solo: float = Field(..., ge=0, le=100)
-    velocidade_kmh: float = Field(..., ge=0, le=120)
-    proximidade_agua_m: float = Field(..., ge=0, le=5000)
-    inclinacao_graus: float = Field(..., ge=0, le=90)
-    tempo_uso_horas: float = Field(..., ge=0, le=24)
-    manutencao_dias: int = Field(..., ge=0, le=365)
-
+    equipamento_id: str = Field(..., example="EQP-SP-04")
+    cidade: str | None = Field(None, example="Ribeirão Preto")
+    data_medicao: date
+    temp_coolant: float = Field(..., description="Temperatura do líquido de arrefecimento (°C)")
+    temp_oleo: float = Field(..., description="Temperatura do óleo (°C)")
+    pressao_oleo: float = Field(..., description="Pressão do óleo")
+    torque_pct: float = Field(..., description="Percentual de torque do motor")
+    rpm: float = Field(..., description="Rotação do motor")
+    combustivel_l_h: float = Field(..., description="Taxa de consumo de combustível")
+    velocidade_kmh: float = Field(..., description="Velocidade da máquina")
+    manutencao_dias: int | None = Field(None, description="Dias desde a última manutenção")
+    
 class PrevisaoResponse(BaseModel):
     score: float
     classificacao: str

@@ -224,6 +224,13 @@ def configurar_banco():
             ("TB_MAQUINA", "VALOR_SEGURADO", "NUMBER(12,2)"),
             ("TB_FAZENDA", "CIDADE", "VARCHAR2(100)"),
             ("TB_TICKET", "ESCALADO_EM", "TIMESTAMP"),
+
+            ("TB_RISCO_AGRICOLA_TRATADO", "TEMP_COOLANT", "NUMBER"),
+            ("TB_RISCO_AGRICOLA_TRATADO", "TEMP_OLEO", "NUMBER"),
+            ("TB_RISCO_AGRICOLA_TRATADO", "PRESSAO_OLEO", "NUMBER"),
+            ("TB_RISCO_AGRICOLA_TRATADO", "TORQUE_PCT", "NUMBER"),
+            ("TB_RISCO_AGRICOLA_TRATADO", "RPM", "NUMBER"),
+            ("TB_RISCO_AGRICOLA_TRATADO", "COMBUSTIVEL_L_H", "NUMBER"),
         ]
 
         colunas_ml_contexto = [

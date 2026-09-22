@@ -13,34 +13,34 @@ import oracledb
 def salvar_telemetria_db(dados_dict):
     conn = db.get_connection()
     cursor = conn.cursor()
-    
+
     dt_str = dados_dict['data_medicao'].isoformat()
-    
+
     sql = """
     INSERT INTO TB_RISCO_AGRICOLA_TRATADO (
-        EQUIPAMENTO_ID, CIDADE, DATA_MEDICAO, TEMPERATURA, CHUVA_MM,
-        UMIDADE_SOLO, VELOCIDADE_KMH, PROXIMIDADE_AGUA_M, INCLINACAO_GRAUS,
-        TEMPO_USO_HORAS, MANUTENCAO_DIAS
+        EQUIPAMENTO_ID, CIDADE, DATA_MEDICAO,
+        TEMP_COOLANT, TEMP_OLEO, PRESSAO_OLEO, TORQUE_PCT, RPM,
+        COMBUSTIVEL_L_H, VELOCIDADE_KMH, MANUTENCAO_DIAS
     ) VALUES (
-        :eq_id, :cid, TO_DATE(:dt_med, 'YYYY-MM-DD'), :temp, :chuva,
-        :umid, :vel, :prox, :incl, :t_uso, :manut
+        :eq_id, :cid, TO_DATE(:dt_med, 'YYYY-MM-DD'),
+        :coolant, :oleo, :pressao, :torque, :rpm, :combustivel, :vel, :manut
     )
     """
-    
+
     params = {
         "eq_id": dados_dict['equipamento_id'],
         "dt_med": dt_str,
-        "temp": dados_dict['temperatura'],
-        "chuva": dados_dict['chuva_mm'],
-        "umid": dados_dict['umidade_solo'],
-        "cid": dados_dict['cidade'],
+        "cid": dados_dict.get('cidade'),
+        "coolant": dados_dict['temp_coolant'],
+        "oleo": dados_dict['temp_oleo'],
+        "pressao": dados_dict['pressao_oleo'],
+        "torque": dados_dict['torque_pct'],
+        "rpm": dados_dict['rpm'],
+        "combustivel": dados_dict['combustivel_l_h'],
         "vel": dados_dict['velocidade_kmh'],
-        "prox": dados_dict['proximidade_agua_m'],
-        "incl": dados_dict['inclinacao_graus'],
-        "t_uso": dados_dict['tempo_uso_horas'],
-        "manut": dados_dict['manutencao_dias']
+        "manut": dados_dict.get('manutencao_dias'),
     }
-    
+
     try:
         cursor.execute(sql, params)
         conn.commit()
@@ -52,10 +52,11 @@ def salvar_telemetria_db(dados_dict):
         cursor.close()
         db.release_connection(conn)
 
+
 def buscar_ultima_telemetria(eq_id):
     conn = db.get_connection()
     cursor = conn.cursor()
-    
+
     sql = """
         SELECT * FROM TB_RISCO_AGRICOLA_TRATADO
         WHERE EQUIPAMENTO_ID = :eq_id
@@ -64,7 +65,6 @@ def buscar_ultima_telemetria(eq_id):
             WHERE EQUIPAMENTO_ID = :eq_id
         )
     """
-    
     try:
         cursor.execute(sql, eq_id=eq_id)
         colunas = [col[0].lower() for col in cursor.description]

@@ -57,20 +57,20 @@ def garantir_maquina(equipamento_id, gestor_id, tipo, modelo, ano, valor_segurad
     criar_maquina(equipamento_id, tipo, modelo, ano, criado_por=None, gestor_id=gestor_id, valor_segurado=valor_segurado)
 
 
-def gerar_telemetria_e_previsao(equipamento_id, cidade, dias_atras, **telemetria_kwargs):
-    """Insere uma leitura de telemetria e processa a previsão de risco a partir dela."""
+def gerar_telemetria_e_previsao(equipamento_id, cidade, dias_atras, **can_kwargs):
+    """Insere uma leitura de telemetria CAN e processa a previsão de risco a partir dela."""
     leitura = {
         "equipamento_id": equipamento_id,
         "cidade": cidade,
         "data_medicao": date.today() - timedelta(days=dias_atras),
-        "temperatura": telemetria_kwargs.get("temperatura", 26.0),
-        "chuva_mm": telemetria_kwargs.get("chuva_mm", 5.0),
-        "umidade_solo": telemetria_kwargs.get("umidade_solo", 40.0),
-        "velocidade_kmh": telemetria_kwargs.get("velocidade_kmh", 10.0),
-        "proximidade_agua_m": telemetria_kwargs.get("proximidade_agua_m", 400.0),
-        "inclinacao_graus": telemetria_kwargs.get("inclinacao_graus", 4.0),
-        "tempo_uso_horas": telemetria_kwargs.get("tempo_uso_horas", 4.0),
-        "manutencao_dias": telemetria_kwargs.get("manutencao_dias", 10),
+        "temp_coolant": can_kwargs.get("temp_coolant", 78.0),
+        "temp_oleo": can_kwargs.get("temp_oleo", 90.0),
+        "pressao_oleo": can_kwargs.get("pressao_oleo", 376.0),
+        "torque_pct": can_kwargs.get("torque_pct", 69.0),
+        "rpm": can_kwargs.get("rpm", 1790.0),
+        "combustivel_l_h": can_kwargs.get("combustivel_l_h", 16.0),
+        "velocidade_kmh": can_kwargs.get("velocidade_kmh", 7.0),
+        "manutencao_dias": can_kwargs.get("manutencao_dias", 30),
     }
     salvar_telemetria_db(leitura)
 
@@ -111,20 +111,20 @@ def popular():
     vincular_operador_maquina("EQP-SP-12", thiese_id)
 
     print("\n--- Gerando telemetria e previsão de risco ---")
-    # Máquina em condição estável (risco baixo esperado)
+    # Máquina em condição aderente ao padrão (risco baixo esperado)
     gerar_telemetria_e_previsao("EQP-SP-04", "Ribeirão Preto", dias_atras=0)
 
-    # Máquina com alguns indicadores de atenção (risco médio esperado)
+    # Máquina com desvio moderado (risco médio esperado)
     gerar_telemetria_e_previsao(
         "EQP-SP-07", "Ribeirão Preto", dias_atras=0,
-        chuva_mm=35.0, umidade_solo=75.0, manutencao_dias=95
+        temp_oleo=98.0, pressao_oleo=340.0, manutencao_dias=95
     )
 
-    # Máquina em condição crítica (risco alto esperado) - a que gera o sinistro
+    # Máquina com desvio forte (risco alto esperado) - a que gera o sinistro
     gerar_telemetria_e_previsao(
         "EQP-SP-12", "Sorocaba", dias_atras=0,
-        chuva_mm=42.0, umidade_solo=88.0, proximidade_agua_m=60.0,
-        inclinacao_graus=18.0, manutencao_dias=120
+        temp_coolant=88.0, temp_oleo=108.0, pressao_oleo=290.0,
+        torque_pct=92.0, rpm=2250.0, manutencao_dias=150
     )
 
     print("\n--- Criando ticket e escalando como sinistro ---")
