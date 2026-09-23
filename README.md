@@ -124,7 +124,7 @@ GEE_PROJECT_ID="YOUR_GEE_PROJECT_ID"
 API_KEY="alguma-chave-forte"
 ```
 
-> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](link-do-google-drive-aqui). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
+> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](https://drive.google.com/drive/folders/1SrGvyjMPSpCWfd-7neeYEIzf21OOxZXL?usp=sharing). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
 
 ### 5. Sincronizar o Banco de Dados (Obrigatório)
 
