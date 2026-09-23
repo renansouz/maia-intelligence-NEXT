@@ -62,6 +62,7 @@ $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrig
 | [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning, features CAN, validação e limitações.          |
 | [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
 | [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
+| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação. |
 
 ---
 
@@ -109,19 +110,21 @@ cp .env.example .env
 Abra o arquivo `.env` gerado e configure os seguintes parâmetros:
 
 ```env
-ORACLE_USER="seu_usuario_fiap"
-ORACLE_PASSWORD="sua_senha_fiap"
-ORACLE_HOST="oracle.fiap.com.br"
-ORACLE_PORT=1521
-ORACLE_SERVICE="ORCL"
+ORACLE_USER="USER"
+ORACLE_PASSWORD="PASSWORD"
+ORACLE_HOST="HOST"
+ORACLE_PORT=0
+ORACLE_SERVICE="SERVICE"
 
-API_KEY="senha123"
-JWT_SECRET_KEY="uma-chave-secreta-forte-e-longa"
-ADMIN_EMAIL="renanss2005@gmail.com"
-ADMIN_SENHA="senha12"
+ADMIN_EMAIL="email@gmail.com"
+ADMIN_SENHA="senha-forte@00"
+
+GEE_PROJECT_ID="YOUR_GEE_PROJECT_ID"
+
+API_KEY="alguma-chave-forte"
 ```
 
-> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`data/raw/` e `machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](link-do-google-drive-aqui). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
+> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](https://drive.google.com/drive/folders/1SrGvyjMPSpCWfd-7neeYEIzf21OOxZXL?usp=sharing). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
 
 ### 5. Sincronizar o Banco de Dados (Obrigatório)
 
