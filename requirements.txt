@@ -175,3 +175,4 @@ websocket-client==1.9.2
 websockets==17.1
 widgetsnbextension==4.0.16
 xyzservices==2026.9.1
+localtunnel==0.1.*

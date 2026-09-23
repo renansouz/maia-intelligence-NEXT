@@ -6,14 +6,14 @@ Este documento descreve a arquitetura técnica do MAIA, detalhando as camadas do
 
 ## 🧭 Visão Sistêmica e Camadas
 
-O MAIA é estruturado em cinco camadas principais, integrando a coleta física de dados até a visualização executiva por persona:
+O MAIA é estruturado em camadas desacopladas, integrando a coleta física de dados até a visualização executiva por persona:
 
 ```mermaid
 flowchart TD
-    subgraph "1. Camada de Ingestão"
-        S1["📡 Sensor / Wokwi (ESP32)"] -->|"POST /telemetria (X-API-KEY)"| API["⚙️ FastAPI Backend"]
+    subgraph "1. Camada de Ingestão (IoT & Satélite)"
+        S1["📡 Sensor / Wokwi / Script IoT"] -->|"POST /telemetria (X-API-KEY)"| API["⚙️ FastAPI Backend"]
         S2["🌦️ Open-Meteo / Clima API"] --> CLIMA["clima_service.py"]
-        SAT["🛰️ Sentinel-1 / GEE (Satélite)"] -.->|"Em andamento"| SATSERV["satelite_service.py"]
+        SAT["🛰️ Sentinel-1 / GEE (Satélite)"] --> SATSERV["satelite_service.py"]
     end
 
     subgraph "2. Camada de Segurança e Acesso"
@@ -83,16 +83,6 @@ O banco relacional gerencia a hierarquia corporativa e o histórico analítico a
 - **Oracle Cloud:** Plataforma transacional oficial da instituição, operada via pool de conexões otimizado (`database.py`).
 - **Hash Chain de Auditoria:** Garante que qualquer adulteração manual no histórico de previsões seja matematicamente detectável por auditoria sob demanda.
 - **Frontend sem Build Step:** Utilização de ES6 Modules nativos com Tailwind via CDN, garantindo agilidade extrema no desenvolvimento e facilidade de demonstração ao vivo.
-
----
-
-## 🚧 Status de Evolução (Em Andamento)
-
-As seguintes frentes encontram-se em estágio avançado de implementação e refinamento técnico:
-
-- **Integração de Hardware Real (ESP32/CAN):** Conectividade física ponta a ponta substituindo gradualmente os ambientes simulados no Wokwi.
-- **Modelo de Solo Úmido e Alagamento (Sentinel-1 / GEE):** Operacionalização do pipeline de dados geoespaciais e radar SAR (derivado do _Vigia.IA_) para cruzar umidade de solo e proximidade de corpos d'água com as rotas operacionais dos tratores.
-- **Retreino Automatizado em Lote:** Versionamento de artefatos de IA para atualização periódica dos perfis individuais das máquinas.
 
 ---
 

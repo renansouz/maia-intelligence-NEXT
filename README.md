@@ -8,106 +8,146 @@
 
 ---
 
-O **MAIA** é uma plataforma avançada de prevenção de riscos operacionais e ambientais em frotas de equipamentos agrícolas, desenvolvida em parceria com a **Sompo Seguros**. A proposta central do sistema é transformar a gestão de seguros de uma atuação reativa (pagamento de sinistro após o prejuízo) para uma abordagem preventiva (antecipação de falhas e mitigação de perdas antes que o evento ocorra).
+A civilização maia observava o céu e os ciclos da terra para decidir com mais segurança. O MAIA segue o mesmo princípio, utilizando telemetria de sensores, dados meteorológicos e inteligência orbital no lugar da observação do céu, transformando informação agrícola em inteligência de risco para seguradoras.
+
+## 🎯 O problema
+
+Seguradoras de equipamentos agrícolas descobrem o sinistro apenas após a sua ocorrência. Motores superaquecendo, manutenções atrasadas e solos saturados geram sinais precursores que raramente chegam a quem decide a tempo. O resultado é o pagamento reativo de indenizações elevadas.
+
+## 💡 A solução
+
+Uma plataforma unificada que conecta telemetria real de máquinas (CAN/J1939), relatórios de operadores em campo e as regras da apólice (_Sompo Benfeitorias_):
+$$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrightarrow \text{Alerta Explicado} \longrightarrow \text{Ação Preventiva} \longrightarrow \text{Auditoria por Hash}$$
 
 ---
 
-## 🎥 Apresentação
+## 👥 Quem usa (As 4 Personas)
 
-> 🔗 Assista à demonstração completa de ponta a ponta do sistema (até 5 minutos): [Acesse o Vídeo no YouTube (Não Listado)](https://youtube.com/link-do-video-aqui)
-
----
-
-## 🎯 O Problema & A Solução
-
-Atualmente, seguradoras de equipamentos agrícolas (como tratores e colheitadeiras de grande porte) registram sinistros de alto valor — como incêndios por superaquecimento, tombamentos e danos estruturais, sem visibilidade contínua do estado operacional dos ativos.
-
-O **MAIA** conecta dados de telemetria real (CAN/J1939), relatórios de operadores em campo e as regras contratuais da apólice (Sompo Benfeitorias) em um ecossistema unificado:
-$$\text{Telemetria / Sensor} \longrightarrow \text{Motor de IA (Anomalia)} \longrightarrow \text{Alerta Explicado} \longrightarrow \text{Ação Preventiva (Ticket/Manutenção)} \longrightarrow \text{Auditoria Imutável}$$
-
----
-
-## 👥 As Quatro Personas do Ecossistema
-
-| Persona                      | Papel e Atuação no Sistema                                                                                                                                                |
-| :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 🏢 **Sompo (Administrador)** | Visão executiva global, acompanhamento de exposição financeira em R$, análise de sinistros escalados, cadastro central de máquinas e emissão de diretrizes de apólice.    |
-| 👔 **Gestor de Frota**       | Gestão de propriedades rurais (fazendas), vinculação de operadores a ativos, acompanhamento de tickets da equipe, e geração de ordens de manutenção com links exclusivos. |
-| 🧑‍🌾 **Operador de Campo**     | Painel operacional simplificado focado em segurança, exibindo o status do ativo em linguagem natural e permitindo o reporte imediato de falhas (tickets).                 |
-| 🔧 **Técnico de Manutenção** | Acesso externo e sem fricção por link único protegido por token (sem necessidade de login), permitindo o registro rápido de intervenções mecânicas.                       |
+| Persona                      | O que faz no sistema                                                                                                                      |
+| :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| 🏢 **Sompo (Seguradora)**    | Visão macro de carteira, exposição financeira consolidada (R$), regulação de sinistros e cadastros globais.                               |
+| 👔 **Gestor de Frota**       | Gestão de propriedades rurais (fazendas), vinculação de operadores a ativos, acompanhamento de tickets e geração de ordens de manutenção. |
+| 🧑‍🌾 **Operador de Campo**     | Painel operacional simplificado, alertas em linguagem natural e sistema de relatórios de falhas (tickets).                                |
+| 🔧 **Técnico de Manutenção** | Acesso externo e sem fricção por link único protegido por token temporário (sem necessidade de login).                                    |
 
 ---
 
 ## 🧠 O Motor de Inteligência Artificial
 
-O sistema emprega uma abordagem estatística e de aprendizado de máquina não supervisionado projetada especificamente para cenários industriais sem histórico rotulado de falhas:
+- **Isolation Forest + RobustScaler:** Processa variáveis CAN multivariadas para identificar desvios operacionais com base no comportamento normal aprendido (_Dataset Tümosan_).
+- **Perfil Evolutivo por Unidade:** Evolui de uma referência inicial genérica para perfis comportamentais individuais por trator conforme o histórico é acumulado.
+- **Explicabilidade Prática:** Traduz anomalias matemáticas em fatores de influência claros para os tomadores de decisão.
 
-- **Isolation Forest + RobustScaler:** Processa variáveis CAN (temperatura de arrefecimento, óleo, pressão, torque, RPM, combustível e velocidade) para aprender o comportamento multivariado normal do maquinário, detectando desvios operacionais.
-- **Perfil Evolutivo por Unidade:** Evolui de uma referência inicial de domínio (_Tümosan_) para perfis comportamentais individuais conforme cada máquina acumula histórico confiável.
-- **Explicabilidade (SHAP / Fatores):** Traduz desvios matemáticos complexos em fatores de influência claros para a tomada de decisão humana.
-
-📄 _Detalhes metodológicos completos:_ [docs/MODELO_IA.md](docs/MODELO_IA.md)
+📄 _Detalhes metodológicos:_ [docs/MODELO_IA.md](docs/MODELO_IA.md)
 
 ---
 
-## 🏗️ Arquitetura e Fluxo de Ponta a Ponta
+## 🛠️ Stack Tecnológica
 
-O sistema é construído sobre uma arquitetura desacoplada e modular:
-
-- **Backend:** FastAPI assíncrono conectado a um banco de dados relacional **Oracle Cloud**, utilizando pool de conexões otimizado.
-- **Segurança e Rastreabilidade:** Autenticação por Tokens JWT com controle de acesso baseado em papéis (RBAC) de duas camadas (papel + vínculo direto com o ativo) e uma **Cadeia de Auditoria Baseada em Hash (SHA-256)** que garante a imutabilidade do histórico de decisões.
-- **Frontend:** Single Page Application (SPA) em JavaScript puro (ES6 Modules) estilizada com Tailwind CSS, Leaflet.js e Plotly.js, sem dependência de build steps complexos.
-
-📄 _Especificações arquiteturais completas:_ [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
-
----
-
-## 📚 Documentação Técnica Complementar
-
-| Documento                                                      | Descrição e Conteúdo                                                                |
-| :------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
-| [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)             | Viabilidade comercial, redução de sinistralidade e impacto financeiro para a Sompo. |
-| [docs/ARQUITETURA.md](docs/ARQUITETURA.md)                     | Fluxo de dados end-to-end, diagramas, hierarquia RBAC e decisões de engenharia.     |
-| [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning, features CAN, validação e limitações do modelo.    |
-| [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.      |
-| [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks.     |
+| Camada               | Tecnologia                                                                       |
+| :------------------- | :------------------------------------------------------------------------------- |
+| **Backend**          | Python + FastAPI + Oracle Cloud                                                  |
+| **Segurança**        | Autenticação JWT (24h) + Hash Bcrypt + RBAC de Duas Camadas                      |
+| **Machine Learning** | Scikit-learn (Isolation Forest, RobustScaler) + SHAP                             |
+| **Frontend**         | HTML5 + JavaScript (ES6 Modules) + Tailwind CSS via CDN + Leaflet.js + Plotly.js |
 
 ---
 
-## 🔧 Guia de Execução Local
+## 📚 Documentação Técnica
 
-### Pré-requisitos
+| Documento                                                      | Conteúdo                                                                        |
+| :------------------------------------------------------------- | :------------------------------------------------------------------------------ |
+| [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)             | Valor comercial, redução de sinistralidade e impacto financeiro para a Sompo.   |
+| [docs/ARQUITETURA.md](docs/ARQUITETURA.md)                     | Fluxo de dados end-to-end, diagramas, hierarquia RBAC e decisões de engenharia. |
+| [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning, features CAN, validação e limitações.          |
+| [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
+| [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
 
-- Python 3.11 ou 3.12 instalado.
-- Credenciais de acesso ao banco Oracle Cloud da FIAP.
+---
 
-### Passo a passo para execução:
+## 🔧 Guia de Execução Local (Para a Banca e Desenvolvedores)
+
+Siga este passo a passo validado para executar o projeto do zero em sistemas **macOS** ou **Windows**:
+
+### 1. Pré-requisitos
+
+- **Python 3.11 ou 3.12** instalado na máquina.
+- Acesso à rede/internet (para conexão com o banco Oracle Cloud da FIAP).
+
+### 2. Clonar o Repositório e Configurar o Ambiente Virtual
 
 ```bash
-# 1. Clonar o repositório
 git clone https://github.com/renansouz/maia-intelligence-NEXT.git
 cd maia-intelligence-NEXT
+```
 
-# 2. Criar e ativar o ambiente virtual
-python3.12 -m venv venv
-source venv/bin/activate  # No Windows (PowerShell): .\venv\Scripts\Activate.ps1
+- **No macOS / Linux (Terminal):**
+  ```bash
+  python3.12 -m venv venv
+  source venv/bin/activate
+  ```
+- **No Windows (PowerShell):**
+  ```powershell
+  py -3.12 -m venv venv
+  .\venv\Scripts\Activate.ps1
+  ```
 
-# 3. Instalar as dependências do projeto
+### 3. Instalar Dependências
+
+```bash
 pip install -r requirements.txt
+```
 
-# 4. Configurar as variáveis de ambiente
+### 4. Configurar as Variáveis de Ambiente
+
+Copie o arquivo de exemplo e preencha com suas credenciais:
+
+```bash
 cp .env.example .env
-# Edite o arquivo .env preenchendo ORACLE_*, API_KEY, JWT_SECRET_KEY, ADMIN_EMAIL, ADMIN_SENHA e GEE_PROJECT_ID
+```
 
-# 5. Configurar o banco de dados e popular o cenário de demonstração
+Abra o arquivo `.env` gerado e configure os seguintes parâmetros:
+
+```env
+ORACLE_USER="seu_usuario_fiap"
+ORACLE_PASSWORD="sua_senha_fiap"
+ORACLE_HOST="oracle.fiap.com.br"
+ORACLE_PORT=1521
+ORACLE_SERVICE="ORCL"
+
+API_KEY="senha123"
+JWT_SECRET_KEY="uma-chave-secreta-forte-e-longa"
+ADMIN_EMAIL="renanss2005@gmail.com"
+ADMIN_SENHA="senha12"
+```
+
+> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`data/raw/` e `machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](link-do-google-drive-aqui). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
+
+### 5. Sincronizar o Banco de Dados (Obrigatório)
+
+Execute o comando abaixo para criar automaticamente todas as tabelas e restrições no Oracle Cloud:
+
+```bash
 python3 -m app.core.config_db
-python3 -m scripts.popular_demo
+```
 
-# 6. Iniciar a aplicação
+### 6. Popular Dados de Demonstração (Opcional, mas Altamente Recomendado para Avaliação)
+
+Para preencher o sistema com gestores, fazendas, frotas de tratores e um histórico de ocorrências para a banca testar imediatamente:
+
+```bash
+python3 -m scripts.popular_demo
+```
+
+_(Caso queira iniciar com o sistema 100% limpo, basta não executar este comando)._
+
+### 7. Iniciar o Servidor da Aplicação
+
+```bash
 uvicorn app.main:app --reload
 ```
 
-Acesse o sistema no navegador através de: **`http://127.0.0.1:8000/login.html`**
+Abra o navegador e acesse: **`http://127.0.0.1:8000/login.html`**
 
 ---
 
