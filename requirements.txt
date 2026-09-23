@@ -166,7 +166,6 @@ uri-template==1.3.0
 uritemplate==4.2.0
 urllib3==2.8.0
 uvicorn==0.27.0
-uvloop==0.22.1
 watchfiles==1.3.0
 wcwidth==0.8.4
 webcolors==25.10.0
@@ -175,4 +174,3 @@ websocket-client==1.9.2
 websockets==17.1
 widgetsnbextension==4.0.16
 xyzservices==2026.9.1
-localtunnel==0.1.*
