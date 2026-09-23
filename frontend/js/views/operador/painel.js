@@ -28,7 +28,7 @@ export async function renderPainelOperador() {
         container.innerHTML = `
             <div class="space-y-8 animate-in fade-in duration-500 max-w-3xl mx-auto">
                 <div class="border-b border-gray-100 pb-4">
-                    <h3 class="text-2xl font-extrabold text-[#101828] tracking-tight">Painel Operacional — Minhas Máquinas</h3>
+                    <h3 class="text-2xl font-extrabold text-[#101828] tracking-tight">Painel Operacional</h3>
                     <p class="text-gray-500 text-sm">Monitore os ativos sob sua responsabilidade e reporte ocorrências no campo.</p>
                 </div>
 
