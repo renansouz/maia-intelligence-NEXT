@@ -130,25 +130,40 @@ API_KEY="alguma-chave-forte"
 
 Execute o comando abaixo para criar automaticamente todas as tabelas e restrições no Oracle Cloud:
 
-```bash
-python3 -m app.core.config_db
-```
+* **No Windows:**
+  ```powershell
+  python -m app.core.config_db
+  ```
+* **No macOS / Linux:**
+  ```bash
+  python3 -m app.core.config_db
+  ```
 
 ### 6. Popular Dados de Demonstração (Opcional, mas Altamente Recomendado para Avaliação)
 
 Para preencher o sistema com gestores, fazendas, frotas de tratores e um histórico de ocorrências para a banca testar imediatamente:
 
-```bash
-python3 -m scripts.popular_demo
-```
+* **No Windows:**
+  ```powershell
+  python -m scripts.popular_demo
+  ```
+* **No macOS / Linux:**
+  ```bash
+  python3 -m scripts.popular_demo
+  ```
 
 _(Caso queira iniciar com o sistema 100% limpo, basta não executar este comando)._
 
 ### 7. Iniciar o Servidor da Aplicação
 
-```bash
-uvicorn app.main:app --reload
-```
+* **No Windows:**
+  ```powershell
+  python -m uvicorn app.main:app --reload
+  ```
+* **No macOS / Linux:**
+  ```bash
+  uvicorn app.main:app --reload
+  ```
 
 Abra o navegador e acesse: **`http://127.0.0.1:8000/login.html`**
 
