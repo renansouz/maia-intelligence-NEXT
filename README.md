@@ -62,6 +62,7 @@ $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrig
 | [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning, features CAN, validação e limitações.          |
 | [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
 | [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
+| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação. |
 
 ---
 
