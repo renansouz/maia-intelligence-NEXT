@@ -109,19 +109,21 @@ cp .env.example .env
 Abra o arquivo `.env` gerado e configure os seguintes parâmetros:
 
 ```env
-ORACLE_USER="seu_usuario_fiap"
-ORACLE_PASSWORD="sua_senha_fiap"
-ORACLE_HOST="oracle.fiap.com.br"
-ORACLE_PORT=1521
-ORACLE_SERVICE="ORCL"
+ORACLE_USER="USER"
+ORACLE_PASSWORD="PASSWORD"
+ORACLE_HOST="HOST"
+ORACLE_PORT=0
+ORACLE_SERVICE="SERVICE"
 
-API_KEY="senha123"
-JWT_SECRET_KEY="uma-chave-secreta-forte-e-longa"
-ADMIN_EMAIL="renanss2005@gmail.com"
-ADMIN_SENHA="senha12"
+ADMIN_EMAIL="email@gmail.com"
+ADMIN_SENHA="senha-forte@00"
+
+GEE_PROJECT_ID="YOUR_GEE_PROJECT_ID"
+
+API_KEY="alguma-chave-forte"
 ```
 
-> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`data/raw/` e `machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](link-do-google-drive-aqui). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
+> _Nota sobre os dados brutos de ML:_ Os arquivos pesados de treino (`machine_learning/data/raw/`) não sobem para o GitHub por limitação de tamanho. Caso precise reexecutar o EDA e treinar do zero, baixe a pasta raw compactada através do link oficial disponibilizado pela equipe: [Baixar Datasets Brutos (Google Drive)](link-do-google-drive-aqui). Se for apenas para testar a aplicação web, **não é necessário baixar esses arquivos**, pois o modelo final treinado já está empacotado em `ml_assets/`.
 
 ### 5. Sincronizar o Banco de Dados (Obrigatório)
 
