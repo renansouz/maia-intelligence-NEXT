@@ -1,0 +1,49 @@
+{
+  "grupos": {
+    "chuva": {
+      "rain_3d_mm": 1,
+      "rain_7d_mm": 1,
+      "rain_14d_mm": 1,
+      "days_since_rain_ge_1mm": -1
+    },
+    "agua_umidade": {
+      "NDWI_mean": 1,
+      "NDMI_mean": 1,
+      "NDWI_positive_fraction": 1,
+      "soil_moisture_0_7cm_mean_m3_m3": 1,
+      "soil_moisture_anomaly_m3_m3": 1
+    },
+    "radar": {
+      "VV_anomaly_db": "abs",
+      "VH_anomaly_db": "abs"
+    },
+    "terreno_agua_historica": {
+      "water_occurrence_mean_pct": 1,
+      "water_occurrence_max_pct": 1,
+      "water_recurrence_mean_pct": 1,
+      "distance_any_water_min_m": -1,
+      "distance_recurrent_water_min_m": -1,
+      "relative_elevation_aoi_vs_1km_m": -1,
+      "slope_aoi_mean_deg": -1
+    },
+    "solo": {
+      "clay_pct": 1,
+      "sand_pct": -1,
+      "silt_pct": 1
+    }
+  },
+  "pesos_grupos": {
+    "chuva": 0.25,
+    "agua_umidade": 0.3,
+    "radar": 0.15,
+    "terreno_agua_historica": 0.2,
+    "solo": 0.1
+  },
+  "feature_columns_isolation_forest": [
+    "chuva__rain_3d_mm",
+    "chuva__rain_7d_mm",
+    "chuva__rain_14d_mm",
+    "chuva__days_since_rain_ge_1mm",
+    "agua_umidade__soil_moisture_0_7cm_mean_m3_m3"
+  ]
+}
