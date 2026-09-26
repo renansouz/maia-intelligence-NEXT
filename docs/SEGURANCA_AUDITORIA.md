@@ -45,11 +45,13 @@ Essa segunda camada diferencia um "controle de acesso decorativo" de um modelo c
 
 ---
 
-## 🔗 Cadeia de Auditoria (Hash Chain)
+## 🔗 Cadeia de auditoria (Hash Chain)
 
-Cada previsão de risco gerada pelo modelo é registrada com um **hash SHA-256** calculado a partir do conteúdo da própria previsão somado ao hash da previsão imediatamente anterior gravada no banco:
+Cada previsão de risco gerada pelo modelo é registrada com um **hash SHA-256** calculado a partir do conteúdo da própria previsão somado ao hash da previsão imediatamente anterior:
 
-$$\text{hash\_atual} = \text{SHA256}(\text{equipamento} + \text{data} + \text{score} + \text{hash\_anterior})$$
+```
+hash_atual = SHA256(equipamento + data + score + hash_anterior)
+```
 
 Essa dependência sequencial cria uma corrente criptográfica: qualquer tentativa de alteração retroativa em um registro histórico rompe a validade matemática de toda a cadeia subsequente, tornando a adulteração detectável de forma imediata.
 
