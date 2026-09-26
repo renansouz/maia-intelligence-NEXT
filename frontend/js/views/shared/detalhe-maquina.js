@@ -21,6 +21,7 @@ export async function renderDetalheMaquina() {
     }
 
     container.innerHTML = `<div class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div></div>`;
+    // Atualização assíncrona do card ambiental para simular requisição orbital em tempo real
 
     try {
         const [detalheRes, historicoRes] = await Promise.all([
@@ -84,37 +85,67 @@ export async function renderDetalheMaquina() {
                     <!-- Coluna da Esquerda / Centro: XAI & Histórico -->
                     <div class="${isOperador ? 'col-span-1' : 'lg:col-span-2'} space-y-6">
                         
-                        <!-- Bloco XAI Reestruturado (Gráfico + Fatores em proporção adequada) -->
+                        <!-- Bloco XAI Reestruturado & Indicadores Ambientais -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             
-                            <!-- Gráfico Gauge -->
+                            <!-- Gráfico Gauge Operacional -->
                             <div class="bg-white border border-[#EAECF0] rounded-2xl p-6 shadow-sm flex flex-col items-center justify-between">
-                                <h4 class="text-sm font-bold text-[#344054] self-start mb-2">Índice de Risco Calculado</h4>
-                                <div id="gauge-chart" class="w-full h-[200px]"></div>
+                                <h4 class="text-sm font-bold text-[#344054] self-start mb-2">Saúde Operacional (CAN)</h4>
+                                <div id="gauge-chart" class="w-full h-[180px]"></div>
                                 <div class="text-center mt-2">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Status da IA</span>
-                                    <div class="text-xl font-black" style="color: ${configRisco.color}">${classificacao}</div>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Status Mecânico</span>
+                                    <div class="text-lg font-black" style="color: ${configRisco.color}">${classificacao}</div>
                                 </div>
                             </div>
 
-                            <!-- Fatores de Influência -->
+                            <!-- Indicador Ambiental Focado em Segurança no Campo -->
                             <div class="bg-white border border-[#EAECF0] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Fatores de Influência</h4>
-                                <div class="space-y-3 flex-1 flex flex-col justify-center">
-                                    ${listaFatores.length > 0 && listaFatores[0].trim() !== "" ? listaFatores.map(f => `
-                                        <div class="flex items-center gap-3 text-xs font-semibold text-[#101828] bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                            <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${configRisco.color}"></div>
-                                            <span class="capitalize">${f.trim()}</span>
+                                <h4 class="text-sm font-bold text-[#344054] self-start mb-4">Condição do Solo e do Terreno</h4>
+                                ${maquina.ambiental ? (() => {
+                const cfg = {
+                    'muito_proxima_do_padrao': { icon: 'check-circle', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', title: 'Condição Estável e Segura', desc: 'Terreno firme, operando na normalidade.' },
+                    'proxima_do_padrao': { icon: 'check-circle', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', title: 'Condição Segura', desc: 'Sem indícios críticos de umidade excessiva.' },
+                    'afastada_do_padrao': { icon: 'alert-triangle', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', title: 'Atenção: Solo Instável', desc: 'Evite áreas baixas ou margens de rios.' },
+                    'muito_afastada_do_padrao': { icon: 'alert-octagon', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', title: 'Crítico: Risco de Atolamento', desc: 'Solo saturado. Recomenda-se suspender operação no talhão.' }
+                }[maquina.ambiental.faixa_condicao] || { icon: 'info', color: 'text-blue-900', bg: 'bg-blue-50', border: 'border-blue-200', title: 'Condição Regular', desc: 'Monitoramento em andamento.' };
+
+                return `
+                                    <div class="${cfg.bg} border ${cfg.border} p-5 rounded-xl flex items-start gap-4 my-auto animate-in fade-in duration-300">
+                                        <i data-lucide="${cfg.icon}" class="w-6 h-6 ${cfg.color} shrink-0 mt-0.5"></i>
+                                        <div class="space-y-1">
+                                            <h5 class="text-sm font-black ${cfg.color}">${cfg.title}</h5>
+                                            <p class="text-xs text-gray-700 leading-relaxed">${cfg.desc}</p>
+                                            <div class="text-[9px] text-gray-400 font-mono pt-1">Índice orbital: ${maquina.ambiental.score_ambiental}%</div>
                                         </div>
-                                    `).join('') : `
-                                        <div class="text-center py-6 text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                            Nenhum fator crítico predominante detectado.
-                                        </div>
-                                    `}
-                                </div>
+                                    </div>
+                                `;
+            })() : `
+                                    <div class="text-center py-10 text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200 my-auto">
+                                        Dados de solo indisponíveis para esta localidade.
+                                    </div>
+                                `}
+                                <p class="text-[10px] text-gray-400 text-center mt-4">Monitoramento satelital de umidade e relevo</p>
                             </div>
 
                         </div>
+
+                        <!-- Fatores de Influência (SHAP) -->
+                        <div class="bg-white border border-[#EAECF0] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Fatores de Influência Operacional (SHAP)</h4>
+                            <div class="space-y-3">
+                                ${listaFatores.length > 0 && listaFatores[0].trim() !== "" ? listaFatores.map(f => `
+                                    <div class="flex items-center gap-3 text-xs font-semibold text-[#101828] bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                        <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${configRisco.color}"></div>
+                                        <span class="capitalize">${f.trim()}</span>
+                                    </div>
+                                `).join('') : `
+                                    <div class="text-center py-6 text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                        Nenhum fator crítico predominante detectado.
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+
 
                         <!-- Bloco de Auditoria -->
                         ${!isOperador ? `

@@ -14,6 +14,8 @@ Uso:
     python -m scripts.popular_demo
 """
 from datetime import date, timedelta
+import json
+from app.core.database import db
 
 from app.core.config_db import configurar_banco
 from app.services.user_service import buscar_usuario_por_email, criar_usuario
@@ -91,9 +93,34 @@ def popular():
     kevin_id = garantir_usuario("Kevin Vitor", "operador@fazendasantarita.com.br", "demo1234", "OPERADOR", gestor_id=renan_id)
     thiese_id = garantir_usuario("Thiese Duran", "operador@fazendaboaesperanca.com.br", "demo1234", "OPERADOR", gestor_id=nicole_id)
 
-    print("\n--- Criando propriedades ---")
+    print("\n--- Criando propriedades com coordenadas reais ---")
     santa_rita_id = garantir_fazenda(renan_id, "Fazenda Santa Rita", "Ribeirão Preto", -21.1775, -47.8103, "Zona Rural, Ribeirão Preto - SP")
     boa_esperanca_id = garantir_fazenda(nicole_id, "Fazenda Boa Esperança", "Sorocaba", -23.5015, -47.4526, "Zona Rural, Sorocaba - SP")
+
+    print("\n--- Injetando dados ambientais base (PCA / Satélite) ---")
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    try:
+        # Insere um registro mockado/real na TB_ML_AMBIENTAL para as coordenadas de Ribeirão Preto e Sorocaba
+        features_exemplo = json.dumps({
+            "vv_mean_db": -12.4, "vh_mean_db": -18.2, "ndwi_mean": 0.15, "ndmi_mean": 0.25,
+            "soil_moisture_0_7cm_mean_m3_m3": 0.28, "rain_7d_mm": 12.5, "slope_aoi_mean_deg": 3.2
+        })
+        cursor.execute("""
+            MERGE INTO TB_ML_AMBIENTAL t
+            USING (SELECT 'EDA_AMBIENTAL' as f, TO_DATE('2026-09-20', 'YYYY-MM-DD') as d, -21.1775 as lat, -47.8103 as lon FROM DUAL) s
+            ON (t.FONTE = s.f AND t.LATITUDE = s.lat AND t.LONGITUDE = s.lon)
+            WHEN NOT MATCHED THEN
+                INSERT (FONTE, DATA_OBSERVACAO, LATITUDE, LONGITUDE, FEATURES_JSON, HASH_REGISTRO)
+                VALUES ('EDA_AMBIENTAL', TO_DATE('2026-09-20', 'YYYY-MM-DD'), -21.1775, -47.8103, :feat, 'hash_geo_ribeirao_preto')
+        """, feat=features_exemplo)
+        conn.commit()
+    except Exception as e:
+        print(f"Aviso ao injetar base ambiental: {e}")
+    finally:
+        cursor.close()
+        db.release_connection(conn)
+
 
     print("\n--- Cadastrando máquinas ---")
     garantir_maquina("EQP-SP-04", renan_id, "Trator", "John Deere 6110J", 2020, 320000.00)

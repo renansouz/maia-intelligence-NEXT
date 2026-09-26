@@ -50,6 +50,7 @@ from app.services.ticket_service import (
 )
 from app.services.manutencao_service import solicitar_manutencao, buscar_manutencao_por_token, concluir_manutencao
 from app.services.clima_service import obter_previsao_com_alerta
+from app.services.environmental_service import environmental_service
 
 load_dotenv()
 
@@ -325,8 +326,8 @@ async def get_minha_cobertura(usuario_logado: dict = Depends(requer_papel("GESTO
 async def get_detalhe_maquina(equipamento_id: str, usuario_logado: dict = Depends(obter_usuario_atual)):
     """
     Rota agregada usada pela tela de detalhe da máquina, reaproveitada
-    pelas três personas (Sompo, Gestor, Operador), cada uma só acessa
-    equipamentos dentro do próprio escopo de permissão.
+    pelas três personas (Sompo, Gestor, Operador), enriquecida com o
+    modelo operacional (CAN) e o modelo ambiental PCA (Satélite/Solo).
     """
     if not usuario_tem_acesso_equipamento(usuario_logado, equipamento_id):
         raise HTTPException(status_code=403, detail="Sem permissão para acessar este equipamento.")
@@ -335,6 +336,7 @@ async def get_detalhe_maquina(equipamento_id: str, usuario_logado: dict = Depend
     if not maquina:
         raise HTTPException(status_code=404, detail="Máquina não encontrada.")
 
+    # 1. Diagnóstico Operacional (Isolation Forest - CAN)
     dados_previsao = buscar_ultima_previsao(equipamento_id)
     if dados_previsao:
         maquina["diagnostico"] = {
@@ -345,6 +347,14 @@ async def get_detalhe_maquina(equipamento_id: str, usuario_logado: dict = Depend
         }
     else:
         maquina["diagnostico"] = None
+
+    # 2. Diagnóstico Ambiental (PCA - Satélite/Solo/Sentinel-1)
+    lat = maquina.get("latitude")
+    lon = maquina.get("longitude")
+    
+    # Se a fazenda tiver coordenadas, avalia a condição ambiental com base no PCA
+    ambiental_resultado = environmental_service.avaliar_condicao_ambiental(lat, lon)
+    maquina["ambiental"] = ambiental_resultado
 
     return maquina
 
