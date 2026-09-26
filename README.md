@@ -25,7 +25,7 @@ $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrig
 
 O MAIA não é apenas um painel de monitoramento estatístico; ele implementa um ciclo completo de governança e prevenção de seguros agrícolas:
 - **Motor de IA Duplo (Mecânico + Ambiental):** Combina a análise multivariada de telemetria CAN (`Isolation Forest` + `RobustScaler`) com a análise orbital de solo e terreno via satélite/radar SAR (`PCA Ambiental` com Sentinel-1, SoilGrids e Open-Meteo). Mais detalhes em [docs/MODELO_IA.md](docs/MODELO_IA.md).
-- **Cadeia de Auditoria Criptográfica (Hash Chain):** Cada decisão de risco gera um hash SHA-256 encadeado ao registro anterior, garantindo imutabilidade e prova documental irrefutável para regulação e disputa de sinistros. Saiba mais em [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md).
+- **Cadeia de Auditoria Criptográfica (Hash Chain):** Cada decisão de risco gera um hash SHA-256 encadeado ao registro anterior, garantindo imutabilidade e prova documental irrefutável para regulação e disputa de sinistros. Saiba mais em [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_AUDITORIA.md).
 - **Ciclo de Feedback Humano (*Human-in-the-Loop*):** Ocorrências reportadas por operadores em campo via tickets estruturados retroalimentam automaticamente as análises de risco subsequentes da máquina.
 - **Manutenção Externa por Token Único:** O gestor gera links seguros e temporários para técnicos de manutenção externos registrarem serviços em campo sem necessidade de senhas ou cadastro.
 - **Exposição Financeira Real:** Cálculo dinâmico do capital sob risco em Reais (R$) cruzando o valor segurado individual de cada maquinário com o seu nível de criticidade atual.
