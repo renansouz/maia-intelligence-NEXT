@@ -1,77 +1,74 @@
-# MAIA — Caso de Negócio
+# MAIA — Caso de Negócio e Viabilidade Comercial
 
-Este documento explica por que o MAIA não é apenas um exercício técnico, mas uma solução com valor comercial real e mensurável para a Sompo Seguros e para o setor de seguros de equipamentos agrícolas como um todo.
-
----
-
-## O problema real por trás do produto
-
-A Sompo comercializa o produto **Equipamentos Agrícolas — Benfeitorias**, que oferece cobertura para incêndio, tombamento, colisão, roubo e danos elétricos. O gargalo estrutural desse modelo no mercado atual é a **falta de visibilidade contínua** sobre o estado operacional de cada ativo segurado. A seguradora via de regra toma conhecimento de uma falha apenas após a consolidação do sinistro — quando a única alternativa remanescente é a liquidação da indenização.
-
-Isso gera um impacto financeiro severo: sinistros envolvendo colheitadeiras e tratores de grande porte atingem facilmente centenas de milhares de reais. Contudo, eventos críticos como superaquecimento de motor com risco de incêndio, desgaste excessivo por falha de manutenção ou operação em solo instável emitem sinais precursores rastreáveis.
-
-O MAIA preenche essa lacuna ao transicionar o modelo de gestão de risco de **reativo** (indenização pós-sinistro) para **preventivo** (mitigação baseada em telemetria e IA explicável).
+Este documento consolida a tese de valor comercial, o alinhamento regulatório e o impacto financeiro mensurável que o MAIA traz para a **Sompo Seguros** e para o mercado de seguros de equipamentos agrícolas.
 
 ---
 
-## Como o MAIA gera valor para o ecossistema
+## 1. O Problema Estrutural no Setor de Seguros Agrícolas
 
-### Para a Sompo (a seguradora)
+A Sompo comercializa o produto **Equipamentos Agrícolas — Benfeitorias / Penhor Rural**, oferecendo coberturas vitais como incêndio, tombamento, colisão, roubo e danos elétricos. O gargalo estrutural desse modelo no mercado tradicional é a **cegueira operacional crônica**: a seguradora assume o risco no ato da emissão da apólice e só volta a interagir com o segurado quando um sinistro de alta monta já ocorreu.
 
-- **Redução de Sinistralidade (Loss Ratio):** A prevenção de uma fração dos eventos críticos em uma carteira de apólices gera economia direta, considerando que o valor médio de reposição de um ativo supera R$ 350 mil.
-- **Visibilidade de Carteira em Tempo Real:** Um painel executivo centralizado que consolida o volume de máquinas em risco crítico e a exposição financeira total da carteira.
-- **Argumento Comercial para Upsell:** O cruzamento automático entre o risco detectado e a apólice do cliente (ex: alerta de dano elétrico em apólice com cobertura estritamente básica) viabiliza ofertas direcionadas de upgrade de plano.
-- **Segurança Jurídica e Regulatória (Auditoria por Hash):** Em caso de sinistro contestado, a seguradora dispõe de uma cadeia criptográfica imutável (Hash Chain) comprovando o histórico de alertas emitidos e as manutenções executadas, acelerando a regulação.
+Isso gera um impacto severo no *Loss Ratio* (sinistralidade): a indenização de um único trator ou colheitadeira de grande porte varia entre R$ 200 mil e R$ 800 mil. Contudo, os principais motivadores desses sinistros — superaquecimento térmico com risco de incêndio, degradação mecânica por falha de manutenção ou operação em solos instáveis e margens de rios — emitem sinais precursores rastreáveis muito antes do evento catastrófico.
 
-### Para o Gestor de Frota (o cliente segurado)
-
-- **Mitigação do Tempo de Inatividade (_Downtime_):** Prevenção de quebras catastróficas em janelas de safra apertadas.
-- **Manutenção Baseada em Condição:** Substituição de manutenções baseadas em "feeling" por um ranking objetivo de criticidade gerado por aprendizado de máquina.
-- **Conformidade Contratual:** Histórico digital auditável que respalda o cumprimento das obrigações de conservação exigidas pela seguradora.
-
-### Para o Operador (quem está no campo)
-
-- **Segurança Operacional em Tempo Real:** Alertas traduzidos para linguagem natural e intuitiva, sem a exigência de interpretação de métricas estatísticas complexas.
-- **Voz Ativa no Sistema:** O relato de um problema observado em campo retroalimenta diretamente o motor de risco da unidade, integrando o fator humano à inteligência preditiva.
+O MAIA resolve essa assimetria de informação ao transicionar a gestão de risco de **reativa** (indenização pós-prejuízo) para **preventiva e contínua** (mitigação em tempo real baseada em telemetria e inteligência orbital).
 
 ---
 
-## O ciclo completo de prevenção (Human-in-the-Loop)
+## 2. Proposta de Valor para o Ecossistema
 
-O diferencial competitivo do MAIA reside no fechamento do ciclo operacional:
+### Para a Sompo (A Seguradora)
+- **Redução Sistemática da Sinistralidade:** A antecipação de falhas mecânicas e de condições críticas de terreno evita perdas totais de ativos segurados, preservando diretamente a margem técnica da carteira.
+- **Vistoria Digital e Contínua:** Para frotas onde a inspeção física prévia é dispensada por regra de aceitação (ex: tratores com menos de 2 anos), o MAIA atua como um inspetor virtual contínuo desde o primeiro dia de vigência.
+- **Mitigação da Cláusula de Proximidade de Água:** Utilizando monitoramento orbital via satélite (Sentinel-1 SAR / GEE), o sistema valida se o equipamento está operando em áreas de risco hídrico em conformidade com as Condições Particulares da apólice.
+- **Argumento Comercial para Upsell:** O cruzamento automatizado entre o risco detectado e a apólice do cliente (ex: detecção de anomalia elétrica em apólice com cobertura estritamente básica) viabiliza ofertas direcionadas de upgrade de plano.
+- **Segurança Jurídica na Regulação (Hash Chain):** Em caso de contestação de sinistro, a seguradora dispõe de uma trilha de auditoria criptográfica imutável que comprova o envio de alertas preventivos e o histórico de manutenções.
+
+### Para o Gestor de Frota (O Cliente Segurado)
+- **Eliminação do *Downtime* Não Planejado:** Prevenção de quebras catastróficas em janelas críticas de plantio e colheita.
+- **Manutenção Baseada em Condição:** Substituição de manutenções empíricas por um ranking objetivo de criticidade gerado por aprendizado de máquina (*Isolation Forest*).
+- **Conformidade Contratual Facilitada:** Histórico digital auditável que simplifica e acelera a comprovação de diligência perante a seguradora.
+
+### Para o Operador (Quem está no Campo)
+- **Segurança Operacional em Tempo Real:** Alertas traduzidos para linguagem natural e intuitiva, assegurando tomada de decisão rápida sob pressão.
+- **Canal Direto de Relato (*Human-in-the-Loop*):** O reporte de falhas em campo retroalimenta diretamente o motor de inteligência da unidade, integrando a percepção humana ao modelo preditivo.
+
+---
+
+## 3. O Ciclo Completo de Governança e Prevenção
+
+O diferencial competitivo do MAIA reside no fechamento absoluto do ciclo operacional:
 
 ```
-Telemetria CAN / Sensor + Relato do Operador
+Telemetria CAN (IoT) + Satélite SAR + Relato do Operador
         ↓
-Motor de IA (Isolation Forest + SHAP) processa e explica o desvio
+Motor de IA (Isolation Forest + PCA Ambiental + SHAP) processa e explica
         ↓
 Alerta direcionado ao Gestor de Frota e à Seguradora
         ↓
-Gestor gera link único e seguro para o Técnico externo
+Gestor gera link único e seguro para o Técnico externo atuar
         ↓
-Técnico registra a manutenção; o sistema reprocessa automaticamente o score de risco
+Técnico conclui o serviço; o sistema reprocessa automaticamente o score de risco
         ↓
 Se necessário, o Gestor escala o evento diretamente como sinistro para a Sompo
 ```
 
 ---
 
-## Estimativa de impacto financeiro (Ordem de Grandeza)
+## 4. Estimativa de Impacto Financeiro (Ordem de Grandeza)
 
-- O valor venal de tratores e colheitadeiras de médio e grande porte varia entre R$ 200 mil e R$ 800 mil.
-- Incêndios decorrentes de superaquecimento e acúmulo de material combustível são precedidos por desvios térmicos prolongados identificáveis pelo modelo operacional.
-- A antecipação de eventos dessa natureza evita perdas totais de ativos, garantindo viabilidade econômica imediata à adoção da plataforma em escala de portfólio.
+- Considerando um valor médio de reposição de **R$ 350.000,00** por ativo agrícola de médio/grande porte:
+- A prevenção de **um único evento de incêndio ou perda total por capotagem** em decorrência de alerta antecipado já neutraliza o custo de implantação e monitoramento da plataforma em uma frota inteira por múltiplos anos.
+- Em escala de portfólio para a Sompo, a supressão de pontos percentuais na sinistralidade representa economia na casa de **milhões de reais**, elevando a competitividade da companhia no agronegócio.
 
 ---
 
-## Prontidão Comercial e Tecnológica
+## 5. Prontidão para Escala Comercial
 
-O MAIA supera o estágio de prova de conceito acadêmica por incorporar:
-
-- Controle de acesso robusto com separação estrita por papéis e vínculos relacionais (RBAC).
-- Catálogo de coberturas idêntico ao produto comercial real da Sompo.
-- Trilha de auditoria criptográfica verificável sob demanda.
-- Esteira automatizada de tickets, chamados externos e escalonamento para sinistros.
+O MAIA supera o estágio de protótipo acadêmico por incorporar os requisitos fundamentais para implantação corporativa:
+- Hierarquia de acesso real (Sompo, Gestor, Operador, Técnico) blindada por RBAC de duas camadas.
+- Catálogo de coberturas aderente ao produto comercial real da Sompo.
+- Trilha de auditoria baseada em hash SHA-256 para atendimento regulatório.
+- Esteira automatizada de tickets, chamados externos e escalonamento para sinistros sem fricção manual.
 
 ---
 
