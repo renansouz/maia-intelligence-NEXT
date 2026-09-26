@@ -24,9 +24,10 @@ $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrig
 ## ⚡ Principais Funcionalidades e Diferenciais
 
 O MAIA não é apenas um painel de monitoramento estatístico; ele implementa um ciclo completo de governança e prevenção de seguros agrícolas:
+
 - **Motor de IA Duplo (Mecânico + Ambiental):** Combina a análise multivariada de telemetria CAN (`Isolation Forest` + `RobustScaler`) com a análise orbital de solo e terreno via satélite/radar SAR (`PCA Ambiental` com Sentinel-1, SoilGrids e Open-Meteo). Mais detalhes em [docs/MODELO_IA.md](docs/MODELO_IA.md).
 - **Cadeia de Auditoria Criptográfica (Hash Chain):** Cada decisão de risco gera um hash SHA-256 encadeado ao registro anterior, garantindo imutabilidade e prova documental irrefutável para regulação e disputa de sinistros. Saiba mais em [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_AUDITORIA.md).
-- **Ciclo de Feedback Humano (*Human-in-the-Loop*):** Ocorrências reportadas por operadores em campo via tickets estruturados retroalimentam automaticamente as análises de risco subsequentes da máquina.
+- **Ciclo de Feedback Humano (_Human-in-the-Loop_):** Ocorrências reportadas por operadores em campo via tickets estruturados retroalimentam automaticamente as análises de risco subsequentes da máquina.
 - **Manutenção Externa por Token Único:** O gestor gera links seguros e temporários para técnicos de manutenção externos registrarem serviços em campo sem necessidade de senhas ou cadastro.
 - **Exposição Financeira Real:** Cálculo dinâmico do capital sob risco em Reais (R$) cruzando o valor segurado individual de cada maquinário com o seu nível de criticidade atual.
 
@@ -65,10 +66,11 @@ Para uma imersão completa em cada aspecto do projeto, consulte os documentos na
 | [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning (Operacional + Ambiental), validação e limites. |
 | [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
 | [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
-| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação.        |
+| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação.         |
+
+> 📄 **Documentação Executiva Oficial:** Você pode baixar o [Manual Executivo em PDF](./frontend/assets/pdf/MAIA_Manual_Executivo_Tecnico.pdf), contendo o detalhamento de negócio, arquitetura, pipeline de dados e capturas de tela de todas as interfaces do sistema.
 
 ---
-
 
 ## 🔧 Guia de Execução Local (Para a Banca e Desenvolvedores)
 
@@ -134,11 +136,11 @@ API_KEY="alguma-chave-forte"
 
 Execute o comando abaixo para criar automaticamente todas as tabelas e restrições no Oracle Cloud:
 
-* **No Windows:**
+- **No Windows:**
   ```powershell
   python -m app.core.config_db
   ```
-* **No macOS / Linux:**
+- **No macOS / Linux:**
   ```bash
   python3 -m app.core.config_db
   ```
@@ -147,11 +149,11 @@ Execute o comando abaixo para criar automaticamente todas as tabelas e restriç�
 
 Para preencher o sistema com gestores, fazendas, frotas de tratores e um histórico de ocorrências para a banca testar imediatamente:
 
-* **No Windows:**
+- **No Windows:**
   ```powershell
   python -m scripts.popular_demo
   ```
-* **No macOS / Linux:**
+- **No macOS / Linux:**
   ```bash
   python3 -m scripts.popular_demo
   ```
@@ -160,11 +162,11 @@ _(Caso queira iniciar com o sistema 100% limpo, basta não executar este comando
 
 ### 7. Iniciar o Servidor da Aplicação
 
-* **No Windows:**
+- **No Windows:**
   ```powershell
   python -m uvicorn app.main:app --reload
   ```
-* **No macOS / Linux:**
+- **No macOS / Linux:**
   ```bash
   uvicorn app.main:app --reload
   ```
