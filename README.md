@@ -21,6 +21,17 @@ $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrig
 
 ---
 
+## ⚡ Principais Funcionalidades e Diferenciais
+
+O MAIA não é apenas um painel de monitoramento estatístico; ele implementa um ciclo completo de governança e prevenção de seguros agrícolas:
+- **Motor de IA Duplo (Mecânico + Ambiental):** Combina a análise multivariada de telemetria CAN (`Isolation Forest` + `RobustScaler`) com a análise orbital de solo e terreno via satélite/radar SAR (`PCA Ambiental` com Sentinel-1, SoilGrids e Open-Meteo). Mais detalhes em [docs/MODELO_IA.md](docs/MODELO_IA.md).
+- **Cadeia de Auditoria Criptográfica (Hash Chain):** Cada decisão de risco gera um hash SHA-256 encadeado ao registro anterior, garantindo imutabilidade e prova documental irrefutável para regulação e disputa de sinistros. Saiba mais em [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md).
+- **Ciclo de Feedback Humano (*Human-in-the-Loop*):** Ocorrências reportadas por operadores em campo via tickets estruturados retroalimentam automaticamente as análises de risco subsequentes da máquina.
+- **Manutenção Externa por Token Único:** O gestor gera links seguros e temporários para técnicos de manutenção externos registrarem serviços em campo sem necessidade de senhas ou cadastro.
+- **Exposição Financeira Real:** Cálculo dinâmico do capital sob risco em Reais (R$) cruzando o valor segurado individual de cada maquinário com o seu nível de criticidade atual.
+
+---
+
 ## 👥 Quem usa (As 4 Personas)
 
 | Persona                      | O que faz no sistema                                                                                                                      |
@@ -32,39 +43,32 @@ $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrig
 
 ---
 
-## 🧠 O Motor de Inteligência Artificial
-
-- **Isolation Forest + RobustScaler:** Processa variáveis CAN multivariadas para identificar desvios operacionais com base no comportamento normal aprendido (_Dataset Tümosan_).
-- **Perfil Evolutivo por Unidade:** Evolui de uma referência inicial genérica para perfis comportamentais individuais por trator conforme o histórico é acumulado.
-- **Explicabilidade Prática:** Traduz anomalias matemáticas em fatores de influência claros para os tomadores de decisão.
-
-📄 _Detalhes metodológicos:_ [docs/MODELO_IA.md](docs/MODELO_IA.md)
-
----
-
 ## 🛠️ Stack Tecnológica
 
 | Camada               | Tecnologia                                                                       |
 | :------------------- | :------------------------------------------------------------------------------- |
 | **Backend**          | Python + FastAPI + Oracle Cloud                                                  |
 | **Segurança**        | Autenticação JWT (24h) + Hash Bcrypt + RBAC de Duas Camadas                      |
-| **Machine Learning** | Scikit-learn (Isolation Forest, RobustScaler) + SHAP                             |
+| **Machine Learning** | Scikit-learn (Isolation Forest, RobustScaler, PCA) + SHAP                        |
 | **Frontend**         | HTML5 + JavaScript (ES6 Modules) + Tailwind CSS via CDN + Leaflet.js + Plotly.js |
 
 ---
 
 ## 📚 Documentação Técnica
 
+Para uma imersão completa em cada aspecto do projeto, consulte os documentos na pasta `docs/`:
+
 | Documento                                                      | Conteúdo                                                                        |
 | :------------------------------------------------------------- | :------------------------------------------------------------------------------ |
 | [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)             | Valor comercial, redução de sinistralidade e impacto financeiro para a Sompo.   |
 | [docs/ARQUITETURA.md](docs/ARQUITETURA.md)                     | Fluxo de dados end-to-end, diagramas, hierarquia RBAC e decisões de engenharia. |
-| [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning, features CAN, validação e limitações.          |
+| [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning (Operacional + Ambiental), validação e limites. |
 | [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_E_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
 | [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
-| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação. |
+| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação.        |
 
 ---
+
 
 ## 🔧 Guia de Execução Local (Para a Banca e Desenvolvedores)
 
