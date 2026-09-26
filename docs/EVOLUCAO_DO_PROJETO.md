@@ -26,17 +26,17 @@ A avaliação destacou a clareza do escopo e das personas, mas pontuou a necessi
 
 ### Evolução Técnica
 
-Nesta fase, a solução ganhou base quantitativa real. Abandonamos as regras puramente estáticas de limiar (_threshold_) e implementamos um motor de Machine Learning supervisionado, combinando dados climáticos reais da API Open-Meteo com indicadores operacionais. A escolha por modelos baseados em árvores permitiu gerar scores de probabilidade de risco auditáveis, alinhados à exigência da seguradora por transparência analítica.
+Nesta fase, a solução ganhou base quantitativa real. Abandonamos as regras puramente estáticas de limiar (_threshold_) e estruturamos a base analítica com dados reais de barramento CAN (J1939) combinados a indicadores climáticos. Diferente de classificadores supervisionados tradicionais (inviáveis pela ausência de massa rotulada de falhas reais), optamos por algoritmos não supervisionados de detecção de anomalias (*Isolation Forest* com *RobustScaler*), permitindo identificar desvios multivariados do comportamento normal do maquinário com alta interpretabilidade.
 
 ### Entregáveis da Etapa
 
 - Pipeline de ingestão e persistência de dados estruturados em banco relacional (Oracle).
-- Implementação dos scripts de modelagem estatística e cálculo de scores de risco por equipamento.
+- Implementação dos scripts de modelagem estatística e cálculo de scores de aderência por equipamento.
 - Relatórios iniciais de validação de acurácia e correlação de variáveis críticas.
 
 ### Feedback e Aprendizados
 
-O trabalho foi reconhecido pela maturidade metodológica ao empregar uma abordagem probabilística coerente com a auditoria de apólices. Os apontamentos concentraram-se na consistência das referências cruzadas da documentação técnica no repositório.
+O trabalho foi reconhecido pela maturidade metodológica ao empregar uma abordagem estatística coerente com a auditoria de apólices. Os apontamentos concentraram-se na consistência das referências cruzadas da documentação técnica no repositório.
 
 ---
 
@@ -73,7 +73,10 @@ A etapa final representou a consolidação estrutural, eliminando débitos técn
    - Substituição da chave única por um sistema robusto de autenticação baseada em tokens **JWT** com papéis restritos (`SOMPO`, `GESTOR`, `OPERADOR`) e senhas protegidas por **hash bcrypt**.
    - Implementação de autorização em duas camadas (validação de papel combinada ao escopo relacional de propriedade/vínculo do ativo).
 
-3. **Ciclo Completo de Prevenção e Retroalimentação Humana:**
+3. **Arquitetura de Motor Duplo (Mecânico + Ambiental):**
+   - Além do motor operacional baseado em CAN (*Isolation Forest*), consolidou-se a camada de análise geoespacial de solo e terreno (*PCA Ambiental* via dados orbitais do Sentinel-1/GEE), atendendo diretamente às cláusulas de proximidade hídrica da apólice da Sompo.
+
+4. **Ciclo Completo de Prevenção e Retroalimentação Humana:**
    - **Tickets Operacionais:** Operadores relatam ocorrências no campo por meio de interface simplificada; os registros alimentam o contexto de risco analisado nas previsões subsequentes do modelo.
    - **Manutenção Externa Desimpedida:** Geração de links seguros com tokens de uso único (`manutencao.html`) permitindo que técnicos externos registrem serviços sem fricção de login.
    - **Escalonamento Direto de Sinistros:** Gestores podem encaminhar tickets críticos diretamente para a esteira de regulação da Sompo com um único clique.

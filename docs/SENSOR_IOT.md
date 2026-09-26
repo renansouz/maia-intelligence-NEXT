@@ -46,14 +46,14 @@ O kit de telemetria foi desenhado com componentes comerciais de prateleira (*COT
 
 ## 🧪 Validação Prática
 
-Para fins de testes acadêmicos e demonstração da Sprint 4 sem a exigência de montagem física de bancada, o repositório disponibiliza um **Simulador de Telemetria via Terminal**, que injeta dados diretamente na API reproduzindo o comportamento exato do ESP32:
+Para fins de testes acadêmicos e demonstração sem a exigência de montagem física de bancada, o repositório disponibiliza um **Simulador de Telemetria via Terminal** (`iot/simular_sensor.py`), que injeta dados diretamente na API reproduzindo o comportamento exato do ESP32:
 
 ### Operação Normal:
 ```bash
-python3 -m iot.simulador_terminal normal
+python3 -m iot.simular_sensor normal
 ```
 
 ### Simulação de Superaquecimento (Risco de Incêndio / Alerta Sompo):
 ```bash
-python3 -m iot.simulador_terminal superaquecido
+python3 -m iot.simular_sensor superaquecido
 ```
