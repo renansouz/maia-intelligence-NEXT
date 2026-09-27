@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAIA Inteligência de Risco Agrícola | Sompo Seguros</title>
+<meta name="description" content="MAIA cruza telemetria de máquinas agrícolas, radar de satélite e dados climáticos para antecipar sinistros antes que aconteçam. Um projeto em parceria com a Sompo Seguros.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="shortcut icon" href="assets/sompo-logo.webp" type="image/x-icon">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+        colors: {
+          ink:    '#14161A',
+          char:   '#1A1D23',
+          char2:  '#22262E',
+          red:    '#DF082A',
+          reddk:  '#A80620',
+          teal:   '#0E7C86',
+          tealdk: '#0A5D65',
+          paper:  '#FAFAF9',
+          mist:   '#F1F1F2',
+          line:   '#E6E6E8',
+          slate:  '#686E77',
+        },
+        maxWidth: { measure: '38rem' }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root { scroll-behavior: smooth; }
+  * { -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: #FAFAF9; color: #14161A; }
+
+  /* ---------- reveal-on-scroll (single quiet effect) ---------- */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    * { animation: none !important; }
+  }
+
+  /* ---------- focus visibility ---------- */
+  a:focus-visible, button:focus-visible { outline: 2px solid #DF082A; outline-offset: 3px; border-radius: 2px; }
+
+  /* ---------- hero radar pulse ---------- */
+  .radar-wrap { position: relative; width: 100%; aspect-ratio: 1/1; }
+  .radar-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(223,8,42,0.18); }
+  .radar-ring.r2 { inset: 12%; border-color: rgba(223,8,42,0.24); }
+  .radar-ring.r3 { inset: 24%; border-color: rgba(223,8,42,0.32); }
+  .radar-ring.r4 { inset: 36%; border-color: rgba(223,8,42,0.42); }
+  .radar-core { position: absolute; inset: 44%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FF4457, #DF082A 55%, #A80620 100%); box-shadow: 0 0 40px rgba(223,8,42,0.45); }
+  .radar-pulse { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(223,8,42,0.55); animation: pulse 3.2s cubic-bezier(.22,.61,.36,1) infinite; }
+  .radar-pulse.delay { animation-delay: 1.6s; }
+  @keyframes pulse { 0% { transform: scale(.42); opacity: .9; } 100% { transform: scale(1.05); opacity: 0; } }
+  .radar-blip { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #14161A; }
+
+  /* ---------- operational gauge bars ---------- */
+  .bar-row { display: flex; align-items: center; gap: .6rem; }
+  .bar-track { flex: 1; height: 6px; border-radius: 4px; background: rgba(255,255,255,0.09); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #A80620, #FF4457); }
+
+  /* ---------- environmental orbit ---------- */
+  .orbit-wrap { position: relative; width: 100%; aspect-ratio: 1/1; }
+  .orbit-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(120,200,205,0.28); }
+  .orbit-ring.o1 { inset: 6%; }
+  .orbit-ring.o2 { inset: 20%; }
+  .orbit-ring.o3 { inset: 34%; }
+  .orbit-planet { position: absolute; inset: 42%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #2FB4BE, #0E7C86 60%, #0A5D65 100%); }
+  .orbit-sat { position: absolute; width: 100%; height: 100%; top: 0; left: 0; animation: spin 9s linear infinite; }
+  .orbit-sat-dot { position: absolute; top: 3%; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: #E8FBFC; box-shadow: 0 0 10px rgba(47,180,190,0.8); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- cycle connector ---------- */
+  .cycle-line { background: repeating-linear-gradient(90deg, #D8D9DC 0 6px, transparent 6px 12px); height: 1px; }
+
+  .tag-dot { width: 6px; height: 6px; border-radius: 50%; background: #DF082A; display: inline-block; }
+
+  .card-hairline { border: 1px solid #E6E6E8; }
+  /* ---------- interface gallery ---------- */  
+  .browser-frame { border-radius: 10px; 
+    overflow: hidden; border: 1px solid #E6E6E8; 
+    background: #fff; 
+    box-shadow: 0 1px 2px rgba(20,22,26,0.04), 0 10px 24px -14px rgba(20,22,26,0.18); }  
+  .browser-bar { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; padding: 9px 12px; 
+    background: #F1F1F2; 
+    border-bottom: 1px solid #E6E6E8;
+  }  
+  .browser-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }  .browser-frame img { display: block; width: 100%; height: auto; }   .filter-pill { font-size: 13.5px; font-weight: 600; padding: 8px 16px; border-radius: 999px; border: 1px solid #E6E6E8; background: #fff; color: #686E77; transition: background-color .15s ease, color .15s ease, border-color .15s ease; cursor: pointer; }  .filter-pill:hover { border-color: #14161A30; color: #14161A; }  .filter-pill.active { background: #14161A; border-color: #14161A; color: #fff; }   .gallery-card { transition: opacity .25s ease, transform .25s ease; }  .gallery-card.hide { display: none; }
+</style>
+</head>
+
+<body class="bg-paper text-ink">
+
+<!-- =========================================================== -->
+<!-- HEADER -->
+<!-- =========================================================== -->
+<header class="fixed top-0 inset-x-0 z-50 bg-paper/85 backdrop-blur border-b border-line">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-3">
+      <span class="text-[19px] font-extrabold tracking-tight">MAIA</span>
+      <span class="h-4 w-px bg-line"></span>
+      <span class="text-[12.5px] text-slate font-medium">parceria com Sompo Seguros</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-8 text-[14px] font-medium text-ink/80">
+      <a href="#inteligencia" class="hover:text-red transition-colors">A Inteligência Artificial</a>
+      <a href="#ciclo" class="hover:text-red transition-colors">Como Funciona</a>
+      <a href="#seguradoras" class="hover:text-red transition-colors">Para Seguradoras</a>
+      <a href="https://github.com/renansouz/maia-intelligence-NEXT" target="_blank" rel="noopener" class="hover:text-red transition-colors">Documentação</a>
+    </nav>
+
+    <a href="https://github.com/renansouz/maia-intelligence-NEXT"
+       class="inline-flex items-center gap-1.5 bg-red hover:bg-reddk text-white text-[14px] font-semibold px-4 py-2 rounded-md transition-colors">
+      Ver código no GitHub
+      <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+  </div>
+</header>
+
+<!-- =========================================================== -->
+<!-- HERO -->
+<!-- =========================================================== -->
+<section id="top" class="pt-40 pb-24 md:pt-48 md:pb-32 px-6 relative overflow-hidden">
+  <div class="max-w-6xl mx-auto grid md:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
+    <div class="reveal">
+      <span class="inline-flex items-center gap-2 text-[13px] font-medium text-ink/70 border border-line rounded-full pl-2.5 pr-3.5 py-1.5 bg-white">
+        <span class="tag-dot"></span>
+        Enterprise Challenge FIAP &amp; Sompo Seguros
+      </span>
+
+      <h1 class="mt-7 text-[2.5rem] leading-[1.08] md:text-[3.4rem] md:leading-[1.06] font-extrabold tracking-tight max-w-xl">
+        Do conhecimento sobre a natureza à inteligência sobre o risco.
+      </h1>
+
+      <p class="mt-6 text-[17px] md:text-[18px] leading-[1.65] text-slate max-w-measure">
+        O MAIA cruza a telemetria do motor com o que o satélite enxerga no solo, para antecipar sinistros
+        de equipamentos agrícolas antes que eles aconteçam em tempo real, com explicação e auditoria,
+        para a carteira da Sompo Seguros.
+      </p>
+
+      <div class="mt-9 flex flex-wrap items-center gap-4">
+        <a href="assets/pdf/MAIA_Manual_Executivo_Tecnico.pdf" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-red hover:bg-reddk text-white font-semibold text-[15px] px-6 py-3.5 rounded-md transition-colors">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          Baixar Manual Técnico (PDF)
+        </a>
+        <a href="https://github.com/renansouz/maia-intelligence-NEXT" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 border border-line hover:border-ink/30 text-ink font-semibold text-[15px] px-6 py-3.5 rounded-md transition-colors bg-white">
+          <i data-lucide="github" class="w-4 h-4"></i>
+          Ver código no GitHub
+        </a>
+      </div>
+    </div>
+
+    <div class="reveal relative flex items-center justify-center">
+      <div class="radar-wrap max-w-[360px] mx-auto">
+        <div class="radar-ring"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-ring r3"></div>
+        <div class="radar-ring r4"></div>
+        <div class="radar-pulse"></div>
+        <div class="radar-pulse delay"></div>
+        <div class="radar-core"></div>
+        <div class="radar-blip" style="top:18%; left:62%;"></div>
+        <div class="radar-blip" style="top:70%; left:28%; opacity:.5;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- A INTELIGÊNCIA ARTIFICIAL SEÇÃO PRINCIPAL -->
+<!-- =========================================================== -->
+<section id="inteligencia" class="bg-char text-white py-24 md:py-32 px-6">
+  <div class="max-w-6xl mx-auto">
+
+    <div class="reveal max-w-2xl">
+      <h2 class="text-[2rem] md:text-[2.6rem] font-extrabold tracking-tight leading-[1.12]">
+        O coração da inteligência do MAIA
+      </h2>
+      <p class="mt-5 text-[17px] leading-[1.65] text-white/60">
+        Nenhuma decisão de risco nasce de uma fonte só. Dois motores independentes trabalham em paralelo
+        um escuta o que a máquina sente por dentro, o outro observa o que o satélite vê por fora e se
+        encontram em um único score, explicado e auditável.
+      </p>
+    </div>
+
+    <!-- Dois motores -->
+    <div class="mt-16 grid lg:grid-cols-2 gap-6">
+
+      <!-- Motor Operacional -->
+      <div class="reveal bg-char2 border border-white/10 rounded-xl p-8 md:p-10">
+        <div class="flex items-start justify-between gap-6">
+          <div>
+            <span class="text-[13px] font-medium text-red">Dentro da máquina</span>
+            <h3 class="mt-2 text-[1.5rem] font-bold tracking-tight">Motor Operacional</h3>
+          </div>
+          <div class="w-11 h-11 rounded-lg bg-red/15 flex items-center justify-center shrink-0">
+            <i data-lucide="gauge" class="w-5 h-5 text-red"></i>
+          </div>
+        </div>
+
+        <p class="mt-5 text-[15px] leading-[1.7] text-white/65">
+          Sete variáveis do barramento CAN (J1939) temperatura do óleo e do arrefecimento, pressão,
+          torque, RPM, consumo e velocidade são lidas continuamente e avaliadas em conjunto por um
+          <span class="text-white font-medium">Isolation Forest</span>, normalizado por
+          <span class="text-white font-medium">RobustScaler</span>. O modelo não procura um limite fixo:
+          ele aprende o padrão individual de cada máquina e sinaliza quando a combinação atual foge
+          daquilo que é normal para ela o precursor estatístico de superaquecimento, desgaste
+          mecânico ou risco de incêndio.
+        </p>
+
+        <div class="mt-7 space-y-3">
+          <div class="bar-row">
+            <span class="text-[12.5px] text-white/50 w-36 shrink-0">Temp. do óleo</span>
+            <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
+          </div>
+          <div class="bar-row">
+            <span class="text-[12.5px] text-white/50 w-36 shrink-0">Pressão do óleo</span>
+            <div class="bar-track"><div class="bar-fill" style="width:71%"></div></div>
+          </div>
+          <div class="bar-row">
+            <span class="text-[12.5px] text-white/50 w-36 shrink-0">Torque exigido</span>
+            <div class="bar-track"><div class="bar-fill" style="width:54%"></div></div>
+          </div>
+        </div>
+
+        <div class="mt-7 flex flex-wrap gap-2">
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">EngCoolantTemp</span>
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">EngOilPress</span>
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">ActualEngine_PercTorque</span>
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">EngineSpeed</span>
+        </div>
+      </div>
+
+      <!-- Motor Ambiental -->
+      <div class="reveal bg-char2 border border-white/10 rounded-xl p-8 md:p-10">
+        <div class="flex items-start justify-between gap-6">
+          <div>
+            <span class="text-[13px] font-medium text-teal">Fora da máquina</span>
+            <h3 class="mt-2 text-[1.5rem] font-bold tracking-tight">Motor Ambiental</h3>
+          </div>
+          <div class="w-11 h-11 rounded-lg bg-teal/15 flex items-center justify-center shrink-0">
+            <i data-lucide="satellite" class="w-5 h-5 text-teal"></i>
+          </div>
+        </div>
+
+        <p class="mt-5 text-[15px] leading-[1.7] text-white/65">
+          Enquanto isso, radar de satélite <span class="text-white font-medium">Sentinel-1 (SAR)</span>
+          processado no Google Earth Engine acompanha a umidade e o retroespalhamento do solo, cruzado
+          com chuva acumulada da <span class="text-white font-medium">Open-Meteo</span> e textura de solo
+          da <span class="text-white font-medium">SoilGrids</span>. Um <span class="text-white font-medium">PCA</span>
+          reduz essas variáveis a um espaço comparável ao histórico daquela coordenada exata, sinalizando
+          solo instável, risco de atolamento ou proximidade crítica de água sem depender de nenhum
+          sensor físico no terreno.
+        </p>
+
+        <div class="mt-7 flex items-center justify-center py-2">
+          <div class="orbit-wrap max-w-[150px]">
+            <div class="orbit-ring o1"></div>
+            <div class="orbit-ring o2"></div>
+            <div class="orbit-ring o3"></div>
+            <div class="orbit-planet"></div>
+            <div class="orbit-sat"><div class="orbit-sat-dot"></div></div>
+          </div>
+        </div>
+
+        <div class="mt-2 flex flex-wrap gap-2 justify-start">
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">Sentinel-1 SAR</span>
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">Open-Meteo</span>
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">SoilGrids</span>
+          <span class="text-[12px] font-medium text-white/70 border border-white/15 rounded-md px-2.5 py-1">JRC Surface Water</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transparência e auditoria -->
+    <div class="reveal mt-6 grid md:grid-cols-2 gap-6">
+      <div class="border border-white/10 rounded-xl p-7 flex gap-5">
+        <div class="w-10 h-10 rounded-lg bg-white/8 flex items-center justify-center shrink-0">
+          <i data-lucide="scan-search" class="w-5 h-5 text-white/80"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-[15.5px]">Explicabilidade com SHAP</h4>
+          <p class="mt-1.5 text-[14px] leading-[1.65] text-white/55">
+            Cada score chega ao gestor já traduzido em fatores legíveis não um número isolado, mas o
+            motivo por trás dele: qual variável pesou mais, e o quanto ela se afastou do padrão da máquina.
+          </p>
+        </div>
+      </div>
+      <div class="border border-white/10 rounded-xl p-7 flex gap-5">
+        <div class="w-10 h-10 rounded-lg bg-white/8 flex items-center justify-center shrink-0">
+          <i data-lucide="link-2" class="w-5 h-5 text-white/80"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-[15.5px]">Cadeia de hash SHA-256</h4>
+          <p class="mt-1.5 text-[14px] leading-[1.65] text-white/55">
+            Toda decisão é encadeada matematicamente à anterior. Qualquer alteração retroativa quebra a
+            cadeia de forma detectável a base da prova documental em disputa de sinistro.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- CICLO DE PREVENÇÃO -->
+<!-- =========================================================== -->
+<section id="ciclo" class="py-24 md:py-32 px-6 bg-paper">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal max-w-2xl">
+      <h2 class="text-[2rem] md:text-[2.6rem] font-extrabold tracking-tight leading-[1.12]">
+        Um ciclo, não um alarme isolado
+      </h2>
+      <p class="mt-5 text-[17px] leading-[1.65] text-slate">
+        Um alerta sozinho não previne sinistro o que previne é fechar o ciclo até a manutenção
+        acontecer, e recalcular o risco depois dela.
+      </p>
+    </div>
+
+    <div class="reveal mt-16 grid grid-cols-1 md:grid-cols-5 gap-y-10 md:gap-x-0 relative">
+
+      <div class="hidden md:block absolute top-6 left-[10%] right-[10%] cycle-line"></div>
+
+      <div class="relative flex flex-col items-start md:items-center md:text-center px-2">
+        <div class="w-12 h-12 rounded-full bg-white border border-line flex items-center justify-center relative z-10">
+          <i data-lucide="radio" class="w-5 h-5 text-red"></i>
+        </div>
+        <h4 class="mt-4 font-bold text-[14.5px]">Telemetria &amp; satélite</h4>
+        <p class="mt-1.5 text-[13px] leading-[1.55] text-slate md:max-w-[10.5rem]">Captura contínua do motor e da condição do solo.</p>
+      </div>
+
+      <div class="relative flex flex-col items-start md:items-center md:text-center px-2">
+        <div class="w-12 h-12 rounded-full bg-white border border-line flex items-center justify-center relative z-10">
+          <i data-lucide="search" class="w-5 h-5 text-red"></i>
+        </div>
+        <h4 class="mt-4 font-bold text-[14.5px]">Detecção de anomalia</h4>
+        <p class="mt-1.5 text-[13px] leading-[1.55] text-slate md:max-w-[10.5rem]">Isolation Forest e PCA cruzam os dois sinais.</p>
+      </div>
+
+      <div class="relative flex flex-col items-start md:items-center md:text-center px-2">
+        <div class="w-12 h-12 rounded-full bg-white border border-line flex items-center justify-center relative z-10">
+          <i data-lucide="bell-ring" class="w-5 h-5 text-red"></i>
+        </div>
+        <h4 class="mt-4 font-bold text-[14.5px]">Alerta ao gestor</h4>
+        <p class="mt-1.5 text-[13px] leading-[1.55] text-slate md:max-w-[10.5rem]">Explicado em linguagem natural, com o fator de risco.</p>
+      </div>
+
+      <div class="relative flex flex-col items-start md:items-center md:text-center px-2">
+        <div class="w-12 h-12 rounded-full bg-white border border-line flex items-center justify-center relative z-10">
+          <i data-lucide="link" class="w-5 h-5 text-red"></i>
+        </div>
+        <h4 class="mt-4 font-bold text-[14.5px]">Manutenção por link único</h4>
+        <p class="mt-1.5 text-[13px] leading-[1.55] text-slate md:max-w-[10.5rem]">Técnico externo registra o serviço sem precisar de login.</p>
+      </div>
+
+      <div class="relative flex flex-col items-start md:items-center md:text-center px-2">
+        <div class="w-12 h-12 rounded-full bg-red flex items-center justify-center relative z-10">
+          <i data-lucide="refresh-cw" class="w-5 h-5 text-white"></i>
+        </div>
+        <h4 class="mt-4 font-bold text-[14.5px]">Reprocessamento do score</h4>
+        <p class="mt-1.5 text-[13px] leading-[1.55] text-slate md:max-w-[10.5rem]">O sistema recalcula o risco assim que o reparo é concluído.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- BENEFÍCIOS -->
+<!-- =========================================================== -->
+<section id="seguradoras" class="py-24 md:py-32 px-6 bg-mist">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal max-w-2xl">
+      <h2 class="text-[2rem] md:text-[2.6rem] font-extrabold tracking-tight leading-[1.12]">
+        Valor por quem decide, gerencia e opera
+      </h2>
+    </div>
+
+    <div class="reveal mt-14 grid md:grid-cols-3 gap-6">
+
+      <div class="bg-white card-hairline rounded-xl p-8">
+        <div class="w-11 h-11 rounded-lg bg-red/10 flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-5 h-5 text-red"></i>
+        </div>
+        <h3 class="mt-5 font-bold text-[16.5px]">Para a Sompo Seguros</h3>
+        <ul class="mt-4 space-y-2.5 text-[14.5px] text-slate leading-[1.5]">
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Redução sistemática do Loss Ratio da carteira</li>
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Visibilidade em tempo real de toda a frota segurada</li>
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Auditoria criptográfica para disputa de sinistros</li>
+        </ul>
+      </div>
+
+      <div class="bg-white card-hairline rounded-xl p-8">
+        <div class="w-11 h-11 rounded-lg bg-red/10 flex items-center justify-center">
+          <i data-lucide="tractor" class="w-5 h-5 text-red"></i>
+        </div>
+        <h3 class="mt-5 font-bold text-[16.5px]">Para o Gestor de Frota</h3>
+        <ul class="mt-4 space-y-2.5 text-[14.5px] text-slate leading-[1.5]">
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Menos downtime não planejado na colheita</li>
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Manutenção guiada por condição, não por calendário</li>
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Histórico auditável para comprovar diligência</li>
+        </ul>
+      </div>
+
+      <div class="bg-white card-hairline rounded-xl p-8">
+        <div class="w-11 h-11 rounded-lg bg-red/10 flex items-center justify-center">
+          <i data-lucide="hard-hat" class="w-5 h-5 text-red"></i>
+        </div>
+        <h3 class="mt-5 font-bold text-[16.5px]">Para o Operador de Campo</h3>
+        <ul class="mt-4 space-y-2.5 text-[14.5px] text-slate leading-[1.5]">
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Alertas em linguagem simples, antes de operar</li>
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Canal direto para relatar falhas em campo</li>
+          <li class="flex gap-2.5"><i data-lucide="check" class="w-4 h-4 text-red shrink-0 mt-0.5"></i>Segurança operacional em tempo real</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- =========================================================== -->
+<!-- INTERFACES DO SISTEMA -->
+<!-- =========================================================== -->
+<section id="interfaces" class="py-24 md:py-32 px-6 bg-paper">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal max-w-2xl">
+      <h2 class="text-[2rem] md:text-[2.6rem] font-extrabold tracking-tight leading-[1.12]">
+        A mesma inteligência, uma tela para cada papel
+      </h2>
+      <p class="mt-5 text-[17px] leading-[1.65] text-slate">
+        Sompo, gestor, operador e técnico enxergam o mesmo motor de risco — cada um na profundidade e na
+        linguagem que o seu trabalho exige.
+      </p>
+    </div>
+ 
+    <div class="reveal mt-10 flex flex-wrap gap-2.5" id="filterBar">
+      <button class="filter-pill active" data-filter="all">Todas</button>
+      <button class="filter-pill" data-filter="acesso">Acesso</button>
+      <button class="filter-pill" data-filter="operador">Operador</button>
+      <button class="filter-pill" data-filter="gestor">Gestor</button>
+      <button class="filter-pill" data-filter="tecnico">Técnico</button>
+      <button class="filter-pill" data-filter="sompo">Sompo</button>
+    </div>
+ 
+    <div class="reveal mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12" id="galleryGrid">
+      <article class="gallery-card" data-cat="acesso">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/login_page.png" alt="Login unificado — Acesso" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Acesso</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Login unificado</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Autenticação por papel, com token JWT emitido na entrada.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="operador">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/operador_painel.png" alt="Painel do Operador — Operador" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Operador</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Painel do Operador</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Lista dos ativos atribuídos, com status pronto-para-uso à frente.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="operador">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/operador_maquina.png" alt="Detalhe do ativo — Operador" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Operador</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Detalhe do ativo</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Gauge mecânico e condição do solo lado a lado, em linguagem simples.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="gestor">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/gestor_central.png" alt="Central da frota — Gestor" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Gestor</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Central da frota</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Visão consolidada das propriedades, máquinas e tickets pendentes.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="gestor">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/gestor_cadastros!importante.png" alt="Cadastros e vínculos — Gestor" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Gestor</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Cadastros e vínculos</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Onde o Gestor liga sensor, fazenda, máquina e operador.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="gestor">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/gestor_funcionarios.png" alt="Operadores da equipe — Gestor" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Gestor</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Operadores da equipe</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Detalhe do operador e dos equipamentos sob sua responsabilidade.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="gestor">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/gestor_tickets.png" alt="Tickets da equipe — Gestor" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Gestor</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Tickets da equipe</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Ocorrências relatadas em campo, do alerta ao encerramento.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="gestor">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/gestor_solicita_manutencao.png" alt="Manutenção externa — Gestor" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Gestor</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Manutenção externa</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Link único gerado na hora, pronto para enviar ao técnico.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="tecnico">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/tecnico_portal.png" alt="Portal do Técnico — Técnico" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Técnico</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Portal do Técnico</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Formulário de manutenção acessado sem login, por token temporário.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="tecnico">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/tecnico_registrado.png" alt="Manutenção registrada — Técnico" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Técnico</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Manutenção registrada</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Confirmação que dispara o reprocessamento do score da máquina.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="sompo">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/analista_visao_executiva.png" alt="Visão executiva — Sompo" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Sompo</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Visão executiva</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Exposição financeira e risco crítico da carteira, em tempo real.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="sompo">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/diagnostico.png" alt="Dossiê do ativo — Sompo" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Sompo</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Dossiê do ativo</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Mesmo laudo do operador, com o hash de auditoria em destaque.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="sompo">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/analista_sinistros.png" alt="Sinistros escalados — Sompo" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Sompo</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Sinistros escalados</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Ocorrências graves encaminhadas pelos gestores para regulação.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="sompo">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/analista_auditoria.png" alt="Auditoria de decisões — Sompo" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Sompo</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Auditoria de decisões</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Cadeia de hash de cada score, verificável a qualquer momento.</p>
+        </div>
+      </article>
+      <article class="gallery-card" data-cat="sompo">
+        <div class="browser-frame">
+          <div class="browser-bar">
+            <span class="browser-dot" style="background:#ED6A5E"></span>
+            <span class="browser-dot" style="background:#F4BF4F"></span>
+            <span class="browser-dot" style="background:#61C454"></span>
+          </div>
+          <img src="assets/interfaces/analista_cadastros.png" alt="Cadastros e apólices — Sompo" loading="lazy">
+        </div>
+        <div class="mt-4">
+          <span class="text-[11.5px] font-semibold text-red uppercase tracking-wide">Sompo</span>
+          <h4 class="mt-1 font-bold text-[15.5px] text-ink">Cadastros e apólices</h4>
+          <p class="mt-1 text-[13.5px] leading-[1.5] text-slate">Base global de máquinas seguradas e contas de gestores.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!-- FOOTER -->
+<!-- =========================================================== -->
+<footer class="bg-char text-white/60 pt-16 pb-10 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-[1.3fr_1fr_1fr] gap-10">
+      <div>
+        <span class="text-white text-[19px] font-extrabold tracking-tight">MAIA</span>
+        <p class="mt-3 text-[14px] leading-[1.65] max-w-xs">
+          Do conhecimento sobre a natureza à inteligência sobre o risco. Um projeto acadêmico desenvolvido
+          em parceria com a Sompo Seguros.
+        </p>
+      </div>
+
+      <div>
+        <h5 class="text-white/85 font-semibold text-[13.5px]">Navegação</h5>
+        <ul class="mt-3 space-y-2 text-[14px]">
+          <li><a href="#inteligencia" class="hover:text-white transition-colors">A Inteligência Artificial</a></li>
+          <li><a href="#ciclo" class="hover:text-white transition-colors">Como Funciona</a></li>
+          <li><a href="#seguradoras" class="hover:text-white transition-colors">Para Seguradoras</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 class="text-white/85 font-semibold text-[13.5px]">Projeto</h5>
+        <ul class="mt-3 space-y-2 text-[14px]">
+          <li>
+            <a href="https://github.com/renansouz/maia-intelligence-NEXT" target="_blank" rel="noopener" class="hover:text-white transition-colors inline-flex items-center gap-1.5">
+              <i data-lucide="github" class="w-3.5 h-3.5"></i> Repositório no GitHub
+            </a>
+          </li>
+          <li><a href="assets/pdf/MAIA_Manual_Executivo_Tecnico.pdf" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-red hover:bg-reddk text-white font-semibold text-[15px] px-6 py-3.5 rounded-md transition-colors">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          Baixar Manual Técnico (PDF)
+        </a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-14 pt-6 border-t border-white/10 flex flex-col md:flex-row gap-3 md:items-center md:justify-between text-[12.5px] text-white/40">
+      <p>MAIA é um projeto acadêmico desenvolvido para o Enterprise Challenge FIAP 2026, em parceria com a Sompo Seguros. As informações apresentadas têm caráter demonstrativo.</p>
+      <p class="shrink-0">© Enterprise Challenge FIAP &amp; Sompo Seguros 2026</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  lucide.createIcons();
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  const filterBar = document.getElementById('filterBar');
+  const galleryCards = document.querySelectorAll('#galleryGrid .gallery-card');
+  filterBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-pill');
+    if (!btn) return;
+    filterBar.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    galleryCards.forEach(card => {
+      const show = filter === 'all' || card.dataset.cat === filter;
+      card.classList.toggle('hide', !show);
+    });
+  });
+</script>
+
+</body>
+</html>
