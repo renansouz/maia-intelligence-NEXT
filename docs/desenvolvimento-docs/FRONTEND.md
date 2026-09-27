@@ -55,7 +55,7 @@ frontend/
 │   │       ├── detalhe-maquina.js → detalhes e laudo técnico compartilhado (Sompo, Gestor e Operador)
 │   │       └── mapa.js        → Mapeamento de distribuição de frotas
 │   └── manutencao.js          → Script isolado para o fluxo do técnico externo
-├── index.html                 → Ponto de entrada SPA (protegido por autenticação JWT)
+├── app.html                 → Ponto de entrada SPA (protegido por autenticação JWT)
 ├── login.html                 → Tela de autenticação com tratamento de erros por `detail`
 └── manutencao.html            → Página isolada do Técnico de Manutenção (sem login/token na URL)
 ```

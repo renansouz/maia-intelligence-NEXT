@@ -7,7 +7,7 @@
 <p align="center"><i>Do conhecimento sobre a natureza à inteligência sobre o risco.</i></p>
 
 <p align="center">
-  <a href="https://maia-sompo-seguros.vercel.app/landing.html" target="_blank" rel="noopener">
+  <a href="https://maia-sompo-seguros.vercel.app" target="_blank" rel="noopener">
     <img src="https://img.shields.io/badge/Landing%20Page-Acesse%20o%20Site%20Ao%20Vivo-DF082A?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Landing Page Ao Vivo">
   </a>
 </p>
@@ -65,14 +65,14 @@ O MAIA não é apenas um painel de monitoramento estatístico; ele implementa um
 
 Para uma imersão completa em cada aspecto do projeto, consulte os documentos na pasta `docs/`:
 
-| Documento                                                      | Conteúdo                                                                        |
-| :------------------------------------------------------------- | :------------------------------------------------------------------------------ |
-| [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)             | Valor comercial, redução de sinistralidade e impacto financeiro para a Sompo.   |
-| [docs/ARQUITETURA.md](docs/ARQUITETURA.md)                     | Fluxo de dados end-to-end, diagramas, hierarquia RBAC e decisões de engenharia. |
-| [docs/MODELO_IA.md](docs/MODELO_IA.md)                         | Metodologia de Machine Learning (Operacional + Ambiental), validação e limites. |
+| Documento                                                    | Conteúdo                                                                        |
+| :----------------------------------------------------------- | :------------------------------------------------------------------------------ |
+| [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)           | Valor comercial, redução de sinistralidade e impacto financeiro para a Sompo.   |
+| [docs/ARQUITETURA.md](docs/ARQUITETURA.md)                   | Fluxo de dados end-to-end, diagramas, hierarquia RBAC e decisões de engenharia. |
+| [docs/MODELO_IA.md](docs/MODELO_IA.md)                       | Metodologia de Machine Learning (Operacional + Ambiental), validação e limites. |
 | [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
-| [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)     | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
-| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                       | Especificação de hardware IoT, custos de componentes (BOM) e simulação.         |
+| [docs/EVOLUCAO_DO_PROJETO.md](docs/EVOLUCAO_DO_PROJETO.md)   | Trajetória evolutiva da Sprint 1 à Sprint 4 e resiliência frente aos feedbacks. |
+| [docs/SENSOR_IOT.md](docs/SENSOR_IOT.md)                     | Especificação de hardware IoT, custos de componentes (BOM) e simulação.         |
 
 > 📄 **Documentação Executiva Oficial:** Você pode baixar o [Manual Executivo em PDF](./frontend/assets/pdf/MAIA_Manual_Executivo_Tecnico.pdf), contendo o detalhamento de negócio, arquitetura, pipeline de dados e capturas de tela de todas as interfaces do sistema.
 

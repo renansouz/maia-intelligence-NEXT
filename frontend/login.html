@@ -43,7 +43,7 @@
         import { salvarSessao, getToken } from './js/core/auth.js';
 
         if (getToken()) {
-            window.location.href = 'index.html';
+            window.location.href = 'app.html';
         }
 
         const form = document.getElementById('login-form');
@@ -73,7 +73,7 @@
 
                 const dados = await response.json();
                 salvarSessao(dados.token, dados.papel, dados.nome);
-                window.location.href = 'index.html';
+                window.location.href = 'app.html';
 
             } catch (error) {
                 erroEl.textContent = error.message;
