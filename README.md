@@ -6,6 +6,12 @@
 <h3 align="center">Monitoramento, Análise e Inteligência Agrícola</h3>
 <p align="center"><i>Do conhecimento sobre a natureza à inteligência sobre o risco.</i></p>
 
+<p align="center">
+  <a href="https://maia-sompo-seguros.vercel.app/landing.html" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/badge/Landing%20Page-Acesse%20o%20Site%20Ao%20Vivo-DF082A?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Landing Page Ao Vivo">
+  </a>
+</p>
+
 ---
 
 A civilização maia observava o céu e os ciclos da terra para decidir com mais segurança. O MAIA segue o mesmo princípio, utilizando telemetria de sensores, dados meteorológicos e inteligência orbital no lugar da observação do céu, transformando informação agrícola em inteligência de risco para seguradoras.
