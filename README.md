@@ -177,7 +177,7 @@ _(Caso queira iniciar com o sistema 100% limpo, basta não executar este comando
   uvicorn app.main:app --reload
   ```
 
-Abra o navegador e acesse: **`http://127.0.0.1:8000/login.html`**
+Abra o navegador e acesse: **`http://127.0.0.1:8000/login.html`** (Caso esqueça do '/login.html' sera encaminhado para a landing page, que foi feita apenas para melhor apresentação do projeto)
 
 ---
 
