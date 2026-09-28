@@ -12,6 +12,9 @@
   </a>
 </p>
 
+> 🔗 Assista à demonstração completa de ponta a ponta do sistema: <br>
+> [Acesse o Vídeo no YouTube https://www.youtube.com/watch?v=1hUKn1wWac4](https://www.youtube.com/watch?v=1hUKn1wWac4)
+
 ---
 
 A civilização maia observava o céu e os ciclos da terra para decidir com mais segurança. O MAIA segue o mesmo princípio, utilizando telemetria de sensores, dados meteorológicos e inteligência orbital no lugar da observação do céu, transformando informação agrícola em inteligência de risco para seguradoras.
