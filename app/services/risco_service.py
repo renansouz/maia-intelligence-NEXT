@@ -8,8 +8,43 @@ from app.core.database import db
 from app.services.ml_service import ml_service
 from app.services.audit_service import gerar_hash_integridade
 from app.services.ticket_service import buscar_contexto_tickets
+from datetime import datetime
+
+def _dias_desde_ultima_manutencao(equipamento_id, data_medicao):
+    """Dias entre a última manutenção registrada em TB_MAQUINA e a data da
+    medição. Retorna None se não há manutenção registrada (nesse caso vale
+    o valor enviado na telemetria)."""
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT DATA_ULTIMA_MANUTENCAO FROM TB_MAQUINA WHERE EQUIPAMENTO_ID = :eq",
+            eq=equipamento_id,
+        )
+        row = cursor.fetchone()
+    finally:
+        cursor.close()
+        db.release_connection(conn)
+
+    if not row or row[0] is None:
+        return None
+
+    ultima = row[0].date() if hasattr(row[0], "date") else row[0]
+    if isinstance(data_medicao, str):
+        medicao = datetime.strptime(data_medicao[:10], "%Y-%m-%d").date()
+    elif hasattr(data_medicao, "date"):
+        medicao = data_medicao.date()
+    else:
+        medicao = data_medicao
+    return max((medicao - ultima).days, 0)
 
 def processar_previsao_completa(dados_telemetria):
+    dias_real = _dias_desde_ultima_manutencao(
+        dados_telemetria.get("equipamento_id"), dados_telemetria.get("data_medicao")
+    )
+    if dias_real is not None:
+        dados_telemetria = {**dados_telemetria, "manutencao_dias": dias_real}
+
     resultado_ml = ml_service.prever_score(dados_telemetria)
 
     tickets = buscar_contexto_tickets(dados_telemetria["equipamento_id"])

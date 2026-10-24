@@ -26,7 +26,7 @@ A avaliação destacou a clareza do escopo e das personas, mas pontuou a necessi
 
 ### Evolução Técnica
 
-Nesta fase, a solução ganhou base quantitativa real. Abandonamos as regras puramente estáticas de limiar (_threshold_) e estruturamos a base analítica com dados reais de barramento CAN (J1939) combinados a indicadores climáticos. Diferente de classificadores supervisionados tradicionais (inviáveis pela ausência de massa rotulada de falhas reais), optamos por algoritmos não supervisionados de detecção de anomalias (*Isolation Forest* com *RobustScaler*), permitindo identificar desvios multivariados do comportamento normal do maquinário com alta interpretabilidade.
+Nesta fase, a solução ganhou base quantitativa real. Abandonamos as regras puramente estáticas de limiar (_threshold_) e estruturamos a base analítica com dados reais de barramento CAN (J1939) combinados a indicadores climáticos. Diferente de classificadores supervisionados tradicionais (inviáveis pela ausência de massa rotulada de falhas reais), optamos por algoritmos não supervisionados de detecção de anomalias (_Isolation Forest_ com _RobustScaler_), permitindo identificar desvios multivariados do comportamento normal do maquinário com alta interpretabilidade.
 
 ### Entregáveis da Etapa
 
@@ -66,7 +66,7 @@ A etapa final representou a consolidação estrutural, eliminando débitos técn
 ### Principais Marcos da Consolidação
 
 1. **Imutabilidade e Verificabilidade da Cadeia de Auditoria:**
-   - O serviço de risco (`risco_service.py` e `audit_service.py`) foi reescrito para operar exclusivamente com inserções sequenciais (`INSERT`), garantindo que o histórico de decisões do modelo seja imutável.
+   - O serviço de risco (`risco_service.py` e `audit_service.py`) foi reescrito para operar exclusivamente com inserções sequenciais (`INSERT`), garantindo que o histórico de decisões do modelo tenha adulteração detectável.
    - Implementação de um mecanismo de verificação de integridade sob demanda que recalcula a cadeia criptográfica (SHA-256) bloco a bloco.
 
 2. **Segurança Corporativa com RBAC e JWT:**
@@ -74,7 +74,7 @@ A etapa final representou a consolidação estrutural, eliminando débitos técn
    - Implementação de autorização em duas camadas (validação de papel combinada ao escopo relacional de propriedade/vínculo do ativo).
 
 3. **Arquitetura de Motor Duplo (Mecânico + Ambiental):**
-   - Além do motor operacional baseado em CAN (*Isolation Forest*), consolidou-se a camada de análise geoespacial de solo e terreno (*PCA Ambiental* via dados orbitais do Sentinel-1/GEE), atendendo diretamente às cláusulas de proximidade hídrica da apólice da Sompo.
+   - Além do motor operacional baseado em CAN (_Isolation Forest_), consolidou-se a camada de análise geoespacial de solo e terreno (_PCA Ambiental_ via dados orbitais do Sentinel-1/GEE), atendendo diretamente às cláusulas de proximidade hídrica da apólice da Sompo.
 
 4. **Ciclo Completo de Prevenção e Retroalimentação Humana:**
    - **Tickets Operacionais:** Operadores relatam ocorrências no campo por meio de interface simplificada; os registros alimentam o contexto de risco analisado nas previsões subsequentes do modelo.

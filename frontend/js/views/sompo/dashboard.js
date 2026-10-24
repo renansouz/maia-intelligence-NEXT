@@ -10,22 +10,29 @@ export async function renderSompoDashboard() {
     `;
 
     try {
-        const historico = await fetchHistorico();
+        // Consome as máquinas distintas e os sinistros reais em paralelo
+        const [maquinasRes, gestoresRes, sinistrosRes] = await Promise.all([
+            fetch('/maquinas', { headers: { 'Authorization': `Bearer ${localStorage.getItem('maia_token')}` } }).then(r => r.ok ? r.json() : []),
+            fetch('/gestores', { headers: { 'Authorization': `Bearer ${localStorage.getItem('maia_token')}` } }).then(r => r.ok ? r.json() : []).catch(() => []),
+            fetch('/tickets/sinistros', { headers: { 'Authorization': `Bearer ${localStorage.getItem('maia_token')}` } }).then(r => r.ok ? r.json() : []).catch(() => [])
+        ]);
 
-        if (!historico || historico.length === 0) {
-            container.innerHTML = `<p class="text-center py-10 text-gray-500">Nenhum dado de risco registrado na base.</p>`;
-            return;
-        }
+        const maquinas = maquinasRes || [];
+        const maquinasCriticas = maquinas.filter(m => m.classificacao === 'ALTO');
 
-        const maquinasCriticas = historico.filter(d => d.CLASSIFICACAO === 'ALTO');
         const totalCriticas = maquinasCriticas.length;
-        const exposicaoFinanceira = totalCriticas * 350000;
+        // Soma o VALOR_SEGURADO real vindo do banco para as máquinas distintas em risco crítico
+        const exposicaoFinanceira = maquinasCriticas.reduce((acc, m) => acc + (m.valor_segurado || 350000), 0);
+
+        const totalGestores = gestoresRes.length || 1;
+        const totalSinistrosReais = sinistrosRes.length;
         const formatoMoeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+
 
         container.innerHTML = `
             <div class="space-y-10 animate-in fade-in duration-500">
                 
-                <!-- 1. OS QUATRO NÚMEROS-CHAVE DE DECISÃO (Com regra de clique condicional) -->
+                <!-- 1. OS QUATRO NÚMEROS-CHAVE DE DECISÃO -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     
                     <div onclick="${totalCriticas > 0 ? "document.getElementById('tabela-risco-critico').scrollIntoView({behavior: 'smooth'})" : ""}" 
@@ -63,7 +70,7 @@ export async function renderSompoDashboard() {
                             </div>
                         </div>
                         <div class="mt-4">
-                            <div class="text-3xl font-black text-gray-900">3</div>
+                            <div class="text-3xl font-black text-gray-900">${totalSinistrosReais}</div>
                             <p class="text-xs text-gray-500 mt-1 font-medium">Ocorrências abertas em campo</p>
                         </div>
                     </div>
@@ -83,7 +90,7 @@ export async function renderSompoDashboard() {
 
                 </div>
 
-                <!-- 2. LISTA PRIORITÁRIA DE RISCO (Linhas clicáveis levando ao Detalhe da Máquina) -->
+                <!-- 2. LISTA PRIORITÁRIA DE RISCO (Apenas máquinas distintas) -->
                 <div id="tabela-risco-critico" class="space-y-4">
                     <div class="flex justify-between items-end">
                         <div>

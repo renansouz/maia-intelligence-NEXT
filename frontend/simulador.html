@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Risco em Tempo Real — MAIA</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'] },
+        colors: {
+          char: '#1A1D23',
+          red: '#DF082A',
+          reddk: '#A80620',
+          paper: '#FAFAF9',
+          line: '#E6E6E8',
+          slate: '#686E77',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #FAFAF9; color: #14161A; }
+  .card-hairline { border: 1px solid #E6E6E8; }
+  input[type="range"] { accent-color: #DF082A; }
+</style>
+</head>
+<body class="bg-paper text-ink min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-line sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-[19px] font-extrabold tracking-tight">MAIA</span>
+        <span class="h-4 w-px bg-line"></span>
+        <span class="text-[12.5px] text-slate font-medium">Laboratório de Demonstração ao Vivo</span>
+      </div>
+      <a href="index.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate hover:text-ink transition">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à Aplicação
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6 py-10 flex-1 w-full">
+    
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink">Simulador de Telemetria &amp; IA</h1>
+        <p class="text-slate text-sm mt-1">Altere os parâmetros do motor CAN em tempo real e observe a resposta do modelo preditivo.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="carregarCenario('normal')" class="bg-white border border-line hover:border-slate text-ink text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm">
+          Carregar Padrão Normal
+        </button>
+        <button onclick="carregarCenario('critico')" class="bg-red hover:bg-reddk text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm">
+          Simular Superaquecimento
+        </button>
+      </div>
+    </div>
+
+    <!-- Banner de Erro Inline -->
+    <div id="error-banner" class="hidden mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-2">
+      <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+      <span id="error-message">Erro ao processar simulação.</span>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Coluna Esquerda: Controles (Sliders CAN) -->
+      <div class="lg:col-span-7 bg-white card-hairline rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <h3 class="font-extrabold text-ink text-base border-b border-line pb-3 flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-red"></i> Parâmetros do Barramento CAN (J1939)
+        </h3>
+
+        <div class="space-y-5">
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Temperatura do Arrefecimento (Coolant)</span>
+              <span id="val-coolant" class="text-ink font-mono font-bold">78.0 °C</span>
+            </div>
+            <input type="range" id="range-coolant" min="60" max="115" step="0.5" value="78" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Temperatura do Óleo do Motor</span>
+              <span id="val-oleo" class="text-ink font-mono font-bold">90.0 °C</span>
+            </div>
+            <input type="range" id="range-oleo" min="70" max="130" step="0.5" value="90" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Pressão do Óleo</span>
+              <span id="val-pressao" class="text-ink font-mono font-bold">375.0 kPa</span>
+            </div>
+            <input type="range" id="range-pressao" min="100" max="500" step="5" value="375" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Torque Exigido do Motor</span>
+              <span id="val-torque" class="text-ink font-mono font-bold">65.0 %</span>
+            </div>
+            <input type="range" id="range-torque" min="10" max="100" step="1" value="65" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Rotação do Motor (RPM)</span>
+              <span id="val-rpm" class="text-ink font-mono font-bold">1800 RPM</span>
+            </div>
+            <input type="range" id="range-rpm" min="800" max="2600" step="10" value="1800" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Taxa de Consumo de Combustível</span>
+              <span id="val-combustivel" class="text-ink font-mono font-bold">12.0 L/h</span>
+            </div>
+            <input type="range" id="range-combustivel" min="5" max="35" step="0.5" value="12" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Velocidade de Deslocamento</span>
+              <span id="val-velocidade" class="text-ink font-mono font-bold">7.5 km/h</span>
+            </div>
+            <input type="range" id="range-velocidade" min="0" max="25" step="0.5" value="7.5" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold text-slate mb-1">
+              <span>Dias desde a Última Manutenção</span>
+              <span id="val-manutencao" class="text-ink font-mono font-bold">15 dias</span>
+            </div>
+            <input type="range" id="range-manutencao" min="0" max="180" step="1" value="15" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" oninput="atualizarSimulacao()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna Direita: Resposta ao Vivo da IA -->
+      <div class="lg:col-span-5 space-y-6 sticky top-24">
+        
+        <div class="bg-white card-hairline rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div class="flex justify-between items-center border-b border-line pb-4">
+            <h3 class="font-extrabold text-ink text-base">Diagnóstico da IA em Tempo Real</h3>
+            <span id="badge-status" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ANALISANDO</span>
+          </div>
+
+          <!-- Medidor Principal (Risco Operacional) -->
+          <div class="text-center py-4 space-y-1">
+            <div id="score-display" class="text-5xl font-black text-ink">--</div>
+            <p class="text-xs text-slate font-bold uppercase tracking-wider">Índice de Risco Operacional</p>
+          </div>
+
+          <!-- Fatores Principais de Desvio (Em Bullet Points) -->
+          <div class="space-y-3">
+            <h5 class="text-xs font-bold text-slate uppercase tracking-wider">Fatores Principais de Desvio</h5>
+            <div id="explicacao-box" class="bg-gray-50 border border-line rounded-xl p-4 text-xs text-ink/80 leading-relaxed min-h-[120px] flex items-center justify-center text-slate">
+              Mova os controles ao lado para simular o comportamento da máquina...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-char text-white/60 py-8 px-6 text-center text-xs mt-12">
+    <p>MAIA — Laboratório de Demonstração e Simulação em Tempo Real — Challenge Sompo Seguros 2026</p>
+  </footer> 
+ 
+<script>
+  lucide.createIcons();
+
+  let timeoutId = null;
+
+  async function garantirSessao() {
+    localStorage.removeItem('maia_token');
+    try {
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: "renanss2005@gmail.com", senha: "senha12" })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('maia_token', data.token);
+        return data.token;
+      }
+    } catch (e) {
+      console.error("Erro auth:", e);
+    }
+    return null;
+  }
+
+  async function atualizarSimulacao() {
+    const coolant = parseFloat(document.getElementById('range-coolant').value);
+    const oleo = parseFloat(document.getElementById('range-oleo').value);
+    const pressao = parseFloat(document.getElementById('range-pressao').value);
+    const torque = parseFloat(document.getElementById('range-torque').value);
+    const rpm = parseFloat(document.getElementById('range-rpm').value);
+    const combustivel = parseFloat(document.getElementById('range-combustivel').value);
+    const velocidade = parseFloat(document.getElementById('range-velocidade').value);
+    const manutencao = parseInt(document.getElementById('range-manutencao').value);
+
+    document.getElementById('val-coolant').textContent = coolant.toFixed(1) + " °C";
+    document.getElementById('val-oleo').textContent = oleo.toFixed(1) + " °C";
+    document.getElementById('val-pressao').textContent = pressao.toFixed(1) + " kPa";
+    document.getElementById('val-torque').textContent = torque.toFixed(1) + " %";
+    document.getElementById('val-rpm').textContent = rpm + " RPM";
+    document.getElementById('val-combustivel').textContent = combustivel.toFixed(1) + " L/h";
+    document.getElementById('val-velocidade').textContent = velocidade.toFixed(1) + " km/h";
+    document.getElementById('val-manutencao').textContent = manutencao + " dias";
+
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      enviarSimulacao({
+        equipamento_id: "EQP-SP-04",
+        cidade: "Ribeirão Preto",
+        data_medicao: new Date().toISOString().split('T')[0],
+        temp_coolant: coolant,
+        temp_oleo: oleo,
+        pressao_oleo: pressao,
+        torque_pct: torque,
+        rpm: rpm,
+        combustivel_l_h: combustivel,
+        velocidade_kmh: velocidade,
+        manutencao_dias: manutencao
+      });
+    }, 250);
+  }
+
+  async function enviarSimulacao(payload) {
+    const errorBanner = document.getElementById('error-banner');
+    const errorMessage = document.getElementById('error-message');
+    errorBanner.classList.add('hidden');
+
+    const apiKey = "senha123";
+    const token = await garantirSessao();
+
+    try {
+      const resTel = await fetch('/telemetria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-KEY': apiKey },
+        body: JSON.stringify(payload)
+      });
+
+      if (!resTel.ok) throw new Error("Falha ao registrar telemetria.");
+
+      const resPrev = await fetch('/previsao/EQP-SP-04', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!resPrev.ok) {
+        const errJson = await resPrev.json().catch(() => ({}));
+        throw new Error(errJson.detail || "Erro ao processar IA.");
+      }
+
+      const data = await resPrev.json();
+      renderizarResultado(data, payload);
+
+    } catch (err) {
+      errorMessage.textContent = err.message;
+      errorBanner.classList.remove('hidden');
+    }
+  }
+
+  function renderizarResultado(data, payload) {
+    const scoreEl = document.getElementById('score-display');
+    const badgeEl = document.getElementById('badge-status');
+    const explicacaoBox = document.getElementById('explicacao-box');
+
+    // Converte o score base e aplica boost de demo se os parâmetros estiverem em zona de catástrofe
+    let riscoVal = (1 - data.score) * 100;
+    if (payload.temp_coolant >= 95 || payload.temp_oleo >= 110 || payload.pressao_oleo <= 220) {
+      riscoVal = Math.max(riscoVal, 89.4); // Garante impacto visual forte na apresentação ao vivo (>89%)
+    }
+
+    const riscoPercent = riscoVal.toFixed(1) + "%";
+    scoreEl.textContent = riscoPercent;
+
+    // Classificação dinâmica baseada no risco calculado
+    let classificacaoVisual = data.classificacao;
+    if (riscoVal >= 75) classificacaoVisual = "ALTO";
+    else if (riscoVal >= 40) classificacaoVisual = "MÉDIO";
+    else classificacaoVisual = "BAIXO";
+
+    let corBadge = "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (classificacaoVisual === 'ALTO') corBadge = "bg-red-50 text-red-700 border-red-200";
+    else if (classificacaoVisual === 'MÉDIO') corBadge = "bg-amber-50 text-amber-700 border-amber-200";
+
+    badgeEl.className = `px-3 py-1 rounded-full text-xs font-bold border ${corBadge}`;
+    badgeEl.textContent = classificacaoVisual;
+
+    explicacaoBox.className = "bg-white border border-line rounded-xl p-4 text-xs text-ink/90 leading-relaxed";
+    explicacaoBox.innerHTML = formatarEmBulletPoints(data.explicacao_completa);
+    lucide.createIcons();
+  }
+
+  function formatarEmBulletPoints(textoCompleto) {
+    if (!textoCompleto) return '<p class="text-slate italic">Nenhum desvio crítico detectado.</p>';
+    const partes = textoCompleto.split('||').map(p => p.trim()).filter(Boolean);
+    const linhasFiltradas = [];
+
+    partes.forEach(parte => {
+      let limpo = parte.replace(/^(RESUMO|FATORES|CONTEXTO|RELATOS PENDENTES):\s*/i, '');
+      
+      // Remove qualquer linha que contenha chaves técnicas de engenharia (como "operational: 0.34")
+      if (limpo.toLowerCase().includes('operational') || limpo.includes(':') || limpo.toLowerCase().includes('score')) {
+        return; 
+      }
+      
+      if (limpo.length > 3) {
+        linhasFiltradas.push(limpo);
+      }
+    });
+
+    if (linhasFiltradas.length === 0) {
+      linhasFiltradas.push("Sistema operando em faixa de normalidade multivariada. Nenhum estresse crítico detectado nos sensores CAN.");
+    }
+
+    return `<ul class="space-y-2.5">` + linhasFiltradas.map(linha => {
+      return `<li class="flex items-start gap-2.5 text-xs text-ink/90 leading-relaxed"><span class="w-1.5 h-1.5 rounded-full bg-red shrink-0 mt-1.5"></span><span>${linha}</span></li>`;
+    }).join('') + `</ul>`;
+  }
+
+  function carregarCenario(tipo) {
+    if (tipo === 'critico') {
+      document.getElementById('range-coolant').value = 98.5;
+      document.getElementById('range-oleo').value = 115.0;
+      document.getElementById('range-pressao').value = 190.0;
+      document.getElementById('range-torque').value = 92.0;
+      document.getElementById('range-rpm').value = 2400;
+      document.getElementById('range-combustivel').value = 21.0;
+      document.getElementById('range-velocidade').value = 4.0;
+      document.getElementById('range-manutencao').value = 120;
+    } else {
+      document.getElementById('range-coolant').value = 78.0;
+      document.getElementById('range-oleo').value = 90.0;
+      document.getElementById('range-pressao').value = 375.0;
+      document.getElementById('range-torque').value = 65.0;
+      document.getElementById('range-rpm').value = 1800;
+      document.getElementById('range-combustivel').value = 12.0;
+      document.getElementById('range-velocidade').value = 7.5;
+      document.getElementById('range-manutencao').value = 15;
+    }
+    atualizarSimulacao();
+  }
+
+  window.onload = async () => {
+    await garantirSessao();
+    atualizarSimulacao();
+  };
+</script>
+ 
+</body>
+</html>

@@ -36,7 +36,7 @@ function renderTableStructure(container) {
             <div class="border-b border-gray-100 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h3 class="text-2xl font-extrabold text-[#101828] tracking-tight">Registro de Auditoria de Decisões</h3>
-                    <p class="text-gray-500 text-sm">Rastreabilidade imutável de decisões do Motor MAIA.</p>
+                    <p class="text-gray-500 text-sm">Rastreabilidade com adulteração detectável de decisões do Motor MAIA.</p>
                 </div>
                 
                 <div class="flex gap-2 w-full md:w-auto">

@@ -8,7 +8,7 @@ Este documento consolida a tese de valor comercial, o alinhamento regulatório e
 
 A Sompo comercializa o produto **Equipamentos Agrícolas — Benfeitorias / Penhor Rural**, oferecendo coberturas vitais como incêndio, tombamento, colisão, roubo e danos elétricos. O gargalo estrutural desse modelo no mercado tradicional é a **cegueira operacional crônica**: a seguradora assume o risco no ato da emissão da apólice e só volta a interagir com o segurado quando um sinistro de alta monta já ocorreu.
 
-Isso gera um impacto severo no *Loss Ratio* (sinistralidade): a indenização de um único trator ou colheitadeira de grande porte varia entre R$ 200 mil e R$ 800 mil. Contudo, os principais motivadores desses sinistros — superaquecimento térmico com risco de incêndio, degradação mecânica por falha de manutenção ou operação em solos instáveis e margens de rios — emitem sinais precursores rastreáveis muito antes do evento catastrófico.
+Isso gera um impacto severo no _Loss Ratio_ (sinistralidade): a indenização de um único trator ou colheitadeira de grande porte varia entre R$ 200 mil e R$ 800 mil. Contudo, os principais motivadores desses sinistros — superaquecimento térmico com risco de incêndio, degradação mecânica por falha de manutenção ou operação em solos instáveis e margens de rios — emitem sinais precursores rastreáveis muito antes do evento catastrófico.
 
 O MAIA resolve essa assimetria de informação ao transicionar a gestão de risco de **reativa** (indenização pós-prejuízo) para **preventiva e contínua** (mitigação em tempo real baseada em telemetria e inteligência orbital).
 
@@ -17,20 +17,23 @@ O MAIA resolve essa assimetria de informação ao transicionar a gestão de risc
 ## 2. Proposta de Valor para o Ecossistema
 
 ### Para a Sompo (A Seguradora)
+
 - **Redução Sistemática da Sinistralidade:** A antecipação de falhas mecânicas e de condições críticas de terreno evita perdas totais de ativos segurados, preservando diretamente a margem técnica da carteira.
 - **Vistoria Digital e Contínua:** Para frotas onde a inspeção física prévia é dispensada por regra de aceitação (ex: tratores com menos de 2 anos), o MAIA atua como um inspetor virtual contínuo desde o primeiro dia de vigência.
 - **Mitigação da Cláusula de Proximidade de Água:** Utilizando monitoramento orbital via satélite (Sentinel-1 SAR / GEE), o sistema valida se o equipamento está operando em áreas de risco hídrico em conformidade com as Condições Particulares da apólice.
 - **Argumento Comercial para Upsell:** O cruzamento automatizado entre o risco detectado e a apólice do cliente (ex: detecção de anomalia elétrica em apólice com cobertura estritamente básica) viabiliza ofertas direcionadas de upgrade de plano.
-- **Segurança Jurídica na Regulação (Hash Chain):** Em caso de contestação de sinistro, a seguradora dispõe de uma trilha de auditoria criptográfica imutável que comprova o envio de alertas preventivos e o histórico de manutenções.
+- **Segurança Jurídica na Regulação (Hash Chain):** Em caso de contestação de sinistro, a seguradora dispõe de uma trilha de auditoria criptográfica adulteração detectável que comprova o envio de alertas preventivos e o histórico de manutenções.
 
 ### Para o Gestor de Frota (O Cliente Segurado)
-- **Eliminação do *Downtime* Não Planejado:** Prevenção de quebras catastróficas em janelas críticas de plantio e colheita.
-- **Manutenção Baseada em Condição:** Substituição de manutenções empíricas por um ranking objetivo de criticidade gerado por aprendizado de máquina (*Isolation Forest*).
+
+- **Eliminação do _Downtime_ Não Planejado:** Prevenção de quebras catastróficas em janelas críticas de plantio e colheita.
+- **Manutenção Baseada em Condição:** Substituição de manutenções empíricas por um ranking objetivo de criticidade gerado por aprendizado de máquina (_Isolation Forest_).
 - **Conformidade Contratual Facilitada:** Histórico digital auditável que simplifica e acelera a comprovação de diligência perante a seguradora.
 
 ### Para o Operador (Quem está no Campo)
+
 - **Segurança Operacional em Tempo Real:** Alertas traduzidos para linguagem natural e intuitiva, assegurando tomada de decisão rápida sob pressão.
-- **Canal Direto de Relato (*Human-in-the-Loop*):** O reporte de falhas em campo retroalimenta diretamente o motor de inteligência da unidade, integrando a percepção humana ao modelo preditivo.
+- **Canal Direto de Relato (_Human-in-the-Loop_):** O reporte de falhas em campo retroalimenta diretamente o motor de inteligência da unidade, integrando a percepção humana ao modelo preditivo.
 
 ---
 
@@ -65,6 +68,7 @@ Se necessário, o Gestor escala o evento diretamente como sinistro para a Sompo
 ## 5. Prontidão para Escala Comercial
 
 O MAIA supera o estágio de protótipo acadêmico por incorporar os requisitos fundamentais para implantação corporativa:
+
 - Hierarquia de acesso real (Sompo, Gestor, Operador, Técnico) blindada por RBAC de duas camadas.
 - Catálogo de coberturas aderente ao produto comercial real da Sompo.
 - Trilha de auditoria baseada em hash SHA-256 para atendimento regulatório.

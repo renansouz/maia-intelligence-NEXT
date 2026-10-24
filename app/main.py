@@ -154,7 +154,17 @@ async def login(dados: LoginInput):
 @app.post("/telemetria", response_model=StandardResponse, status_code=201)
 async def post_telemetria(dados: TelemetriaInput, _=Depends(verificar_key)):
     salvar_telemetria_db(dados.model_dump())
-    return {"status": "sucesso", "mensagem": "telemetria registrada"}
+
+    # Gera a previsão logo após gravar. Se falhar, a telemetria continua salva.
+    try:
+        entrada = dados.model_dump()
+        entrada["data_medicao"] = dados.data_medicao.isoformat()
+        r = processar_previsao_completa(entrada)
+        msg = f"telemetria registrada | previsão: {r['classificacao']} (saúde {r['score'] * 100:.1f})"
+    except Exception as e:
+        logger.error(f"Telemetria salva, mas a previsão falhou: {e}", exc_info=True)
+        msg = "telemetria registrada | previsão não gerada (ver log)"
+    return {"status": "sucesso", "mensagem": msg}
 
 @app.post("/previsao/{equipamento_id}", response_model=PrevisaoResponse)
 async def post_previsao(equipamento_id: str, usuario_logado: dict = Depends(obter_usuario_atual)):

@@ -32,7 +32,7 @@ Nós organizamos o diretório `frontend/` de forma modular, separando a lógica 
 ```text
 frontend/
 ├── assets/
-│   └── sompo-logo.webp        → Identidade visual oficial da Sompo Seguros
+│   └── maia-logo.png        → Identidade visual oficial da Sompo Seguros
 ├── css/
 │   └── styles.css             → Variáveis de cores globais e classes utilitétricas
 ├── js/
@@ -51,7 +51,7 @@ frontend/
 │   │   ├── operador/
 │   │   │   └── painel.js      → Painel enxuto de campo integrado a previsão do tempo
 │   │   └── shared/
-│   │       ├── compliance.js  → Auditoria de Decisões e cadeia de hash imutável
+│   │       ├── compliance.js  → Auditoria de Decisões e cadeia de hash com adulteração detectável
 │   │       ├── detalhe-maquina.js → detalhes e laudo técnico compartilhado (Sompo, Gestor e Operador)
 │   │       └── mapa.js        → Mapeamento de distribuição de frotas
 │   └── manutencao.js          → Script isolado para o fluxo do técnico externo

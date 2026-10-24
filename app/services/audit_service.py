@@ -1,5 +1,5 @@
 """ noted by renansouz
-Este serviço garante a integridade imutável das decisões da IA:
+Este serviço garante a integridade adulteração detectável das decisões da IA:
 1. Implementa uma estrutura de 'ledger' onde cada hash depende do registro anterior.
 2. Utiliza SHA-256 para gerar assinaturas digitais únicas por predição.
 3. Gerencia concorrência via lock transacional (FOR UPDATE) para garantir unicidade da cadeia.

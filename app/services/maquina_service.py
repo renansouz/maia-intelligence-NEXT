@@ -137,14 +137,52 @@ def vincular_operador_maquina(equipamento_id, operador_id):
         cursor.close()
         db.release_connection(conn)
 
+RANK_RISCO = {"BAIXO": 0, "MEDIO": 1, "ALTO": 2}
+
+
+def _previsao_ao_redor_da_manutencao(cursor, equipamento_id, id_manutencao, antes):
+    """Última previsão ANTES da conclusão (antes=True) ou a primeira DEPOIS."""
+    comparador, ordem = ("<=", "DESC") if antes else (">", "ASC")
+    cursor.execute(f"""
+        SELECT * FROM (
+            SELECT p.CLASSIFICACAO, p.PROBABILIDADE_ALTO, p.DATA_PREVISAO, p.HASH_INTEGRIDADE
+            FROM TB_PREVISAO_RISCO p
+            JOIN TB_MANUTENCAO man ON man.ID_MANUTENCAO = :id_man
+            WHERE p.EQUIPAMENTO_ID = :eq
+              AND p.DATA_PREVISAO {comparador} CAST(man.CONCLUIDO_EM AS DATE)
+            ORDER BY p.ID_PREVISAO {ordem}
+        ) WHERE ROWNUM = 1
+    """, id_man=id_manutencao, eq=equipamento_id)
+    row = cursor.fetchone()
+    if not row:
+        return None
+    classificacao, score, data, hash_ = row
+    return {
+        "classificacao": classificacao,
+        "saude": round(float(score) * 100, 1),
+        "data": data,
+        "hash": hash_,
+    }
+
+
+def _estado_antes_depois(antes, depois):
+    if depois is None:
+        return "AGUARDANDO_TELEMETRIA"
+    if antes is None:
+        return "SEM_COMPARACAO"
+    r_antes = RANK_RISCO.get(antes["classificacao"], 1)
+    r_depois = RANK_RISCO.get(depois["classificacao"], 1)
+    if r_depois < r_antes:
+        return "CONFIRMADA"
+    if r_depois > r_antes:
+        return "PIOROU"
+    return "ESTAVEL" if r_antes == 0 else "PERSISTE"
+
+
 def buscar_historico_maquina(equipamento_id: str):
     """
-    Agrega tickets e manutenções de uma máquina numa única timeline.
-
-    Correção: em vez de montar um dicionário a partir de cursor.description
-    (que pode desalinhar dependendo de como o driver Oracle devolve os
-    nomes em consultas com múltiplos JOINs), cada valor é lido pela
-    posição da tupla retornada, na ordem exata do SELECT.
+    Timeline de tickets e manutenções. Para manutenção CONCLUIDA, anexa o
+    antes/depois derivado de TB_PREVISAO_RISCO (somente leitura).
     """
     conn = db.get_connection()
     cursor = conn.cursor()
@@ -178,18 +216,29 @@ def buscar_historico_maquina(equipamento_id: str):
             JOIN TB_MAQUINA m ON man.MAQUINA_ID = m.ID_MAQUINA
             WHERE m.EQUIPAMENTO_ID = :eq
         """, eq=equipamento_id)
+        manutencoes = cursor.fetchall()
 
-        for row in cursor.fetchall():
+        for row in manutencoes:
             id_man, tipo, descricao, status, criado_em, data_manutencao, concluido_em = row
-            eventos.append({
+            concluida = status == "CONCLUIDA"
+            evento = {
                 "tipo_evento": "MANUTENCAO",
                 "data": criado_em,
-                "titulo": f"Manutenção solicitada ({tipo})",
+                "titulo": f"Manutenção {'concluída' if concluida else 'solicitada'} ({tipo})",
                 "detalhe": descricao,
                 "status": status,
                 "responsavel": None,
                 "data_resolucao": concluido_em
-            })
+            }
+            if concluida:
+                antes = _previsao_ao_redor_da_manutencao(cursor, equipamento_id, id_man, True)
+                depois = _previsao_ao_redor_da_manutencao(cursor, equipamento_id, id_man, False)
+                evento["antes_depois"] = {
+                    "antes": antes,
+                    "depois": depois,
+                    "estado": _estado_antes_depois(antes, depois),
+                }
+            eventos.append(evento)
 
         eventos.sort(key=lambda e: e["data"], reverse=True)
         return eventos
@@ -219,7 +268,7 @@ def listar_maquinas_com_diagnostico(equipamento_ids=None):
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            SELECT m.EQUIPAMENTO_ID, m.TIPO, m.MODELO,
+            SELECT m.EQUIPAMENTO_ID, m.TIPO, m.MODELO, m.VALOR_SEGURADO,
                    f.NOME AS FAZENDA_NOME, f.ID_FAZENDA,
                    g.NOME AS GESTOR_NOME, g.ID_USUARIO AS GESTOR_ID
             FROM TB_MAQUINA m
@@ -241,8 +290,8 @@ def listar_maquinas_com_diagnostico(equipamento_ids=None):
                 AND ID_PREVISAO = (SELECT MAX(ID_PREVISAO) FROM TB_PREVISAO_RISCO WHERE EQUIPAMENTO_ID = :eq)
             """, eq=m["equipamento_id"])
             row = cursor.fetchone()
-            m["classificacao"] = row[0] if row else None
-            m["score"] = row[1] if row else None
+            m["classificacao"] = row[0] if row else 'BAIXO'
+            m["score"] = row[1] if row else 0.0
 
         return maquinas
     finally:

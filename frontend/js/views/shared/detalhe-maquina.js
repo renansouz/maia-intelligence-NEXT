@@ -186,6 +186,7 @@ export async function renderDetalheMaquina() {
                                                     <span>Status: <strong class="text-gray-700">${ev.status}</strong></span>
                                                     ${ev.responsavel ? `<span>Responsável: <strong class="text-gray-700">${ev.responsavel}</strong></span>` : ''}
                                                 </div>
+                                                ${ev.antes_depois ? renderAntesDepois(ev.antes_depois) : ''}
                                             </div>
                                         </div>
                                     `).join('')}
@@ -391,4 +392,46 @@ function renderGauge(score, color) {
     };
 
     Plotly.newPlot('gauge-chart', data, layout, { staticPlot: true });
+}
+
+function renderAntesDepois(ad) {
+    const cores = {
+        ALTO: 'bg-red-50 text-red-700 border-red-200',
+        MEDIO: 'bg-amber-50 text-amber-700 border-amber-200',
+        BAIXO: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    };
+    const mensagens = {
+        AGUARDANDO_TELEMETRIA: 'Manutenção concluída. O risco será reavaliado na próxima telemetria.',
+        CONFIRMADA: 'Manutenção confirmada pelos dados: o risco diminuiu.',
+        PERSISTE: 'O risco persiste após a manutenção. Recomenda-se nova inspeção.',
+        ESTAVEL: 'Sem alteração: a máquina já estava em risco baixo.',
+        PIOROU: 'O risco aumentou após a manutenção. Recomenda-se nova inspeção.',
+        SEM_COMPARACAO: 'Não há previsão anterior para comparar.'
+    };
+    const fmt = (iso) => iso
+        ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+        : '';
+
+    const card = (titulo, p, vazio) => p ? `
+        <div class="flex-1 rounded-xl border p-3 ${cores[p.classificacao] || 'bg-gray-50 text-gray-700 border-gray-200'}">
+            <div class="text-[9px] font-bold uppercase tracking-widest opacity-70">${titulo}</div>
+            <div class="text-sm font-black mt-0.5">${p.classificacao}</div>
+            <div class="text-[10px] mt-0.5">Índice de saúde: ${p.saude}</div>
+            <div class="text-[9px] opacity-70 mt-1">${fmt(p.data)}</div>
+            <div class="text-[9px] font-mono opacity-60">hash …${(p.hash || '').slice(-8)}</div>
+        </div>` : `
+        <div class="flex-1 rounded-xl border border-dashed border-gray-300 p-3 text-gray-400">
+            <div class="text-[9px] font-bold uppercase tracking-widest">${titulo}</div>
+            <div class="text-[11px] mt-1 italic">${vazio}</div>
+        </div>`;
+
+    return `
+        <div class="mt-3 space-y-2">
+            <div class="flex items-stretch gap-2">
+                ${card('Antes', ad.antes, 'Sem previsão anterior')}
+                <div class="self-center text-gray-400 text-sm">→</div>
+                ${card('Depois', ad.depois, 'Aguardando telemetria pós-reparo')}
+            </div>
+            <p class="text-[11px] text-gray-600">${mensagens[ad.estado] || ''}</p>
+        </div>`;
 }
