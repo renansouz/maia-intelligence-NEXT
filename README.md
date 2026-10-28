@@ -7,7 +7,7 @@
 <p align="center"><i>Do conhecimento sobre a natureza à inteligência sobre o risco.</i></p>
 
 <p align="center">
-  <a href="https://maia-sompo-seguros.vercel.app" target="_blank" rel="noopener">
+  <a href="" target="_blank" rel="noopener">
     <img src="https://img.shields.io/badge/Landing%20Page-Acesse%20o%20Site%20Ao%20Vivo-DF082A?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Landing Page Ao Vivo">
   </a>
 </p>
@@ -25,7 +25,7 @@ Seguradoras de equipamentos agrícolas descobrem o sinistro apenas após a sua o
 
 ## 💡 A solução
 
-Uma plataforma unificada que conecta telemetria real de máquinas (CAN/J1939), relatórios de operadores em campo e as regras da apólice (_Sompo Benfeitorias_):
+Uma plataforma unificada que conecta telemetria real de máquinas (CAN/J1939), relatórios de operadores em campo e as regras da apólice:
 $$\text{Telemetria / IoT} \longrightarrow \text{Motor de IA (Anomalia)} \longrightarrow \text{Alerta Explicado} \longrightarrow \text{Ação Preventiva} \longrightarrow \text{Auditoria por Hash}$$
 
 ---
@@ -46,7 +46,7 @@ O MAIA não é apenas um painel de monitoramento estatístico; ele implementa um
 
 | Persona                      | O que faz no sistema                                                                                                                      |
 | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
-| 🏢 **Sompo (Seguradora)**    | Visão macro de carteira, exposição financeira consolidada (R$), regulação de sinistros e cadastros globais.                               |
+| 🏢 **Seguradora**    | Visão macro de carteira, exposição financeira consolidada (R$), regulação de sinistros e cadastros globais.                               |
 | 👔 **Gestor de Frota**       | Gestão de propriedades rurais (fazendas), vinculação de operadores a ativos, acompanhamento de tickets e geração de ordens de manutenção. |
 | 🧑‍🌾 **Operador de Campo**     | Painel operacional simplificado, alertas em linguagem natural e sistema de relatórios de falhas (tickets).                                |
 | 🔧 **Técnico de Manutenção** | Acesso externo e sem fricção por link único protegido por token temporário (sem necessidade de login).                                    |
@@ -70,7 +70,7 @@ Para uma imersão completa em cada aspecto do projeto, consulte os documentos na
 
 | Documento                                                    | Conteúdo                                                                        |
 | :----------------------------------------------------------- | :------------------------------------------------------------------------------ |
-| [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)           | Valor comercial, redução de sinistralidade e impacto financeiro para a Sompo.   |
+| [docs/CASO_DE_NEGOCIO.md](docs/CASO_DE_NEGOCIO.md)           | Valor comercial, redução de sinistralidade e impacto financeiro para a Seguradora.   |
 | [docs/ARQUITETURA.md](docs/ARQUITETURA.md)                   | Fluxo de dados end-to-end, diagramas, hierarquia RBAC e decisões de engenharia. |
 | [docs/MODELO_IA.md](docs/MODELO_IA.md)                       | Metodologia de Machine Learning (Operacional + Ambiental), validação e limites. |
 | [docs/SEGURANCA_E_AUDITORIA.md](docs/SEGURANCA_AUDITORIA.md) | Mecanismos de criptografia bcrypt, tokens JWT e integridade da cadeia de hash.  |
@@ -184,4 +184,4 @@ Abra o navegador e acesse: **`http://127.0.0.1:8000/login.html`** (Caso esqueça
 
 ---
 
-<p align="center"><i>Enterprise Challenge — FIAP & Sompo Seguros — 2026</i></p>
+<p align="center"><i>Enterprise Challenge — FIAP — 2026</i></p>
