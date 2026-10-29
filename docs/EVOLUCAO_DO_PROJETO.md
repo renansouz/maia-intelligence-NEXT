@@ -1,6 +1,6 @@
 # MAIA - Evolução do Projeto
 
-Este documento registra a trajetória evolutiva do MAIA ao longo do Challenge Sompo Seguros (Sprints 1 a 4). O histórico demonstra como a proposta amadureceu de uma concepção conceitual até um MVP funcional, validado e integrado, incorporando as diretrizes e feedbacks de cada entrega.
+Este documento registra a trajetória evolutiva do MAIA ao longo do Challenge FIAP (Sprints 1 a 4). O histórico demonstra como a proposta amadureceu de uma concepção conceitual até um MVP funcional, validado e integrado, incorporando as diretrizes e feedbacks de cada entrega.
 
 ---
 
@@ -8,12 +8,12 @@ Este documento registra a trajetória evolutiva do MAIA ao longo do Challenge So
 
 ### O Ponto de Partida
 
-O projeto nasceu da necessidade de endereçar a baixa previsibilidade de riscos operacionais em frotas agrícolas seguradas pela **Sompo Seguros** (foco no produto _Sompo Benfeitorias_). O cenário inicial focava em mitigar perdas em equipamentos operando em condições adversas, como proximidade de corpos d'água após períodos de chuva.
+O projeto nasceu da necessidade de endereçar a baixa previsibilidade de riscos operacionais em frotas agrícolas seguradas pela **Seguradora** (foco no produto _Agricultura Benfeitorias_). O cenário inicial focava em mitigar perdas em equipamentos operando em condições adversas, como proximidade de corpos d'água após períodos de chuva.
 
 ### Entregáveis da Etapa
 
 - Arquitetura conceitual inicial em diagrama de camadas.
-- Definição preliminar das quatro personas (Sompo, Gestor, Operador e Técnico).
+- Definição preliminar das quatro personas (Seguradora, Gestor, Operador e Técnico).
 - Estruturação teórica de variáveis de risco ambiental e operacional.
 
 ### Feedback e Aprendizados
@@ -44,7 +44,7 @@ O trabalho foi reconhecido pela maturidade metodológica ao empregar uma abordag
 
 ### Evolução Técnica
 
-O desafio da Sprint 3 foi a integração sistêmica. Unimos o backend em **FastAPI**, o banco de dados **Oracle**, o motor preditivo e uma interface web inicial refletindo a identidade visual da Sompo.
+O desafio da Sprint 3 foi a integração sistêmica. Unimos o backend em **FastAPI**, o banco de dados **Oracle**, o motor preditivo e uma interface web inicial refletindo a identidade visual da Seguradora.
 
 ### O Ponto de Virada (Auditoria Crítica)
 
@@ -70,17 +70,17 @@ A etapa final representou a consolidação estrutural, eliminando débitos técn
    - Implementação de um mecanismo de verificação de integridade sob demanda que recalcula a cadeia criptográfica (SHA-256) bloco a bloco.
 
 2. **Segurança Corporativa com RBAC e JWT:**
-   - Substituição da chave única por um sistema robusto de autenticação baseada em tokens **JWT** com papéis restritos (`SOMPO`, `GESTOR`, `OPERADOR`) e senhas protegidas por **hash bcrypt**.
+   - Substituição da chave única por um sistema robusto de autenticação baseada em tokens **JWT** com papéis restritos (`SEGURADORA`, `GESTOR`, `OPERADOR`) e senhas protegidas por **hash bcrypt**.
    - Implementação de autorização em duas camadas (validação de papel combinada ao escopo relacional de propriedade/vínculo do ativo).
 
 3. **Arquitetura de Motor Duplo (Mecânico + Ambiental):**
-   - Além do motor operacional baseado em CAN (*Isolation Forest*), consolidou-se a camada de análise geoespacial de solo e terreno (*PCA Ambiental* via dados orbitais do Sentinel-1/GEE), atendendo diretamente às cláusulas de proximidade hídrica da apólice da Sompo.
+   - Além do motor operacional baseado em CAN (*Isolation Forest*), consolidou-se a camada de análise geoespacial de solo e terreno (*PCA Ambiental* via dados orbitais do Sentinel-1/GEE), atendendo diretamente às cláusulas de proximidade hídrica da apólice da Seguradora.
 
 4. **Ciclo Completo de Prevenção e Retroalimentação Humana:**
    - **Tickets Operacionais:** Operadores relatam ocorrências no campo por meio de interface simplificada; os registros alimentam o contexto de risco analisado nas previsões subsequentes do modelo.
    - **Manutenção Externa Desimpedida:** Geração de links seguros com tokens de uso único (`manutencao.html`) permitindo que técnicos externos registrem serviços sem fricção de login.
-   - **Escalonamento Direto de Sinistros:** Gestores podem encaminhar tickets críticos diretamente para a esteira de regulação da Sompo com um único clique.
-   - **Valoração de Apólice Real:** Integração com o catálogo de coberturas do produto _Sompo Benfeitorias_ e com o valor segurado dos ativos, permitindo o cálculo real de exposição financeira em Reais (R$).
+   - **Escalonamento Direto de Sinistros:** Gestores podem encaminhar tickets críticos diretamente para a esteira de regulação da Seguradora com um único clique.
+   - **Valoração de Apólice Real:** Integração com o catálogo de coberturas do produto _Benfeitorias_ e com o valor segurado dos ativos, permitindo o cálculo real de exposição financeira em Reais (R$).
 
 ---
 
