@@ -8,7 +8,7 @@ Este documento detalha a camada de hardware do ecossistema MAIA. Projetado sob a
 
 > *"Em um portfólio de seguros agrícolas onde um único sinistro de colheitadeira custa mais de R$ 400 mil, monitorar o ativo preventivamente não é custo operacional, é a apólice de seguro mais barata que a seguradora pode comprar."*
 
-Ao equipar a frota do segurado com o **Kit de Telemetria MAIA**, a Sompo deixa de ser uma pagadora passiva de sinistros e assume o controle ativo da gestão de risco. O custo de implantação de hardware por máquina é irrelevante frente à economia gerada pela prevenção de um único evento de incêndio por superaquecimento.
+Ao equipar a frota do segurado com o **Kit de Telemetria MAIA**, a Seguradora deixa de ser uma pagadora passiva de sinistros e assume o controle ativo da gestão de risco. O custo de implantação de hardware por máquina é irrelevante frente à economia gerada pela prevenção de um único evento de incêndio por superaquecimento.
 
 ---
 
@@ -35,11 +35,11 @@ O kit de telemetria foi desenhado com componentes comerciais de prateleira (*COT
 
 ---
 
-## 📈 Benefícios Comerciais e de Negócio para a Sompo
+## 📈 Benefícios Comerciais e de Negócio para a Seguradora
 
 - **ROI Imediato:** O investimento médio de ~R$ 300 por kit é amortizado na primeira intervenção preventiva que evita uma retífica de motor ou um princípio de incêndio de R$ 100k+.
 - **Redução Agressiva da Sinistralidade:** Mitigação drástica de perdas totais em colheitadeiras e tratores de alta potência.
-- **Diferencial Competitivo em Apólices:** A Sompo pode oferecer descontos no prêmio do seguro para frotas que adotarem o MAIA, atraindo os melhores clientes do agronegócio por operar com base em dados de risco reais.
+- **Diferencial Competitivo em Apólices:** A Seguradora pode oferecer descontos no prêmio do seguro para frotas que adotarem o MAIA, atraindo os melhores clientes do agronegócio por operar com base em dados de risco reais.
 - **Fidelização e Upsell Automatizado:** Identificação de carências de cobertura em tempo real, gerando campanhas de cross-sell customizadas para o gestor da frota.
 
 ---
@@ -53,7 +53,7 @@ Para fins de testes acadêmicos e demonstração sem a exigência de montagem f�
 python3 -m iot.simular_sensor normal
 ```
 
-### Simulação de Superaquecimento (Risco de Incêndio / Alerta Sompo):
+### Simulação de Superaquecimento (Risco de Incêndio / Alerta Seguradora):
 ```bash
 python3 -m iot.simular_sensor superaquecido
 ```
