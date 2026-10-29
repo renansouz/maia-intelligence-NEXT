@@ -1,12 +1,12 @@
 # MAIA — Caso de Negócio e Viabilidade Comercial
 
-Este documento consolida a tese de valor comercial, o alinhamento regulatório e o impacto financeiro mensurável que o MAIA traz para a **Sompo Seguros** e para o mercado de seguros de equipamentos agrícolas.
+Este documento consolida a tese de valor comercial, o alinhamento regulatório e o impacto financeiro mensurável que o MAIA traz para o mercado de seguros de equipamentos agrícolas.
 
 ---
 
 ## 1. O Problema Estrutural no Setor de Seguros Agrícolas
 
-A Sompo comercializa o produto **Equipamentos Agrícolas — Benfeitorias / Penhor Rural**, oferecendo coberturas vitais como incêndio, tombamento, colisão, roubo e danos elétricos. O gargalo estrutural desse modelo no mercado tradicional é a **cegueira operacional crônica**: a seguradora assume o risco no ato da emissão da apólice e só volta a interagir com o segurado quando um sinistro de alta monta já ocorreu.
+A Seguradora comercializa o produto **Equipamentos Agrícolas — Benfeitorias / Penhor Rural**, oferecendo coberturas vitais como incêndio, tombamento, colisão, roubo e danos elétricos. O gargalo estrutural desse modelo no mercado tradicional é a **cegueira operacional crônica**: a seguradora assume o risco no ato da emissão da apólice e só volta a interagir com o segurado quando um sinistro de alta monta já ocorreu.
 
 Isso gera um impacto severo no *Loss Ratio* (sinistralidade): a indenização de um único trator ou colheitadeira de grande porte varia entre R$ 200 mil e R$ 800 mil. Contudo, os principais motivadores desses sinistros — superaquecimento térmico com risco de incêndio, degradação mecânica por falha de manutenção ou operação em solos instáveis e margens de rios — emitem sinais precursores rastreáveis muito antes do evento catastrófico.
 
@@ -49,7 +49,7 @@ Gestor gera link único e seguro para o Técnico externo atuar
         ↓
 Técnico conclui o serviço; o sistema reprocessa automaticamente o score de risco
         ↓
-Se necessário, o Gestor escala o evento diretamente como sinistro para a Sompo
+Se necessário, o Gestor escala o evento diretamente como sinistro para a Seguradora
 ```
 
 ---
@@ -58,18 +58,18 @@ Se necessário, o Gestor escala o evento diretamente como sinistro para a Sompo
 
 - Considerando um valor médio de reposição de **R$ 350.000,00** por ativo agrícola de médio/grande porte:
 - A prevenção de **um único evento de incêndio ou perda total por capotagem** em decorrência de alerta antecipado já neutraliza o custo de implantação e monitoramento da plataforma em uma frota inteira por múltiplos anos.
-- Em escala de portfólio para a Sompo, a supressão de pontos percentuais na sinistralidade representa economia na casa de **milhões de reais**, elevando a competitividade da companhia no agronegócio.
+- Em escala de portfólio para a Seguradora, a supressão de pontos percentuais na sinistralidade representa economia na casa de **milhões de reais**, elevando a competitividade da companhia no agronegócio.
 
 ---
 
 ## 5. Prontidão para Escala Comercial
 
 O MAIA supera o estágio de protótipo acadêmico por incorporar os requisitos fundamentais para implantação corporativa:
-- Hierarquia de acesso real (Sompo, Gestor, Operador, Técnico) blindada por RBAC de duas camadas.
-- Catálogo de coberturas aderente ao produto comercial real da Sompo.
+- Hierarquia de acesso real (Seguradora, Gestor, Operador, Técnico) blindada por RBAC de duas camadas.
+- Catálogo de coberturas aderente ao produto comercial real da Seguradora.
 - Trilha de auditoria baseada em hash SHA-256 para atendimento regulatório.
 - Esteira automatizada de tickets, chamados externos e escalonamento para sinistros sem fricção manual.
 
 ---
 
-<p align="center"><i>Enterprise Challenge — FIAP & Sompo Seguros — 2026</i></p>
+<p align="center"><i>Enterprise Challenge — FIAP — 2026</i></p>
