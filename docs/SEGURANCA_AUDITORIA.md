@@ -10,7 +10,7 @@ O acesso ao MAIA aos painéis web é feito por login com email e senha, nunca po
 
 Ao autenticar, o usuário recebe um **token JWT** (JSON Web Token) contendo:
 - sua identidade (`id_usuario`);
-- seu papel (`SOMPO`, `GESTOR` ou `OPERADOR`);
+- seu papel (`SEGURADORA`, `GESTOR` ou `OPERADOR`);
 - tempo de expiração de 24 horas.
 
 Esse token precisa ser enviado em toda chamada subsequente (`Authorization: Bearer <token>`). Passadas as 24 horas, o token deixa de ser aceito automaticamente, e o usuário precisa autenticar novamente — o que limita a janela de risco caso um token seja exposto ou esquecido em algum dispositivo.
@@ -31,14 +31,14 @@ Esta separação arquitetural garante que:
 
 Ter um papel corporativo não é suficiente para acessar qualquer recurso dentro dele — o sistema verifica **duas camadas** em cada requisição:
 
-1. **Papel correto para a ação:** Por exemplo, apenas a Sompo pode cadastrar uma máquina na base global; apenas o Gestor pode cadastrar propriedades ou operadores.
+1. **Papel correto para a ação:** Por exemplo, apenas a Seguradora pode cadastrar uma máquina na base global; apenas o Gestor pode cadastrar propriedades ou operadores.
 2. **Vínculo real com o recurso pedido:** Um Gestor só consegue processar ou visualizar a previsão de risco de uma máquina que esteja vinculada a uma fazenda sob sua gestão; um Operador só acessa explicitamente a(s) máquina(s) atribuída(s) a ele no campo.
 
 Essa segunda camada diferencia um "controle de acesso decorativo" de um modelo corporativo seguro, tendo sido testada contra tentativas de quebra de escopo horizontal e vertical.
 
 | Papel | Escopo de Acesso |
 | :--- | :--- |
-| 🏢 **Sompo** | Visão global — todos os gestores, todas as frotas, exposição financeira consolidada e sinistros. |
+| 🏢 **Seguradora** | Visão global — todos os gestores, todas as frotas, exposição financeira consolidada e sinistros. |
 | 👔 **Gestor** | Apenas suas propriedades rurais, suas máquinas, seus operadores e os tickets da própria equipe. |
 | 🧑‍🌾 **Operador** | Apenas a(s) máquina(s) vinculada(s) a ele no campo. |
 | 🔧 **Técnico de Manutenção** | Acesso restrito e sem login — exclusivo ao formulário de uma ordem de serviço específica via link com token único (validade de 7 dias). |
