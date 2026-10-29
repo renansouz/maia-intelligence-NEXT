@@ -33,7 +33,7 @@ flowchart TD
 
     subgraph "4. Ciclo Operacional (Human-in-the-loop)"
         TICKET["🛠️ Ticket do Operador"] --> GESTOR["👔 Gestor Avalia/Resolve"]
-        GESTOR -->|"Escala"| SOMPO["🏢 Sompo (Sinistro)"]
+        GESTOR -->|"Escala"| seguradora["🏢 seguradora (Sinistro)"]
         GESTOR -->|"Solicita"| LINK["🔗 Link Temporário do Técnico"]
         TEC["🔧 Técnico Registra Manutenção"] --> RECALC["🔄 Reprocessa Score da Máquina"]
     end
@@ -60,7 +60,7 @@ flowchart TD
 ## 🔐 Segurança e Governança de Acesso
 
 - **Autenticação Baseada em Hash e Token:** Senhas protegidas por **hash bcrypt**. Sessões controladas por **Tokens JWT** com expiração de 24 horas.
-- **Autorização em Duas Camadas (RBAC):** O sistema valida não apenas o papel do usuário (`SOMPO`, `GESTOR`, `OPERADOR`), mas também se o usuário possui vínculo relacional direto com o ativo consultado.
+- **Autorização em Duas Camadas (RBAC):** O sistema valida não apenas o papel do usuário (`SEGURADORA`, `GESTOR`, `OPERADOR`), mas também se o usuário possui vínculo relacional direto com o ativo consultado.
 - **Isolamento do Técnico Externo:** O técnico de manutenção acessa a plataforma exclusivamente via link com token único e uso restrito, sem necessidade de credenciais de login.
 
 ---
@@ -89,4 +89,4 @@ O banco relacional gerencia a hierarquia corporativa, os fluxos operacionais e o
 
 ---
 
-_Documentação oficial de arquitetura — Challenge Sompo Seguros / FIAP 2026._
+_Documentação oficial de arquitetura — Challenge NEXT FIAP 2026._
