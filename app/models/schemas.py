@@ -27,7 +27,7 @@ class StandardResponse(BaseModel):
     mensagem: str
 
 class LoginInput(BaseModel):
-    email: str = Field(..., example="sompo@maia.com")
+    email: str = Field(..., example="seguradora@maia.com")
     senha: str = Field(..., example="senha-super-secreta")
 
 class TokenResponse(BaseModel):

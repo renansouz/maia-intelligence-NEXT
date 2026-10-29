@@ -7,7 +7,7 @@ ticket já escalado como sinistro, e uma manutenção já concluída.
 
 Rodar isso é opcional. Quem não quiser nenhum dado de exemplo no
 sistema simplesmente não executa este script - o app começa vazio,
-só com o usuário SOMPO inicial (criado automaticamente no primeiro
+só com o usuário seguradora inicial (criado automaticamente no primeiro
 start, a partir do ADMIN_EMAIL/ADMIN_SENHA do .env).
 
 Uso:
@@ -26,7 +26,7 @@ from app.services.maquina_service import (
 )
 from app.services.data_service import salvar_telemetria_db, buscar_ultima_telemetria
 from app.services.risco_service import processar_previsao_completa
-from app.services.ticket_service import criar_ticket, escalar_ticket_sompo
+from app.services.ticket_service import criar_ticket, escalar_ticket_seguradora
 from app.services.manutencao_service import solicitar_manutencao, concluir_manutencao
 
 
@@ -163,8 +163,8 @@ def popular():
     from app.services.ticket_service import listar_tickets_gestor
     tickets_marina = listar_tickets_gestor(nicole_id)
     if tickets_marina:
-        escalar_ticket_sompo(tickets_marina[0]["id_ticket"], nicole_id)
-        print("  Ticket escalado como sinistro para a Sompo.")
+        escalar_ticket_seguradora(tickets_marina[0]["id_ticket"], nicole_id)
+        print("  Ticket escalado como sinistro para a seguradora.")
 
     print("\n--- Registrando manutenção já concluída (histórico) ---")
     token = solicitar_manutencao("EQP-SP-04", renan_id, descricao="Revisão preventiva de rotina.", tipo="PREVENTIVA")
@@ -179,7 +179,7 @@ def popular():
     print("  Gestor Nicole Souza   -> gestor@fazendaboaesperanca.com.br / demo1234")
     print("  Operador Kevin Vitor  -> operador@fazendasantarita.com.br / demo1234")
     print("  Operador Thiese Duran -> operador@fazendaboaesperanca.com.br / demo1234")
-    print("  Sompo -> use o ADMIN_EMAIL / ADMIN_SENHA configurados no seu .env")
+    print("  seguradora -> use o ADMIN_EMAIL / ADMIN_SENHA configurados no seu .env")
 
 if __name__ == "__main__":
     popular()

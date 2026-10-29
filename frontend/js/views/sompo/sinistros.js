@@ -1,4 +1,4 @@
-export async function renderSompoSinistros() {
+export async function renderseguradoraSinistros() {
   const container = document.getElementById('view-content');
   container.innerHTML = `<div class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DF082A]"></div></div>`;
 
@@ -53,6 +53,6 @@ export async function renderSompoSinistros() {
         `;
     lucide.createIcons();
   } catch (e) {
-    container.innerHTML = `<p class="text-center py-10 text-red-500">Erro ao carregar sinistros da Sompo.</p>`;
+    container.innerHTML = `<p class="text-center py-10 text-red-500">Erro ao carregar sinistros da seguradora.</p>`;
   }
 }

@@ -1,27 +1,27 @@
 import { exigirAutenticacao, getPapel, getNome, logout } from './auth.js';
-import { renderSompoDashboard } from '../views/sompo/dashboard.js';
+import { renderseguradoraDashboard } from '../views/seguradora/dashboard.js';
 import { renderGestorDashboard } from '../views/gestor/dashboard.js';
 import { renderPainelOperador } from '../views/operador/painel.js';
 import { renderGestorTickets } from '../views/gestor/tickets.js';
 import { renderCompliance } from '../views/shared/compliance.js';
-import { renderSompoCadastro } from '../views/sompo/cadastros.js';
+import { renderseguradoraCadastro } from '../views/seguradora/cadastros.js';
 import { renderGestorCadastro } from '../views/gestor/cadastros.js';
 import { renderDetalheMaquina } from '../views/shared/detalhe-maquina.js';
-import { renderSompoSinistros } from '../views/sompo/sinistros.js';
-import { renderSompoGestores } from '../views/sompo/gestores.js';
+import { renderseguradoraSinistros } from '../views/seguradora/sinistros.js';
+import { renderseguradoraGestores } from '../views/seguradora/gestores.js';
 import { renderGestorOperadores } from '../views/gestor/operadores.js';
 
 const CONFIG_PERFIS = {
-  'SOMPO': {
-    classeFundo: 'bg-sompo',
-    classeTexto: 'text-sompo',
+  'seguradora': {
+    classeFundo: 'bg-seguradora',
+    classeTexto: 'text-seguradora',
     menus: [
-      { id: '#sompo/dashboard', label: 'Central de Risco' },
-      { id: '#sompo/sinistros', label: 'Sinistros' },
-      { id: '#sompo/compliance', label: 'Auditoria de Decisões' },
+      { id: '#seguradora/dashboard', label: 'Central de Risco' },
+      { id: '#seguradora/sinistros', label: 'Sinistros' },
+      { id: '#seguradora/compliance', label: 'Auditoria de Decisões' },
       { id: '#cadastros', label: 'Cadastros' }
     ],
-    rotaInicial: '#sompo/dashboard',
+    rotaInicial: '#seguradora/dashboard',
     textos: {
       titulo: 'Visão Executiva MAIA',
       subtitulo: 'Acompanhamento de risco sistêmico e auditoria de apólices em tempo real.'
@@ -139,17 +139,17 @@ function resolverRota(config) {
   if (!contentArea) return;
 
   const rotas = {
-    '#sompo/dashboard': renderSompoDashboard,
-    '#sompo/sinistros': renderSompoSinistros,
-    '#sompo/compliance': renderCompliance,
-    '#sompo/gestores': renderSompoGestores,
+    '#seguradora/dashboard': renderseguradoraDashboard,
+    '#seguradora/sinistros': renderseguradoraSinistros,
+    '#seguradora/compliance': renderCompliance,
+    '#seguradora/gestores': renderseguradoraGestores,
     '#gestor/dashboard': renderGestorDashboard,
     '#gestor/tickets': renderGestorTickets,
     '#operador/painel': renderPainelOperador,
     '#gestor/operadores': renderGestorOperadores,
     '#cadastros': () => {
       const papel = getPapel();
-      if (papel === 'SOMPO') renderSompoCadastro();
+      if (papel === 'seguradora') renderseguradoraCadastro();
       else if (papel === 'GESTOR') renderGestorCadastro();
     },
     '#detalhe': renderDetalheMaquina

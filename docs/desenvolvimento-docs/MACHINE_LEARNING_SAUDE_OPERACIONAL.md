@@ -201,7 +201,7 @@ A pergunta é:
 
 ## 5. De onde veio o conhecimento inicial
 
-Como ainda não possuímos meses de telemetria real de máquinas da Sompo,
+Como ainda não possuímos meses de telemetria real de máquinas da seguradora,
 utilizamos datasets públicos.
 
 A principal base escolhida para o primeiro modelo foi a do **Tümosan
@@ -824,7 +824,7 @@ Ainda fazem parte da evolução:
 - validação com inspeções e manutenções reais;
 - calibração dos thresholds;
 - calibração dos pesos contextuais;
-- validação com máquinas reais da Sompo;
+- validação com máquinas reais da seguradora;
 - validação do comportamento entre diferentes modelos e fabricantes.
 
 ---

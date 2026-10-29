@@ -1,12 +1,12 @@
 # 🌾 Documentação Técnica e Arquitetura do Frontend - MAIA
 
-Este documento consolida as escolhas arquiteturais, a estrutura de código, o design system e os princípios de engenharia aplicados no desenvolvimento de todo o ecossistema frontend do **MAIA (Sistema de Gestão e Prevenção de Risco Agrícola)**, construído em parceria com a **Sompo Seguros**.
+Este documento consolida as escolhas arquiteturais, a estrutura de código, o design system e os princípios de engenharia aplicados no desenvolvimento de todo o ecossistema frontend do **MAIA (Sistema de Gestão e Prevenção de Risco Agrícola)**, construído em parceria com a **seguradora Seguros**.
 
 ---
 
 ## 🏛️ Visão Geral e Contexto de Produto
 
-O MAIA foi concebido para transformar a gestão de risco de equipamentos agrícolas de uma postura puramente reativa para uma atuação preventiva, em total aderência às Condições Gerais de apólices reais (como o produto _Sompo Benfeitorias_).
+O MAIA foi concebido para transformar a gestão de risco de equipamentos agrícolas de uma postura puramente reativa para uma atuação preventiva, em total aderência às Condições Gerais de apólices reais (como o produto _seguradora Benfeitorias_).
 
 Nós estruturamos a aplicação considerando que diferentes usuários possuem urgências e níveis de literacia digital distintos. Por isso, o sistema não é apenas um painel genérico de dados, mas um produto segmentado por **quatro personas reais**, garantindo que cada usuário encontre exatamente o que precisa para decidir em poucos segundos.
 
@@ -32,7 +32,7 @@ Nós organizamos o diretório `frontend/` de forma modular, separando a lógica 
 ```text
 frontend/
 ├── assets/
-│   └── sompo-logo.webp        → Identidade visual oficial da Sompo Seguros
+│   └── seguradora-logo.webp        → Identidade visual oficial da seguradora Seguros
 ├── css/
 │   └── styles.css             → Variáveis de cores globais e classes utilitétricas
 ├── js/
@@ -41,7 +41,7 @@ frontend/
 │   │   ├── auth.js            → Gerenciamento de sessão, tokens JWT e papéis (localStorage)
 │   │   └── router.js          → Roteador SPA base-hash com suporte a drill-down
 │   ├── views/                 → Telas e módulos de interface por persona
-│   │   ├── sompo/
+│   │   ├── seguradora/
 │   │   │   ├── dashboard.js   → Central de Risco Executiva (Visão Global e Exposição)
 │   │   │   └── cadastros.js   → Módulo de cadastro de ativos na apólice
 │   │   ├── gestor/
@@ -52,7 +52,7 @@ frontend/
 │   │   │   └── painel.js      → Painel enxuto de campo integrado a previsão do tempo
 │   │   └── shared/
 │   │       ├── compliance.js  → Auditoria de Decisões e cadeia de hash imutável
-│   │       ├── detalhe-maquina.js → detalhes e laudo técnico compartilhado (Sompo, Gestor e Operador)
+│   │       ├── detalhe-maquina.js → detalhes e laudo técnico compartilhado (seguradora, Gestor e Operador)
 │   │       └── mapa.js        → Mapeamento de distribuição de frotas
 │   └── manutencao.js          → Script isolado para o fluxo do técnico externo
 ├── app.html                 → Ponto de entrada SPA (protegido por autenticação JWT)
@@ -66,7 +66,7 @@ frontend/
 
 Nós implementamos o conceito de que **a tela inicial (Home) de cada persona deve responder imediatamente à sua pergunta mais urgente**, eliminando a necessidade de navegação profunda para tomadas de decisão diárias.
 
-### 1. Sompo (Administrador / Seguradora)
+### 1. seguradora (Administrador / Seguradora)
 
 - **Home (Central de Risco):** Exibe 4 indicadores executivos de decisão (Risco Crítico, Exposição Financeira em R$, Sinistros em Aberto, Gestores Ativos), seguidos por uma listagem prioritária dos ativos mais vulneráveis e um mini-mapa de dispersão geográfica.
 - **Abas de Investigação:** Gestores Ativos, Auditoria de Decisões (Compliance com cadeia de hash) e Gestão de Apólices/Cadastros.

@@ -1,5 +1,5 @@
 """noted by renansouz
-Contém o catálogo de cobertura real do produto Sompo Equipamentos
+Contém o catálogo de cobertura real do produto seguradora Equipamentos
 Agrícolas Benfeitorias (Básica, Adicionais, Condições Particulares),
 usado para exibir ao gestor o que está incluso no plano contratado por ele.
 

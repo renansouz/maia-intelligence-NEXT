@@ -119,7 +119,7 @@ window.abrirDetalheTicket = async function (idTicket) {
                         Marcar como Resolvido
                     </button>
                     <button onclick="escalarTicket(${t.id_ticket})" class="flex-1 bg-blue-900 text-white py-2.5 rounded-xl font-bold hover:bg-blue-950 transition text-xs">
-                        Encaminhar para Sompo
+                        Encaminhar para seguradora
                     </button>
                 ` : `
                     <div class="w-full text-center text-xs font-bold text-gray-500 py-2">Este ticket já foi encerrado ou escalado.</div>
@@ -162,14 +162,14 @@ window.resolverTicket = async function (idTicket) {
 window.escalarTicket = async function (idTicket) {
     const feedback = document.getElementById('ticket-feedback');
     try {
-        const res = await fetch(`/tickets/${idTicket}/encaminhar-sompo`, {
+        const res = await fetch(`/tickets/${idTicket}/encaminhar-seguradora`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('maia_token')}` }
         });
         if (!res.ok) throw new Error("Erro ao encaminhar ticket.");
 
         feedback.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 text-center";
-        feedback.textContent = "Ticket encaminhado como sinistro para a Sompo!";
+        feedback.textContent = "Ticket encaminhado como sinistro para a seguradora!";
         feedback.classList.remove('hidden');
         setTimeout(() => {
             fecharModalTicket();

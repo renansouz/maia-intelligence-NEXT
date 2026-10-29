@@ -1,7 +1,7 @@
 """noted by renansouz
 Responsável por determinar quais equipamentos um usuario tem permissao
 de ver/processar, de acordo com a hierarquia:
-- SOMPO: acesso a todos os equipamentos.
+- seguradora: acesso a todos os equipamentos.
 - GESTOR: acesso aos equipamentos vinculados as fazendas dele.
 - OPERADOR: acesso aos equipamentos vinculados a ele em TB_MAQUINA_OPERADOR.
 """
@@ -41,7 +41,7 @@ def listar_equipamentos_do_operador(operador_id: int) -> list[str]:
 
 
 def usuario_tem_acesso_equipamento(usuario: dict, equipamento_id: str) -> bool:
-    if usuario["papel"] == "SOMPO":
+    if usuario["papel"] == "seguradora":
         return True
     if usuario["papel"] == "GESTOR":
         return equipamento_id in listar_equipamentos_do_gestor(usuario["id_usuario"])
@@ -51,7 +51,7 @@ def usuario_tem_acesso_equipamento(usuario: dict, equipamento_id: str) -> bool:
 
 
 def listar_equipamentos_permitidos(usuario: dict):
-    if usuario["papel"] == "SOMPO":
+    if usuario["papel"] == "seguradora":
         return None
     if usuario["papel"] == "GESTOR":
         return listar_equipamentos_do_gestor(usuario["id_usuario"])
@@ -207,7 +207,7 @@ def listar_maquinas_com_diagnostico(equipamento_ids=None):
     """
     Lista máquinas com dados de fazenda/gestor e o diagnóstico mais
     recente (score/classificação) de cada uma. Se equipamento_ids for
-    None, lista todas (uso exclusivo da Sompo); caso contrário, filtra
+    None, lista todas (uso exclusivo da seguradora); caso contrário, filtra
     pela lista informada (uso do Gestor, ou de qualquer escopo restrito).
 
     Nota de performance: para cada máquina é feita uma consulta adicional
@@ -251,7 +251,7 @@ def listar_maquinas_com_diagnostico(equipamento_ids=None):
 
 def listar_maquinas_sem_fazenda_do_gestor(gestor_id: int):
     """
-    Lista máquinas que já pertencem ao gestor (atribuídas pela Sompo no
+    Lista máquinas que já pertencem ao gestor (atribuídas pela seguradora no
     cadastro), mas ainda não foram vinculadas a nenhuma fazenda dele.
     Usada na tela de vínculo, para o gestor escolher o que ainda falta
     organizar, sem precisar digitar equipamento_id às cegas.

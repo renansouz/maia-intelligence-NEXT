@@ -1,6 +1,6 @@
 import { fetchHistorico } from '../../core/api.js';
 
-export async function renderSompoDashboard() {
+export async function renderseguradoraDashboard() {
     const container = document.getElementById('view-content');
     container.innerHTML = `
         <div class="flex flex-col justify-center items-center py-20">
@@ -55,7 +55,7 @@ export async function renderSompoDashboard() {
                         </div>
                     </div>
 
-                    <div onclick="window.location.hash='#sompo/sinistros'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
+                    <div onclick="window.location.hash='#seguradora/sinistros'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Sinistros / Tickets</span>
                             <div class="p-2 bg-gray-100 rounded-xl text-gray-700">
@@ -68,7 +68,7 @@ export async function renderSompoDashboard() {
                         </div>
                     </div>
 
-                    <div onclick="window.location.hash='#sompo/gestores'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
+                    <div onclick="window.location.hash='#seguradora/gestores'" class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between cursor-pointer hover:border-gray-400 transition">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Gestores Ativos</span>
                             <div class="p-2 bg-gray-100 rounded-xl text-gray-700">
@@ -138,7 +138,7 @@ export async function renderSompoDashboard() {
                     <h4 class="font-extrabold text-gray-800 text-base flex items-center gap-2">
                         <i data-lucide="map-pin" class="w-4 h-4 text-[#DF082A]"></i> Distribuição Geográfica de Alertas
                     </h4>
-                    <div id="sompo-map" class="w-full h-[350px] rounded-2xl border border-gray-200 z-10"></div>
+                    <div id="seguradora-map" class="w-full h-[350px] rounded-2xl border border-gray-200 z-10"></div>
                 </div>
 
             </div>
@@ -148,20 +148,20 @@ export async function renderSompoDashboard() {
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                initSompoMap(maquinasCriticas);
+                initseguradoraMap(maquinasCriticas);
             });
         });
 
     } catch (error) {
-        container.innerHTML = `<p class="text-center py-10 text-red-500">Erro ao carregar visão executiva da Sompo.</p>`;
+        container.innerHTML = `<p class="text-center py-10 text-red-500">Erro ao carregar visão executiva da seguradora.</p>`;
     }
 }
 
-function initSompoMap(criticos) {
-    const mapEl = document.getElementById('sompo-map');
+function initseguradoraMap(criticos) {
+    const mapEl = document.getElementById('seguradora-map');
     if (!mapEl) return;
 
-    const map = L.map('sompo-map').setView([-22.5, -47.5], 7);
+    const map = L.map('seguradora-map').setView([-22.5, -47.5], 7);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'

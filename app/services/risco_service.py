@@ -99,7 +99,7 @@ def verificar_integridade_cadeia():
         if not registros:
             return {"integra": True, "total_registros": 0, "mensagem": "Nenhum registro para verificar."}
 
-        hash_anterior = "genesis_block_sompo"
+        hash_anterior = "genesis_block_seguradora"
 
         for id_previsao, eq_id, data_medicao, score, hash_gravado in registros:
             data_str = data_medicao.strftime('%Y-%m-%d') if hasattr(data_medicao, 'strftime') else str(data_medicao)

@@ -49,7 +49,7 @@ def configurar_banco():
                 NOME VARCHAR2(150) NOT NULL,
                 EMAIL VARCHAR2(150) NOT NULL UNIQUE,
                 SENHA_HASH VARCHAR2(255) NOT NULL,
-                PAPEL VARCHAR2(20) NOT NULL CHECK (PAPEL IN ('SOMPO','GESTOR','OPERADOR')),
+                PAPEL VARCHAR2(20) NOT NULL CHECK (PAPEL IN ('seguradora','GESTOR','OPERADOR')),
                 GESTOR_ID NUMBER,
                 TIPO_COBERTURA VARCHAR2(20),
                 ATIVO NUMBER(1) DEFAULT 1 NOT NULL,
@@ -393,10 +393,10 @@ def garantir_status_ticket_atualizado(cursor):
             print(f"Migração: removendo constraint antiga de status ({nome})...")
             cursor.execute(f"ALTER TABLE TB_TICKET DROP CONSTRAINT {nome}")
 
-    print("Migração: adicionando ESCALADO_SOMPO como status válido de ticket...")
+    print("Migração: adicionando ESCALADO_seguradora como status válido de ticket...")
     cursor.execute("""
         ALTER TABLE TB_TICKET
-        ADD CONSTRAINT CK_TICKET_STATUS CHECK (STATUS IN ('ABERTO','RESOLVIDO','ESCALADO_SOMPO'))
+        ADD CONSTRAINT CK_TICKET_STATUS CHECK (STATUS IN ('ABERTO','RESOLVIDO','ESCALADO_seguradora'))
     """)
 
 if __name__ == "__main__":

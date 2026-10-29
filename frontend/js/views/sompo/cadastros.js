@@ -1,4 +1,4 @@
-export async function renderSompoCadastro() {
+export async function renderseguradoraCadastro() {
   const container = document.getElementById('view-content');
   container.innerHTML = `<div class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DF082A]"></div></div>`;
 

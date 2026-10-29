@@ -133,13 +133,13 @@ def buscar_contexto_tickets(equipamento_id: str):
         cursor.close()
         db.release_connection(conn)
 
-def escalar_ticket_sompo(ticket_id: int, gestor_id: int) -> bool:
+def escalar_ticket_seguradora(ticket_id: int, gestor_id: int) -> bool:
     conn = db.get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
             UPDATE TB_TICKET
-            SET STATUS = 'ESCALADO_SOMPO', ESCALADO_EM = SYSTIMESTAMP
+            SET STATUS = 'ESCALADO_seguradora', ESCALADO_EM = SYSTIMESTAMP
             WHERE ID_TICKET = :ticket_id
             AND MAQUINA_ID IN (
                 SELECT m.ID_MAQUINA FROM TB_MAQUINA m
@@ -157,8 +157,8 @@ def escalar_ticket_sompo(ticket_id: int, gestor_id: int) -> bool:
         db.release_connection(conn)
 
 
-def listar_sinistros_sompo():
-    """Lista todos os tickets escalados como sinistro, de todos os gestores, usada pela Sompo."""
+def listar_sinistros_seguradora():
+    """Lista todos os tickets escalados como sinistro, de todos os gestores, usada pela seguradora."""
     conn = db.get_connection()
     cursor = conn.cursor()
     try:
@@ -171,7 +171,7 @@ def listar_sinistros_sompo():
             JOIN TB_FAZENDA f ON m.FAZENDA_ID = f.ID_FAZENDA
             JOIN TB_USUARIO g ON f.GESTOR_ID = g.ID_USUARIO
             JOIN TB_USUARIO u ON t.OPERADOR_ID = u.ID_USUARIO
-            WHERE t.STATUS = 'ESCALADO_SOMPO'
+            WHERE t.STATUS = 'ESCALADO_seguradora'
             ORDER BY t.ESCALADO_EM DESC
         """)
         colunas = [c[0].lower() for c in cursor.description]

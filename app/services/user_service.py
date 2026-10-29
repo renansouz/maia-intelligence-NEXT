@@ -1,8 +1,8 @@
 """noted by renansouz
 Responsável por:
 1. CRUD basico de TB_USUARIO.
-2. Bootstrap do primeiro usuario SOMPO (admin), necessario porque so um
-   usuario SOMPO pode criar outros usuarios - sem isso, ninguem conseguiria
+2. Bootstrap do primeiro usuario seguradora (admin), necessario porque so um
+   usuario seguradora pode criar outros usuarios - sem isso, ninguem conseguiria
    fazer login pela primeira vez no sistema.
 """
 import os
@@ -48,11 +48,11 @@ def criar_usuario(nome, email, senha_plana, papel, gestor_id=None, tipo_cobertur
         db.release_connection(conn)
 
 
-def garantir_usuario_sompo_inicial():
+def garantir_usuario_seguradora_inicial():
     conn = db.get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) FROM TB_USUARIO WHERE PAPEL = 'SOMPO'")
+        cursor.execute("SELECT COUNT(*) FROM TB_USUARIO WHERE PAPEL = 'seguradora'")
         total = cursor.fetchone()[0]
         if total > 0:
             return
@@ -61,7 +61,7 @@ def garantir_usuario_sompo_inicial():
         admin_senha = os.getenv("ADMIN_SENHA")
 
         if not admin_email or not admin_senha:
-            print("AVISO: nenhum usuario SOMPO existe e ADMIN_EMAIL/ADMIN_SENHA "
+            print("AVISO: nenhum usuario seguradora existe e ADMIN_EMAIL/ADMIN_SENHA "
                   "nao estao configurados no .env. Usuario administrador inicial "
                   "nao foi criado.")
             return
@@ -69,10 +69,10 @@ def garantir_usuario_sompo_inicial():
         senha_hash = hash_senha(admin_senha)
         cursor.execute("""
             INSERT INTO TB_USUARIO (NOME, EMAIL, SENHA_HASH, PAPEL)
-            VALUES ('Sompo Seguros', :email, :senha_hash, 'SOMPO')
+            VALUES ('seguradora Seguros', :email, :senha_hash, 'seguradora')
         """, email=admin_email, senha_hash=senha_hash)
         conn.commit()
-        print(f"Usuario SOMPO inicial criado: {admin_email}")
+        print(f"Usuario seguradora inicial criado: {admin_email}")
     finally:
         cursor.close()
         db.release_connection(conn)
@@ -113,7 +113,7 @@ def buscar_usuario_por_id(id_usuario: int):
 def listar_gestores_com_estatisticas():
     """
     Lista todos os gestores com contadores de fazenda e máquina, usada
-    pela tela da Sompo ao clicar em "Gestores Ativos".
+    pela tela da seguradora ao clicar em "Gestores Ativos".
     """
     conn = db.get_connection()
     cursor = conn.cursor()

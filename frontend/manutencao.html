@@ -1,96 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro de Manutenção | MAIA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F9FAFB; }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f9fafb;
+      }
     </style>
-</head>
-<body class="antialiased min-h-screen flex flex-col items-center p-4">
-
+  </head>
+  <body class="antialiased min-h-screen flex flex-col items-center p-4">
     <!-- Header Simples -->
     <header class="w-full max-w-md flex flex-col items-center py-8">
-        <img src="assets/sompo-logo.webp" alt="Sompo" class="h-8 mb-2" onerror="this.style.display='none'">
-        <h1 class="text-xl font-extrabold tracking-tight text-gray-900">Portal do Técnico</h1>
-        <p class="text-sm text-gray-500 text-center mt-1">Registro simplificado de manutenção de frota.</p>
+      <img
+        src="assets/seguradora-logo.webp"
+        alt="seguradora"
+        class="h-8 mb-2"
+        onerror="this.style.display = 'none'"
+      />
+      <h1 class="text-xl font-extrabold tracking-tight text-gray-900">
+        Portal do Técnico
+      </h1>
+      <p class="text-sm text-gray-500 text-center mt-1">
+        Registro simplificado de manutenção de frota.
+      </p>
     </header>
 
-    <main class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        
-        <!-- Estado 1: Carregando -->
-        <div id="loading-state" class="p-10 flex flex-col items-center justify-center text-gray-400">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mb-4"></div>
-            <p class="text-sm font-medium">Validando ordem de serviço...</p>
+    <main
+      class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+    >
+      <!-- Estado 1: Carregando -->
+      <div
+        id="loading-state"
+        class="p-10 flex flex-col items-center justify-center text-gray-400"
+      >
+        <div
+          class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mb-4"
+        ></div>
+        <p class="text-sm font-medium">Validando ordem de serviço...</p>
+      </div>
+
+      <!-- Estado 2: Erro (Token inválido ou expirado) -->
+      <div
+        id="error-state"
+        class="hidden p-10 flex flex-col items-center justify-center text-center"
+      >
+        <div class="bg-red-50 p-4 rounded-full mb-4">
+          <i data-lucide="x-circle" class="w-10 h-10 text-red-500"></i>
+        </div>
+        <h2 class="text-lg font-bold text-gray-900 mb-2">Link Indisponível</h2>
+        <p class="text-sm text-gray-500 mb-6" id="error-message">
+          Este link expirou ou a manutenção já foi registrada.
+        </p>
+      </div>
+
+      <!-- Estado 3: Formulário -->
+      <div id="form-state" class="hidden">
+        <div
+          class="bg-gray-50 p-6 border-b border-gray-100 flex items-start gap-4"
+        >
+          <div
+            class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 mt-1"
+          >
+            <i data-lucide="wrench" class="w-6 h-6 text-gray-700"></i>
+          </div>
+          <div>
+            <p
+              class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"
+            >
+              Equipamento
+            </p>
+            <p class="text-xl font-black text-gray-900" id="eqp-id">---</p>
+            <p
+              class="text-xs text-gray-600 mt-2 bg-white p-3 rounded-xl border border-gray-200 leading-relaxed"
+              id="motivo-solicitado"
+            >
+              Carregando motivo da solicitação...
+            </p>
+          </div>
         </div>
 
-        <!-- Estado 2: Erro (Token inválido ou expirado) -->
-        <div id="error-state" class="hidden p-10 flex flex-col items-center justify-center text-center">
-            <div class="bg-red-50 p-4 rounded-full mb-4">
-                <i data-lucide="x-circle" class="w-10 h-10 text-red-500"></i>
+        <div
+          id="form-error"
+          class="hidden mx-6 mt-4 p-3 bg-red-50 text-red-700 text-xs font-bold rounded-xl border border-red-200"
+        ></div>
+
+        <form id="form-manutencao" class="p-6 space-y-5">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-xs font-bold text-gray-500 uppercase mb-2"
+                >Data</label
+              >
+              <input
+                type="date"
+                id="data"
+                required
+                class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
             </div>
-            <h2 class="text-lg font-bold text-gray-900 mb-2">Link Indisponível</h2>
-            <p class="text-sm text-gray-500 mb-6" id="error-message">Este link expirou ou a manutenção já foi registrada.</p>
-        </div>
-
-        <!-- Estado 3: Formulário -->
-        <div id="form-state" class="hidden">
-            <div class="bg-gray-50 p-6 border-b border-gray-100 flex items-start gap-4">
-                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 mt-1">
-                    <i data-lucide="wrench" class="w-6 h-6 text-gray-700"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Equipamento</p>
-                    <p class="text-xl font-black text-gray-900" id="eqp-id">---</p>
-                    <p class="text-xs text-gray-600 mt-2 bg-white p-3 rounded-xl border border-gray-200 leading-relaxed" id="motivo-solicitado">Carregando motivo da solicitação...</p>
-                </div>
+            <div>
+              <label
+                class="block text-xs font-bold text-gray-500 uppercase mb-2"
+                >Hora finalizada</label
+              >
+              <input
+                type="time"
+                id="hora"
+                required
+                class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
             </div>
+          </div>
 
-            <div id="form-error" class="hidden mx-6 mt-4 p-3 bg-red-50 text-red-700 text-xs font-bold rounded-xl border border-red-200"></div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+              >O que foi realizado?</label
+            >
+            <textarea
+              id="descricao"
+              required
+              rows="4"
+              placeholder="Ex: Troca de óleo, limpeza dos filtros e calibração de pressão..."
+              class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-900 transition resize-none"
+            ></textarea>
+          </div>
 
-            <form id="form-manutencao" class="p-6 space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Data</label>
-                        <input type="date" id="data" required
-                            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Hora finalizada</label>
-                        <input type="time" id="hora" required
-                            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 transition">
-                    </div>
-                </div>
+          <button
+            type="submit"
+            id="btn-submit"
+            class="w-full bg-gray-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+          >
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            REGISTRAR MANUTENÇÃO
+          </button>
+        </form>
+      </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">O que foi realizado?</label>
-                    <textarea id="descricao" required rows="4" placeholder="Ex: Troca de óleo, limpeza dos filtros e calibração de pressão..."
-                        class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-900 transition resize-none"></textarea>
-                </div>
-
-                <button type="submit" id="btn-submit"
-                    class="w-full bg-gray-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle" class="w-5 h-5"></i>
-                    REGISTRAR MANUTENÇÃO
-                </button>
-            </form>
+      <!-- Estado 4: Sucesso -->
+      <div
+        id="success-state"
+        class="hidden p-10 flex flex-col items-center justify-center text-center"
+      >
+        <div class="bg-green-50 p-4 rounded-full mb-4">
+          <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
         </div>
-
-        <!-- Estado 4: Sucesso -->
-        <div id="success-state" class="hidden p-10 flex flex-col items-center justify-center text-center">
-            <div class="bg-green-50 p-4 rounded-full mb-4">
-                <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
-            </div>
-            <h2 class="text-xl font-bold text-gray-900 mb-2">Manutenção Registrada!</h2>
-            <p class="text-sm text-gray-500">O sistema MAIA foi atualizado e o score de risco da máquina será reprocessado.</p>
-            <p class="text-sm font-medium text-gray-900 mt-8">Você já pode fechar esta página.</p>
-        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">
+          Manutenção Registrada!
+        </h2>
+        <p class="text-sm text-gray-500">
+          O sistema MAIA foi atualizado e o score de risco da máquina será
+          reprocessado.
+        </p>
+        <p class="text-sm font-medium text-gray-900 mt-8">
+          Você já pode fechar esta página.
+        </p>
+      </div>
     </main>
 
     <script type="module" src="js/manutencao.js"></script>
-</body>
+  </body>
 </html>

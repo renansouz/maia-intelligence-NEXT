@@ -4,7 +4,7 @@ Este serviço garante a integridade imutável das decisões da IA:
 2. Utiliza SHA-256 para gerar assinaturas digitais únicas por predição.
 3. Gerencia concorrência via lock transacional (FOR UPDATE) para garantir unicidade da cadeia.
 
-Decisão de Design: O uso de Hash Chain provê segurança jurídica à Sompo, 
+Decisão de Design: O uso de Hash Chain provê segurança jurídica à seguradora, 
 permitindo provar que um registro histórico não foi adulterado após sua criação.
 """
 import hashlib
@@ -22,7 +22,7 @@ def gerar_hash_integridade(cursor, equipamento_id, data_medicao, score):
     res = cursor.fetchone()
     
     if res is None:
-        ultimo_hash = "genesis_block_sompo"
+        ultimo_hash = "genesis_block_seguradora"
     else:
         ultimo_hash = res[0]
     

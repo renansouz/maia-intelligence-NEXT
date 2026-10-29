@@ -1,23 +1,35 @@
 :root {
-    --color-primary-red: #DF082A;
-    --color-primary-wine: #9E1E24;
-    --color-primary-black: #000000;
-    --color-secondary-two: #F9FAFB;
-    --color-secondary-three: #F2F4F7;
-    --text-main: #101828;
+  --color-primary-red: #df082a;
+  --color-primary-wine: #9e1e24;
+  --color-primary-black: #000000;
+  --color-secondary-two: #f9fafb;
+  --color-secondary-three: #f2f4f7;
+  --text-main: #101828;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--color-secondary-two);
-    color: var(--text-main);
+  font-family: "Inter", sans-serif;
+  background-color: var(--color-secondary-two);
+  color: var(--text-main);
 }
 
-.bg-sompo { background-color: #DF082A; }
-.text-sompo { color: #DF082A; }
+.bg-seguradora {
+  background-color: #df082a;
+}
+.text-seguradora {
+  color: #df082a;
+}
 
-.bg-gestor { background-color: #1E3A8A; }
-.text-gestor { color: #1E3A8A; }
+.bg-gestor {
+  background-color: #1e3a8a;
+}
+.text-gestor {
+  color: #1e3a8a;
+}
 
-.bg-operador { background-color: #047857; }
-.text-operador { color: #047857; }
+.bg-operador {
+  background-color: #047857;
+}
+.text-operador {
+  color: #047857;
+}

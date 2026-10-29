@@ -17,7 +17,7 @@ from app.core.config_db import configurar_banco
 from app.core.database import db
 from fastapi.staticfiles import StaticFiles
 from app.services.user_service import (
-    buscar_usuario_por_email, garantir_usuario_sompo_inicial,
+    buscar_usuario_por_email, garantir_usuario_seguradora_inicial,
     criar_usuario, listar_operadores_do_gestor,
     buscar_usuario_por_id, listar_gestores_com_estatisticas
 )
@@ -46,7 +46,7 @@ from app.services.fazenda_service import criar_fazenda, listar_fazendas_do_gesto
 from app.services.cobertura_service import obter_catalogo_completo, obter_cobertura_do_usuario, buscar_tipo_cobertura_usuario
 from app.services.ticket_service import (
     criar_ticket, listar_tickets_operador, listar_tickets_gestor,
-    buscar_detalhe_ticket, resolver_ticket, escalar_ticket_sompo, listar_sinistros_sompo
+    buscar_detalhe_ticket, resolver_ticket, escalar_ticket_seguradora, listar_sinistros_seguradora
 )
 from app.services.manutencao_service import solicitar_manutencao, buscar_manutencao_por_token, concluir_manutencao
 from app.services.clima_service import obter_previsao_com_alerta
@@ -59,7 +59,7 @@ logger = logging.getLogger("maia")
 
 app = FastAPI(
     title="MAIA - Monitoramento e Análise Inteligente Agrícola",
-    description="Interface de Inteligência e Auditoria de Riscos Operacionais - Sompo Seguros",
+    description="Interface de Inteligência e Auditoria de Riscos Operacionais - seguradora Seguros",
     version="4.0.0"
 )
 
@@ -126,7 +126,7 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 async def startup():
     configurar_banco()
-    garantir_usuario_sompo_inicial()
+    garantir_usuario_seguradora_inicial()
 
 
 @app.post("/auth/login", response_model=TokenResponse)
@@ -198,7 +198,7 @@ async def get_historico(usuario_logado: dict = Depends(obter_usuario_atual)):
         df = pd.read_sql(query, conn)
 
         equipamentos_permitidos = listar_equipamentos_permitidos(usuario_logado)
-        if equipamentos_permitidos is not None:  # None = SOMPO, ve tudo
+        if equipamentos_permitidos is not None:  # None = seguradora, ve tudo
             df = df[df['EQUIPAMENTO_ID'].isin(equipamentos_permitidos)]
 
         for col in df.select_dtypes(include=['datetime64', 'datetime']).columns:
@@ -217,9 +217,9 @@ async def health_check():
     }
 
 @app.post("/usuarios", response_model=StandardResponse, status_code=201)
-async def criar_novo_usuario(dados: CriarUsuarioInput, usuario_logado: dict = Depends(requer_papel("SOMPO", "GESTOR"))):
-    if usuario_logado["papel"] == "SOMPO" and dados.papel != "GESTOR":
-        raise HTTPException(status_code=403, detail="Sompo so pode criar usuarios com papel GESTOR.")
+async def criar_novo_usuario(dados: CriarUsuarioInput, usuario_logado: dict = Depends(requer_papel("seguradora", "GESTOR"))):
+    if usuario_logado["papel"] == "seguradora" and dados.papel != "GESTOR":
+        raise HTTPException(status_code=403, detail="seguradora so pode criar usuarios com papel GESTOR.")
 
     if usuario_logado["papel"] == "GESTOR" and dados.papel != "OPERADOR":
         raise HTTPException(status_code=403, detail="Gestor so pode criar usuarios com papel OPERADOR.")
@@ -254,7 +254,7 @@ async def get_fazendas(usuario_logado: dict = Depends(requer_papel("GESTOR"))):
 
 
 @app.post("/maquinas", response_model=StandardResponse, status_code=201)
-async def post_maquina(dados: CriarMaquinaInput, usuario_logado: dict = Depends(requer_papel("SOMPO"))):
+async def post_maquina(dados: CriarMaquinaInput, usuario_logado: dict = Depends(requer_papel("seguradora"))):
     if buscar_maquina_por_equipamento_id(dados.equipamento_id):
         raise HTTPException(status_code=409, detail="Já existe uma máquina com este equipamento_id.")
 
@@ -308,7 +308,7 @@ async def post_vincular_operador(
     return {"status": "sucesso", "mensagem": "Operador vinculado a maquina com sucesso."}
 
 @app.get("/exposicao-financeira", response_model=dict)
-async def get_exposicao_financeira(usuario_logado: dict = Depends(requer_papel("SOMPO"))):
+async def get_exposicao_financeira(usuario_logado: dict = Depends(requer_papel("seguradora"))):
     total = calcular_exposicao_financeira_total()
     return {"exposicao_total": total}
 
@@ -326,7 +326,7 @@ async def get_minha_cobertura(usuario_logado: dict = Depends(requer_papel("GESTO
 async def get_detalhe_maquina(equipamento_id: str, usuario_logado: dict = Depends(obter_usuario_atual)):
     """
     Rota agregada usada pela tela de detalhe da máquina, reaproveitada
-    pelas três personas (Sompo, Gestor, Operador), enriquecida com o
+    pelas três personas (seguradora, Gestor, Operador), enriquecida com o
     modelo operacional (CAN) e o modelo ambiental PCA (Satélite/Solo).
     """
     if not usuario_tem_acesso_equipamento(usuario_logado, equipamento_id):
@@ -363,7 +363,7 @@ async def get_maquinas(usuario_logado: dict = Depends(obter_usuario_atual)):
     """
     Lista as máquinas dentro do escopo de permissão do usuário logado,
     já com localidade (fazenda) e diagnóstico mais recente - usada pela
-    tabela "Equipamentos em Maior Risco" (Sompo) e "Equipamentos da
+    tabela "Equipamentos em Maior Risco" (seguradora) e "Equipamentos da
     Frota" (Gestor).
     """
     equipamentos_permitidos = listar_equipamentos_permitidos(usuario_logado)
@@ -371,12 +371,12 @@ async def get_maquinas(usuario_logado: dict = Depends(obter_usuario_atual)):
 
 
 @app.get("/gestores", response_model=List[dict])
-async def get_gestores(usuario_logado: dict = Depends(requer_papel("SOMPO"))):
+async def get_gestores(usuario_logado: dict = Depends(requer_papel("seguradora"))):
     return listar_gestores_com_estatisticas()
 
 
 @app.get("/gestores/{gestor_id}/detalhe", response_model=dict)
-async def get_detalhe_gestor(gestor_id: int, usuario_logado: dict = Depends(requer_papel("SOMPO"))):
+async def get_detalhe_gestor(gestor_id: int, usuario_logado: dict = Depends(requer_papel("seguradora"))):
     gestor = buscar_usuario_por_id(gestor_id)
     if not gestor or gestor["papel"] != "GESTOR":
         raise HTTPException(status_code=404, detail="Gestor não encontrado.")
@@ -488,16 +488,16 @@ async def get_clima_operador(usuario_logado: dict = Depends(requer_papel("OPERAD
         raise HTTPException(status_code=502, detail="Não foi possível obter a previsão do tempo agora.")
     return resultado
 
-@app.patch("/tickets/{ticket_id}/encaminhar-sompo", response_model=StandardResponse)
-async def patch_encaminhar_sompo(ticket_id: int, usuario_logado: dict = Depends(requer_papel("GESTOR"))):
-    sucesso = escalar_ticket_sompo(ticket_id, usuario_logado["id_usuario"])
+@app.patch("/tickets/{ticket_id}/encaminhar-seguradora", response_model=StandardResponse)
+async def patch_encaminhar_seguradora(ticket_id: int, usuario_logado: dict = Depends(requer_papel("GESTOR"))):
+    sucesso = escalar_ticket_seguradora(ticket_id, usuario_logado["id_usuario"])
     if not sucesso:
         raise HTTPException(status_code=404, detail="Ticket não encontrado ou não pertence à sua equipe.")
-    return {"status": "sucesso", "mensagem": "Ticket encaminhado para a Sompo como sinistro."}
+    return {"status": "sucesso", "mensagem": "Ticket encaminhado para a seguradora como sinistro."}
 
 
 @app.get("/tickets/sinistros", response_model=List[dict])
-async def get_sinistros_sompo(usuario_logado: dict = Depends(requer_papel("SOMPO"))):
-    return listar_sinistros_sompo()
+async def get_sinistros_seguradora(usuario_logado: dict = Depends(requer_papel("seguradora"))):
+    return listar_sinistros_seguradora()
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

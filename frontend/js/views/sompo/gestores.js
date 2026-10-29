@@ -1,4 +1,4 @@
-export async function renderSompoGestores() {
+export async function renderseguradoraGestores() {
   const container = document.getElementById('view-content');
 
   const hashParts = window.location.hash.split('?');
@@ -29,7 +29,7 @@ async function renderListaGestores(container) {
                         <h3 class="text-2xl font-extrabold text-[#101828] tracking-tight">Gestores de Frota Ativos</h3>
                         <p class="text-gray-500 text-sm">Visão geral dos gestores corporativos, suas fazendas e frotas sob monitoramento.</p>
                     </div>
-                    <button onclick="window.location.hash='#sompo/dashboard'" class="text-xs font-bold text-gray-600 hover:text-black bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                    <button onclick="window.location.hash='#seguradora/dashboard'" class="text-xs font-bold text-gray-600 hover:text-black bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à Central de Risco
                     </button>
                 </div>
@@ -52,7 +52,7 @@ async function renderListaGestores(container) {
                                 ${gestores.length === 0 ? `
                                     <tr><td colspan="7" class="py-12 text-center text-gray-400 italic text-sm">Nenhum gestor cadastrado no momento.</td></tr>
                                 ` : gestores.map(g => `
-                                    <tr onclick="window.location.hash='#sompo/gestores?id=${g.id_usuario}'" class="hover:bg-gray-50 transition cursor-pointer">
+                                    <tr onclick="window.location.hash='#seguradora/gestores?id=${g.id_usuario}'" class="hover:bg-gray-50 transition cursor-pointer">
                                         <td class="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-900">${g.nome}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">${g.email}</td>
                                         <td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-900 border border-blue-100">${g.tipo_cobertura || 'BÁSICA'}</span></td>
@@ -94,7 +94,7 @@ async function renderDetalheGestor(container, gestorId) {
                         <h3 class="text-2xl font-extrabold text-[#101828] tracking-tight">${gestor.nome}</h3>
                         <p class="text-gray-500 text-sm">${gestor.email} · Cobertura: <strong class="text-gray-800">${gestor.tipo_cobertura || 'Básica'}</strong></p>
                     </div>
-                    <button onclick="window.location.hash='#sompo/gestores'" class="text-xs font-bold text-gray-600 hover:text-black bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                    <button onclick="window.location.hash='#seguradora/gestores'" class="text-xs font-bold text-gray-600 hover:text-black bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à Lista
                     </button>
                 </div>

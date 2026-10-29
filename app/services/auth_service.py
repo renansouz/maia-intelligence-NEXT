@@ -2,7 +2,7 @@
 Responsável por:
 1. Hash e verificação de senha (bcrypt via passlib).
 2. Geração e validação de token JWT, contendo identidade (id_usuario) e
-   papel (SOMPO/GESTOR/OPERADOR) do usuário.
+   papel (seguradora/GESTOR/OPERADOR) do usuário.
 3. Dependências do FastAPI para proteger rotas por autenticação e por papel.
 """
 import os
