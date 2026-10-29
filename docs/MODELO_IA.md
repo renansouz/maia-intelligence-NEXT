@@ -1,6 +1,6 @@
 # 🤖 MAIA — Metodologia e Motores de Inteligência Artificial
 
-Este documento descreve a arquitetura, a fundamentação estatística e os dois modelos de Machine Learning implementados no MAIA para garantir a integridade, a explicabilidade preditiva e a prevenção holística de riscos nas frotas agrícolas seguradas pela Sompo.
+Este documento descreve a arquitetura, a fundamentação estatística e os dois modelos de Machine Learning implementados no MAIA para garantir a integridade, a explicabilidade preditiva e a prevenção holística de riscos nas frotas agrícolas seguradas pela Seguradora.
 
 ---
 
@@ -72,7 +72,7 @@ O motor avalia o **conjunto estatístico multivariado** (ex: temperatura de 80°
 
 ## 4. O Conhecimento Inicial e o Perfil Evolutivo
 
-Na ausência de um histórico plurianual de frotas da Sompo, a linha de base (_baseline_) inicial foi calibrada com dados públicos reais de operação agrícola coletados via CAN do trator **Tümosan 81.110 Powershuttle**. O sistema implementa uma **Evolução de Perfil por Unidade**:
+Na ausência de um histórico plurianual de frotas da Seguradora, a linha de base (_baseline_) inicial foi calibrada com dados públicos reais de operação agrícola coletados via CAN do trator **Tümosan 81.110 Powershuttle**. O sistema implementa uma **Evolução de Perfil por Unidade**:
 
 ```text
 INITIAL ─────────► ADAPTING ─────────► INDIVIDUAL
