@@ -6,12 +6,6 @@
 <h3 align="center">Monitoramento, Análise e Inteligência Agrícola</h3>
 <p align="center"><i>Do conhecimento sobre a natureza à inteligência sobre o risco.</i></p>
 
-<p align="center">
-  <a href="" target="_blank" rel="noopener">
-    <img src="https://img.shields.io/badge/Landing%20Page-Acesse%20o%20Site%20Ao%20Vivo-DF082A?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Landing Page Ao Vivo">
-  </a>
-</p>
-
 > 🔗 Assista à demonstração completa de ponta a ponta do sistema: <br>
 > [Acesse o Vídeo no YouTube https://www.youtube.com/watch?v=1hUKn1wWac4](https://www.youtube.com/watch?v=1hUKn1wWac4)
 
